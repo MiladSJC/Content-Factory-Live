@@ -9,7 +9,10 @@
   "endDate": "2026-04-22",
   "channels": [
     "Flyer",
-    "Web Banner"
+    "Web Banner",
+    "Animation",
+    "Video",
+    "In-Store Display"    
   ],
   "status": "In Progress",
   "productCount": 0,
