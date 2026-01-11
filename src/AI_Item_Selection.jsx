@@ -127,7 +127,6 @@ const GridItem = ({
   const scanDurationPerCycle = 1200;
 
   useEffect(() => {
-    // Immediate reveal if manual mode or already scanned
     if (hasScanned || isManualMode) {
         setLocalIsScanning(false);
         setLocalShowContent(true);
@@ -214,7 +213,6 @@ const GridItem = ({
     >
       <div className={`relative aspect-square bg-gray-900 rounded-2xl border transition-all duration-700 ${localShowContent ? 'border-gray-800 group-hover:border-red-600 shadow-lg' : 'border-purple-500/10 bg-gray-950 shadow-inner'} ${isSelected ? 'ring-2 ring-red-500 border-red-500 shadow-red-900/40' : ''}`}>
         
-        {/* Manual Mode Selection Overlay */}
         {isManualMode && localShowContent && (
           <div className="absolute top-3 right-3 z-[45]">
              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${isSelected ? 'bg-red-600 border-red-600 shadow-lg' : 'bg-black/40 border-white/40'}`}>
@@ -395,7 +393,6 @@ const DataGrid = ({
         {rows.map((row, idx) => {
           const prevRow = idx > 0 ? rows[idx - 1] : null;
           
-          // Dividers: Check for Page OR Asset Set changes
           const isNewPage = idx === 0 || row?.page !== prevRow?.page;
           const isNewSet = idx > 0 && row?._assetSetLabel !== prevRow?._assetSetLabel;
 
@@ -444,13 +441,13 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
   const [originalRows, setOriginalRows] = useState([]);
   const [analysisStatus, setAnalysisStatus] = useState("");
   
-  // NEW: Manual vs AI State
   const [isManualMode, setIsManualMode] = useState(false);
   const [manualSelectedIds, setManualSelectedIds] = useState(new Set());
-  const [assetSets, setAssetSets] = useState([]); // [{label: 'Asset Set 1', items: []}]
+  const [assetSets, setAssetSets] = useState([]); 
   const [showChannelModal, setShowChannelModal] = useState(false);
+  const [targetChannelForSet, setTargetChannelForSet] = useState("");
+  const [manualView, setManualView] = useState("flyer"); // 'flyer' or 'sets'
 
-  // Persistence state for scanning motion
   const [hasScanned, setHasScanned] = useState(false);
 
   const STATUS_MESSAGES = [
@@ -535,6 +532,7 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
     setHasScanned(false);
     setManualSelectedIds(new Set());
     setAssetSets([]);
+    setManualView("flyer");
   }, [selectedCampaign]);
 
   useEffect(() => {
@@ -546,7 +544,6 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
     }
   }, [showResults, hasScanned]);
 
-  // NEW: Effect to auto-load flyer data if Manual Mode is enabled
   useEffect(() => {
     if (isManualMode && selectedCampaignName) {
         const raw = String(selectedCampaignName || "").trim();
@@ -601,6 +598,8 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
   const handleResetLayout = () => {
     if (isManualMode) {
         setAssetSets([]);
+        setManualSelectedIds(new Set());
+        setManualView("flyer");
     } else {
         setResultRows([...originalRows]);
     }
@@ -636,7 +635,6 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
     });
   };
 
-  // NEW: Manual Mode Handlers
   const handleToggleManualItem = (id) => {
     setManualSelectedIds(prev => {
         const next = new Set(prev);
@@ -650,20 +648,28 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
     const selectedItems = resultRows.filter((r, idx) => manualSelectedIds.has(r.id || `${r.Copy}-${idx}`));
     if (!selectedItems.length) return;
 
-    const setNumber = assetSets.length + 1;
+    const channelName = targetChannelForSet || activeChannel;
+    
+    // Calculate set number for this specific channel
+    const existingSetsForChannel = assetSets.filter(item => item._targetChannel === channelName);
+    const existingSetLabels = new Set(existingSetsForChannel.map(i => i._assetSetLabel));
+    const nextSetNumber = existingSetLabels.size + 1;
+
     const itemsWithSetLabel = selectedItems.map(item => ({
         ...item,
-        _assetSetLabel: `Asset Set ${setNumber}`
+        _assetSetLabel: `Asset Set ${nextSetNumber} (${channelName})`,
+        _targetChannel: channelName
     }));
 
     setAssetSets(prev => [...prev, ...itemsWithSetLabel]);
     setManualSelectedIds(new Set());
+    setManualView("sets"); // Automatically switch to view the sets
   };
 
-  // Final view logic: display Asset Sets if they exist, otherwise result rows
   const displayRows = useMemo(() => {
-    return assetSets.length > 0 ? assetSets : resultRows;
-  }, [assetSets, resultRows]);
+    if (isManualMode && manualView === "sets") return assetSets;
+    return resultRows;
+  }, [isManualMode, manualView, assetSets, resultRows]);
 
   const canRun = !!selectedCampaign && !!activeChannel && !excelLoading && !isAnalyzing;
 
@@ -682,25 +688,25 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
           onClick={() => openInNewTab(offerUrl)}
           className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase border border-gray-700 transition-colors"
         >
-          <span>搭</span> Data
+          <span>📦</span> Data
         </button>
         <button
           onClick={() => openInNewTab(layoutUrl)}
           className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase border border-gray-700 transition-colors"
         >
-          <span>盗</span> Layout
+          <span>🎨</span> Layout
         </button>
         <button
           onClick={() => openInNewTab(previewUrl)}
           className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase border border-gray-700 transition-colors"
         >
-          <span>操</span> Preview
+          <span>👁️</span> Preview
         </button>
         <button
           onClick={onNavigateToFlyer}
           className="flex items-center gap-1.5 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase border border-red-600/20 transition-all"
         >
-          <span>噫</span> Production
+          <span>🚀</span> Production
         </button>
       </div>
     );
@@ -716,7 +722,6 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
                 <span className="p-1.5 bg-purple-600 rounded-lg"><AI_Icons.Sparkles /></span> 
                 Item Selection
              </h2>
-             {/* NEW: Mode Toggle */}
              <div className="flex items-center gap-3 bg-gray-900 px-2 py-1 rounded border border-gray-700">
                 <span className={`text-[10px] font-bold uppercase transition-colors ${isManualMode ? 'text-gray-500' : 'text-purple-500'}`}>
                     AI
@@ -863,7 +868,7 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
           </div>
         ) : !showResults ? (
           <div className="h-full flex flex-col items-center justify-center text-center p-12">
-             <div className="text-5xl opacity-20 mb-4 animate-bounce">､</div>
+             <div className="text-5xl opacity-20 mb-4 animate-bounce">🤔</div>
              <h2 className="text-xl font-black text-white uppercase tracking-tighter">AI Models Loaded</h2>
              <p className="text-gray-500 text-xs mt-2 font-medium">Click AI Item Picker to analyze and filter your docket.</p>
           </div>
@@ -874,9 +879,9 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
                 <div className="flex items-center gap-6">
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">
-                        {isManualMode ? "Flyer Inventory (Manual)" : "Filtered Intelligence"}
+                        {isManualMode ? (manualView === 'sets' ? "Saved Asset Sets" : "Flyer Inventory (Manual)") : "Filtered Intelligence"}
                     </p>
-                    <p className="text-sm font-black text-white">{displayRows.length.toLocaleString()} matches found</p>
+                    <p className="text-sm font-black text-white">{displayRows.length.toLocaleString()} items</p>
                   </div>
                   <button 
                     onClick={handleResetLayout}
@@ -884,6 +889,23 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
                   >
                     <AI_Icons.RotateCcw /> Reset Layout
                   </button>
+
+                  {isManualMode && (
+                      <div className="flex bg-gray-900 rounded-xl p-1 border border-gray-800">
+                        <button 
+                            onClick={() => setManualView("flyer")} 
+                            className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${manualView === 'flyer' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                        >
+                            Flyer Pick
+                        </button>
+                        <button 
+                            onClick={() => setManualView("sets")} 
+                            className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${manualView === 'sets' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                        >
+                            View Sets ({new Set(assetSets.map(s => s._assetSetLabel)).size})
+                        </button>
+                      </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <WorkflowNavigation />
@@ -914,29 +936,33 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
         )}
       </div>
 
-      {/* NEW: Channel Selector Modal */}
       {showChannelModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
-              <div className="bg-gray-800 border border-gray-700 rounded-2xl p-6 w-[400px] shadow-2xl">
+              <div className="bg-gray-800 border border-gray-700 rounded-3xl p-8 w-[450px] shadow-2xl">
                   <div className="flex justify-between items-center mb-6">
-                      <h3 className="text-lg font-bold text-white">Select Target Channel</h3>
-                      <button onClick={() => setShowChannelModal(false)} className="text-gray-500 hover:text-white transition-colors">✕</button>
+                      <div>
+                        <h3 className="text-xl font-bold text-white">Target Channel</h3>
+                        <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest font-bold">Pick items for specific output</p>
+                      </div>
+                      <button onClick={() => setShowChannelModal(false)} className="text-gray-500 hover:text-white transition-colors bg-gray-900 w-8 h-8 rounded-full flex items-center justify-center border border-gray-700">✕</button>
                   </div>
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-1 gap-3">
                       {selectedCampaign?.channels?.map(ch => (
                           <button
                             key={ch}
                             onClick={() => {
-                                setActiveChannel(ch);
+                                setTargetChannelForSet(ch);
+                                setManualView("flyer"); // Ensure we are looking at flyer to pick
                                 setShowChannelModal(false);
                             }}
-                            className={`w-full py-4 rounded-xl font-bold text-sm uppercase transition-all border ${
-                                activeChannel === ch 
-                                ? 'bg-indigo-600 border-indigo-400 text-white' 
-                                : 'bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-500'
+                            className={`w-full py-4 px-6 rounded-2xl font-bold text-sm uppercase text-left flex items-center justify-between transition-all border group ${
+                                targetChannelForSet === ch 
+                                ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg' 
+                                : 'bg-gray-900 border-gray-700 text-gray-400 hover:border-indigo-500/50'
                             }`}
                           >
                             {ch}
+                            <div className={`w-2 h-2 rounded-full ${targetChannelForSet === ch ? 'bg-white' : 'bg-gray-800 group-hover:bg-indigo-400'}`} />
                           </button>
                       ))}
                   </div>
