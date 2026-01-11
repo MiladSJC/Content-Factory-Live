@@ -110,7 +110,10 @@ const DataTable = ({ rows }) => {
   );
 };
 
-const GridItem = ({ row, index, allRows, onReplace, onSwap, startValidation, hasScanned }) => {
+const GridItem = ({ 
+  row, index, allRows, onReplace, onSwap, startValidation, hasScanned, 
+  isManualMode, isSelected, onToggleSelect 
+}) => {
   const [localIsScanning, setLocalIsScanning] = useState(false);
   const [localShowContent, setLocalShowContent] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
@@ -124,8 +127,8 @@ const GridItem = ({ row, index, allRows, onReplace, onSwap, startValidation, has
   const scanDurationPerCycle = 1200;
 
   useEffect(() => {
-    // Immediate reveal if already scanned globally
-    if (hasScanned) {
+    // Immediate reveal if manual mode or already scanned
+    if (hasScanned || isManualMode) {
         setLocalIsScanning(false);
         setLocalShowContent(true);
         return;
@@ -144,7 +147,7 @@ const GridItem = ({ row, index, allRows, onReplace, onSwap, startValidation, has
         setLocalIsScanning(false);
         setLocalShowContent(false);
     }
-  }, [startValidation, scanComplexity, hasScanned]);
+  }, [startValidation, scanComplexity, hasScanned, isManualMode]);
 
   const insights = useMemo(() => getAIInsights(row), [row]);
   
@@ -156,7 +159,7 @@ const GridItem = ({ row, index, allRows, onReplace, onSwap, startValidation, has
   }, [allRows, row]);
 
   const handleMouseEnter = (e) => {
-    if (!localShowContent) return;
+    if (!localShowContent || isManualMode) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const windowWidth = window.innerWidth;
     setSide(rect.right + 500 > windowWidth ? "left" : "right");
@@ -174,7 +177,7 @@ const GridItem = ({ row, index, allRows, onReplace, onSwap, startValidation, has
   const apiImageUrl = imagePath ? imagePath : null;
 
   const handleDragStart = (e) => {
-    if (!localShowContent) return;
+    if (!localShowContent || isManualMode) return;
     e.dataTransfer.setData("draggedIndex", index);
     e.dataTransfer.effectAllowed = "move";
     e.currentTarget.style.opacity = "0.4";
@@ -199,17 +202,27 @@ const GridItem = ({ row, index, allRows, onReplace, onSwap, startValidation, has
 
   return (
     <div 
-      className={`group relative ${localShowContent ? 'cursor-grab active:cursor-grabbing' : 'cursor-wait'}`}
+      className={`group relative ${localShowContent ? (isManualMode ? 'cursor-default' : 'cursor-grab active:cursor-grabbing') : 'cursor-wait'}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      draggable={localShowContent}
+      draggable={localShowContent && !isManualMode}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
+      onClick={() => isManualMode && onToggleSelect?.()}
     >
-      <div className={`relative aspect-square bg-gray-900 rounded-2xl border transition-all duration-700 ${localShowContent ? 'border-gray-800 group-hover:border-red-600 shadow-lg' : 'border-purple-500/10 bg-gray-950 shadow-inner'}`}>
+      <div className={`relative aspect-square bg-gray-900 rounded-2xl border transition-all duration-700 ${localShowContent ? 'border-gray-800 group-hover:border-red-600 shadow-lg' : 'border-purple-500/10 bg-gray-950 shadow-inner'} ${isSelected ? 'ring-2 ring-red-500 border-red-500 shadow-red-900/40' : ''}`}>
         
+        {/* Manual Mode Selection Overlay */}
+        {isManualMode && localShowContent && (
+          <div className="absolute top-3 right-3 z-[45]">
+             <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${isSelected ? 'bg-red-600 border-red-600 shadow-lg' : 'bg-black/40 border-white/40'}`}>
+                {isSelected && <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" /></svg>}
+             </div>
+          </div>
+        )}
+
         {localIsScanning && (
           <div className="absolute inset-0 z-[40] pointer-events-none overflow-hidden rounded-2xl">
              <div 
@@ -274,7 +287,7 @@ const GridItem = ({ row, index, allRows, onReplace, onSwap, startValidation, has
         )}
       </div>
 
-      {showOverlay && localShowContent && (
+      {showOverlay && localShowContent && !isManualMode && (
         <div 
           className={`absolute z-[500] top-1/2 -translate-y-1/2 ${side === 'right' ? 'left-[100%] pl-4' : 'right-[100%] pr-4'} pointer-events-auto animate-in fade-in zoom-in duration-200`}
         >
@@ -372,20 +385,26 @@ const GridItem = ({ row, index, allRows, onReplace, onSwap, startValidation, has
   );
 };
 
-const DataGrid = ({ rows, onReplace, onSwap, startValidation, hasScanned }) => {
+const DataGrid = ({ 
+  rows, onReplace, onSwap, startValidation, hasScanned, 
+  isManualMode, selectedIds, onToggleItem 
+}) => {
   return (
     <div className="h-full overflow-y-auto custom-scrollbar p-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
         {rows.map((row, idx) => {
           const prevRow = idx > 0 ? rows[idx - 1] : null;
-          const isNewPage = idx === 0 || row?.page !== prevRow?.page;
           
+          // Dividers: Check for Page OR Asset Set changes
+          const isNewPage = idx === 0 || row?.page !== prevRow?.page;
+          const isNewSet = idx > 0 && row?._assetSetLabel !== prevRow?._assetSetLabel;
+
           return (
             <React.Fragment key={`${idx}-${row?.Copy}`}>
-              {isNewPage && (
+              {(isNewPage || isNewSet) && (
                 <div className="col-span-full mb-2 flex items-center gap-4">
-                  <div className="flex-none bg-red-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-[0.2em]">
-                    Page {row?.page || "Unknown"}
+                  <div className={`flex-none text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-[0.2em] ${isNewSet ? 'bg-indigo-600' : 'bg-red-600'}`}>
+                    {isNewSet ? row?._assetSetLabel : `Page ${row?.page || "Unknown"}`}
                   </div>
                   <div className="flex-1 h-px bg-gray-800"></div>
                 </div>
@@ -398,6 +417,9 @@ const DataGrid = ({ rows, onReplace, onSwap, startValidation, hasScanned }) => {
                 onSwap={onSwap}
                 startValidation={startValidation}
                 hasScanned={hasScanned}
+                isManualMode={isManualMode}
+                isSelected={selectedIds?.has(row.id || `${row.Copy}-${idx}`)}
+                onToggleSelect={() => onToggleItem?.(row.id || `${row.Copy}-${idx}`)}
               />
             </React.Fragment>
           );
@@ -422,6 +444,12 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
   const [originalRows, setOriginalRows] = useState([]);
   const [analysisStatus, setAnalysisStatus] = useState("");
   
+  // NEW: Manual vs AI State
+  const [isManualMode, setIsManualMode] = useState(false);
+  const [manualSelectedIds, setManualSelectedIds] = useState(new Set());
+  const [assetSets, setAssetSets] = useState([]); // [{label: 'Asset Set 1', items: []}]
+  const [showChannelModal, setShowChannelModal] = useState(false);
+
   // Persistence state for scanning motion
   const [hasScanned, setHasScanned] = useState(false);
 
@@ -444,7 +472,6 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
           if (cancelled) return;
           setCampaigns(fresh);
         } else {
-          // Initial fallback if Selection is opened before Manager
           fetchFromPublic();
         }
       } catch (e) { console.error(e); }
@@ -505,18 +532,37 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
     if (selectedCampaign?.channels?.length > 0) setActiveChannel(selectedCampaign.channels[0]);
     else setActiveChannel("");
     setShowResults(false);
-    setHasScanned(false); // Reset persistence when project changes
+    setHasScanned(false);
+    setManualSelectedIds(new Set());
+    setAssetSets([]);
   }, [selectedCampaign]);
 
-  // Handle global scan completion to prevent re-motion
   useEffect(() => {
     if (showResults && !hasScanned) {
       const timer = setTimeout(() => {
         setHasScanned(true);
-      }, 4000); // Wait for longest potential scan cycle (3.0s complexity * baseline)
+      }, 4000); 
       return () => clearTimeout(timer);
     }
   }, [showResults, hasScanned]);
+
+  // NEW: Effect to auto-load flyer data if Manual Mode is enabled
+  useEffect(() => {
+    if (isManualMode && selectedCampaignName) {
+        const raw = String(selectedCampaignName || "").trim();
+        const digits = getDigits(raw);
+        let base = excelRows.filter((r) => normalize(r?.docket) === normalize(raw));
+        if (!base.length && digits) base = excelRows.filter((r) => getDigits(r?.docket) === digits);
+        
+        setResultRows(base);
+        setOriginalRows(base);
+        setShowResults(true);
+        setStartValidation(true);
+    } else if (!isManualMode) {
+        setShowResults(false);
+        setResultRows([]);
+    }
+  }, [isManualMode, selectedCampaignName, excelRows]);
 
   const rowsForDocketAndChannel = useMemo(() => {
     if (!excelRows.length) return [];
@@ -532,7 +578,7 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
     setIsAnalyzing(true);
     setShowResults(false);
     setStartValidation(false);
-    setHasScanned(false); // Enable motion for new analysis
+    setHasScanned(false);
     
     let currentStep = 0;
     const interval = setInterval(() => {
@@ -553,7 +599,11 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
   };
 
   const handleResetLayout = () => {
-    setResultRows([...originalRows]);
+    if (isManualMode) {
+        setAssetSets([]);
+    } else {
+        setResultRows([...originalRows]);
+    }
   };
 
   const handleReplaceItem = (index, newRow) => {
@@ -586,6 +636,35 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
     });
   };
 
+  // NEW: Manual Mode Handlers
+  const handleToggleManualItem = (id) => {
+    setManualSelectedIds(prev => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+    });
+  };
+
+  const handleSaveAssetSet = () => {
+    const selectedItems = resultRows.filter((r, idx) => manualSelectedIds.has(r.id || `${r.Copy}-${idx}`));
+    if (!selectedItems.length) return;
+
+    const setNumber = assetSets.length + 1;
+    const itemsWithSetLabel = selectedItems.map(item => ({
+        ...item,
+        _assetSetLabel: `Asset Set ${setNumber}`
+    }));
+
+    setAssetSets(prev => [...prev, ...itemsWithSetLabel]);
+    setManualSelectedIds(new Set());
+  };
+
+  // Final view logic: display Asset Sets if they exist, otherwise result rows
+  const displayRows = useMemo(() => {
+    return assetSets.length > 0 ? assetSets : resultRows;
+  }, [assetSets, resultRows]);
+
   const canRun = !!selectedCampaign && !!activeChannel && !excelLoading && !isAnalyzing;
 
   const WorkflowNavigation = () => {
@@ -603,25 +682,25 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
           onClick={() => openInNewTab(offerUrl)}
           className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase border border-gray-700 transition-colors"
         >
-          <span>📋</span> Data
+          <span>搭</span> Data
         </button>
         <button
           onClick={() => openInNewTab(layoutUrl)}
           className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase border border-gray-700 transition-colors"
         >
-          <span>📐</span> Layout
+          <span>盗</span> Layout
         </button>
         <button
           onClick={() => openInNewTab(previewUrl)}
           className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase border border-gray-700 transition-colors"
         >
-          <span>👀</span> Preview
+          <span>操</span> Preview
         </button>
         <button
           onClick={onNavigateToFlyer}
           className="flex items-center gap-1.5 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase border border-red-600/20 transition-all"
         >
-          <span>🚀</span> Production
+          <span>噫</span> Production
         </button>
       </div>
     );
@@ -637,6 +716,21 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
                 <span className="p-1.5 bg-purple-600 rounded-lg"><AI_Icons.Sparkles /></span> 
                 Item Selection
              </h2>
+             {/* NEW: Mode Toggle */}
+             <div className="flex items-center gap-3 bg-gray-900 px-2 py-1 rounded border border-gray-700">
+                <span className={`text-[10px] font-bold uppercase transition-colors ${isManualMode ? 'text-gray-500' : 'text-purple-500'}`}>
+                    AI
+                </span>
+                <button 
+                    onClick={() => setIsManualMode(!isManualMode)} 
+                    className={`w-8 h-4 rounded-full relative transition-colors ${isManualMode ? 'bg-indigo-600' : 'bg-gray-700'}`}
+                >
+                    <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isManualMode ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                </button>
+                <span className={`text-[10px] font-bold uppercase transition-colors ${isManualMode ? 'text-indigo-400' : 'text-gray-500'}`}>
+                    Manual
+                </span>
+             </div>
         </div>
 
         <div className="space-y-2">
@@ -699,8 +793,9 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
             </div>
         </div>
 
-        <div className="pt-4 border-t border-gray-700">
-            <button
+        <div className="pt-4 border-t border-gray-700 space-y-3">
+            {!isManualMode ? (
+              <button
                 disabled={!canRun}
                 onClick={runAISelection}
                 className={`w-full py-4 rounded-xl font-black uppercase text-sm tracking-[0.2em] flex items-center justify-center gap-3 transition-all shadow-lg ${
@@ -708,9 +803,30 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
                     ? "bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-500 hover:to-red-600 active:scale-95" 
                     : "bg-gray-700 text-gray-500 cursor-not-allowed"
                 }`}
-            >
+              >
                 {isAnalyzing ? "Processing..." : <>AI Item Picker <AI_Icons.Sparkles /></>}
-            </button>
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => setShowChannelModal(true)}
+                  className="w-full py-4 rounded-xl font-black uppercase text-[11px] tracking-widest flex items-center justify-center gap-3 transition-all bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg active:scale-95"
+                >
+                  Channel asset picker
+                </button>
+                <button
+                  disabled={manualSelectedIds.size === 0}
+                  onClick={handleSaveAssetSet}
+                  className={`w-full py-4 rounded-xl font-black uppercase text-[11px] tracking-widest flex items-center justify-center gap-3 transition-all shadow-lg ${
+                    manualSelectedIds.size > 0 
+                    ? "bg-green-600 hover:bg-green-500 text-white active:scale-95" 
+                    : "bg-gray-700 text-gray-500 cursor-not-allowed"
+                  }`}
+                >
+                  Save Asset Set
+                </button>
+              </>
+            )}
         </div>
       </div>
 
@@ -747,7 +863,7 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
           </div>
         ) : !showResults ? (
           <div className="h-full flex flex-col items-center justify-center text-center p-12">
-             <div className="text-5xl opacity-20 mb-4 animate-bounce">🤖</div>
+             <div className="text-5xl opacity-20 mb-4 animate-bounce">､</div>
              <h2 className="text-xl font-black text-white uppercase tracking-tighter">AI Models Loaded</h2>
              <p className="text-gray-500 text-xs mt-2 font-medium">Click AI Item Picker to analyze and filter your docket.</p>
           </div>
@@ -757,8 +873,10 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
               <div className="z-[20] flex-none px-6 py-4 border-b border-gray-800 flex items-center justify-between bg-gray-900/30 rounded-t-3xl">
                 <div className="flex items-center gap-6">
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">Filtered Intelligence</p>
-                    <p className="text-sm font-black text-white">{resultRows.length.toLocaleString()} matches found</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                        {isManualMode ? "Flyer Inventory (Manual)" : "Filtered Intelligence"}
+                    </p>
+                    <p className="text-sm font-black text-white">{displayRows.length.toLocaleString()} matches found</p>
                   </div>
                   <button 
                     onClick={handleResetLayout}
@@ -777,14 +895,17 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
               </div>
               <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar relative z-[10]">
                 {viewMode === "table" ? (
-                  <DataTable rows={resultRows} />
+                  <DataTable rows={displayRows} />
                 ) : (
                   <DataGrid 
-                    rows={resultRows} 
+                    rows={displayRows} 
                     onReplace={handleReplaceItem} 
                     onSwap={handleSwapItems}
                     startValidation={startValidation}
                     hasScanned={hasScanned}
+                    isManualMode={isManualMode}
+                    selectedIds={manualSelectedIds}
+                    onToggleItem={handleToggleManualItem}
                   />
                 )}
               </div>
@@ -792,6 +913,36 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
           </div>
         )}
       </div>
+
+      {/* NEW: Channel Selector Modal */}
+      {showChannelModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
+              <div className="bg-gray-800 border border-gray-700 rounded-2xl p-6 w-[400px] shadow-2xl">
+                  <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-lg font-bold text-white">Select Target Channel</h3>
+                      <button onClick={() => setShowChannelModal(false)} className="text-gray-500 hover:text-white transition-colors">✕</button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
+                      {selectedCampaign?.channels?.map(ch => (
+                          <button
+                            key={ch}
+                            onClick={() => {
+                                setActiveChannel(ch);
+                                setShowChannelModal(false);
+                            }}
+                            className={`w-full py-4 rounded-xl font-bold text-sm uppercase transition-all border ${
+                                activeChannel === ch 
+                                ? 'bg-indigo-600 border-indigo-400 text-white' 
+                                : 'bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-500'
+                            }`}
+                          >
+                            {ch}
+                          </button>
+                      ))}
+                  </div>
+              </div>
+          </div>
+      )}
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
