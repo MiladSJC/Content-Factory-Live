@@ -7,10 +7,10 @@ const Login = ({ onLoginSuccess }) => {
   const [error, setError] = useState('');
   const [resendTimer, setResendTimer] = useState(30);
   
-  // Credentials State
+  // Credentials State: Defaulting to Content_Factori_Live with empty password
   const [formData, setFormData] = useState({
-    email: 'Milad.Moradi@Metro.ca',
-    password: 'MetroDemo12@#',
+    email: 'Content_Factori_Live',
+    password: '',
     showPassword: false
   });
 
@@ -27,10 +27,35 @@ const Login = ({ onLoginSuccess }) => {
     return () => clearInterval(interval);
   }, [step, resendTimer]);
 
+  // Simulated Human Typing for MFA code
+  useEffect(() => {
+    if (step === 2) {
+      // Clear fields initially to ensure the typing animation is visible
+      setMfaValues(['', '', '', '']);
+      
+      const targetCode = ['6', '7', '4', '6'];
+      targetCode.forEach((digit, index) => {
+        setTimeout(() => {
+          setMfaValues(prev => {
+            const nextMfa = [...prev];
+            nextMfa[index] = digit;
+            return nextMfa;
+          });
+          
+          // Move focus to the next input as digits are "typed"
+          if (index < 3 && inputRefs[index + 1].current) {
+            inputRefs[index + 1].current.focus();
+          }
+        }, 600 + (index * 450)); // Sequential delay: 600ms, 1050ms, 1500ms, 1950ms
+      });
+    }
+  }, [step]);
+
   const simulateApi = (data) => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        if (data.email === 'Milad.Moradi@Metro.ca' && data.password === 'MetroDemo12@#') {
+        // Updated credential check for Content_Factori_Live and demo!
+        if (data.email === 'Content_Factori_Live' && data.password === 'demo!') {
           resolve();
         } else {
           reject('Access Denied: Invalid System Credentials');
@@ -64,17 +89,8 @@ const Login = ({ onLoginSuccess }) => {
     }
   };
 
-  // Automatically trigger submission when the 4th digit is entered
-  useEffect(() => {
-    const code = mfaValues.join('');
-    // Only trigger if all fields are filled and we are on the MFA step
-    if (code.length === 4 && step === 2 && mfaValues.every(v => v !== '')) {
-      const mockEvent = { preventDefault: () => {} };
-      handleMfaSubmit(mockEvent);
-    }
-  }, [mfaValues, step]);
+  // Manual submission only - auto-submission hook removed to allow "Authorize Device" click
 
-  // Sophisticated UX: Handle Backspace to move focus back
   const handleKeyDown = (index, e) => {
     if (e.key === 'Backspace' && !mfaValues[index] && index > 0) {
       inputRefs[index - 1].current.focus();
@@ -88,27 +104,24 @@ const Login = ({ onLoginSuccess }) => {
       onLoginSuccess();
     } else {
       setError('Security Code Invalid: Access Denied');
-      // Reset MFA fields on failure for security
       setMfaValues(['', '', '', '']);
-      inputRefs[0].current.focus();
+      if (inputRefs[0].current) inputRefs[0].current.focus();
     }
   };
 
   const calculatePasswordStrength = (pass) => {
     if (pass.length === 0) return 0;
-    if (pass.length < 6) return 25;
-    if (pass.length < 10) return 60;
-    return 100;
+    if (pass.length < 5) return 25;
+    if (pass === 'demo!') return 100; // Visual feedback for the correct demo password
+    return 60;
   };
 
   return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center font-sans p-4 relative overflow-hidden">
-      {/* Background Sophistication: Animated Ambient Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-red-600/10 rounded-full blur-[120px] pointer-events-none" />
       
       <div className="w-full max-w-md bg-[#111111] rounded-2xl border border-white/5 shadow-2xl relative z-10 overflow-hidden">
         
-        {/* Animated Progress Header */}
         <div className="h-1.5 w-full bg-white/5">
           <motion.div 
             initial={{ width: "0%" }}
@@ -119,10 +132,7 @@ const Login = ({ onLoginSuccess }) => {
 
         <div className="p-10">
           <header className="text-center mb-10">
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
               <h2 className="text-3xl font-black text-white tracking-tighter uppercase italic flex items-center justify-center gap-2">
                 <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
                 Campaign<span className="text-red-600">Studio</span>
@@ -149,10 +159,10 @@ const Login = ({ onLoginSuccess }) => {
               >
                 <div className="group">
                   <label className="block text-gray-400 text-[10px] font-black uppercase mb-2 ml-1 tracking-widest transition-colors group-focus-within:text-red-500">
-                    Network Identifier
+                    User name
                   </label>
                   <input
-                    type="email"
+                    type="text"
                     className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-red-600/50 focus:bg-white/[0.05] transition-all placeholder:text-gray-700"
                     placeholder="Enter Corporate Email"
                     value={formData.email}
@@ -164,9 +174,8 @@ const Login = ({ onLoginSuccess }) => {
                 <div className="relative group">
                   <div className="flex justify-between items-center mb-2 ml-1">
                     <label className="block text-gray-400 text-[10px] font-black uppercase tracking-widest transition-colors group-focus-within:text-red-500">
-                      Access Token
+                      Password
                     </label>
-                    {/* Password Strength Meter */}
                     <div className="flex gap-1">
                         {[...Array(3)].map((_, i) => (
                           <div 
@@ -195,11 +204,7 @@ const Login = ({ onLoginSuccess }) => {
                 </div>
 
                 {error && (
-                  <motion.div 
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="bg-red-500/10 border border-red-500/20 py-3 rounded-lg"
-                  >
+                  <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-red-500/10 border border-red-500/20 py-3 rounded-lg">
                     <p className="text-red-500 text-[10px] font-bold text-center uppercase tracking-widest">{error}</p>
                   </motion.div>
                 )}
@@ -215,10 +220,7 @@ const Login = ({ onLoginSuccess }) => {
                         Authenticating...
                       </>
                     ) : (
-                      <>
-                        Initialize Access
-                        <span className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all">→</span>
-                      </>
+                      <>Initialize Access<span className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all">→</span></>
                     )}
                   </span>
                 </button>
@@ -254,7 +256,10 @@ const Login = ({ onLoginSuccess }) => {
                 </div>
 
                 <div className="space-y-4">
-                  <button className="w-full bg-white text-black hover:bg-gray-200 font-black py-5 rounded-xl transition-all uppercase text-xs tracking-[0.2em]">
+                  <button 
+                    type="submit"
+                    className="w-full bg-white text-black hover:bg-gray-200 font-black py-5 rounded-xl transition-all uppercase text-xs tracking-[0.2em]"
+                  >
                     Authorize Device
                   </button>
                   
@@ -266,12 +271,7 @@ const Login = ({ onLoginSuccess }) => {
                     >
                       {resendTimer > 0 ? `Resend Signal in ${resendTimer}s` : "Resend Security Code"}
                     </button>
-                    
-                    <button 
-                      type="button" 
-                      onClick={() => setStep(1)}
-                      className="text-[10px] font-bold text-gray-700 hover:text-white uppercase tracking-[0.3em] transition-colors"
-                    >
+                    <button type="button" onClick={() => setStep(1)} className="text-[10px] font-bold text-gray-700 hover:text-white uppercase tracking-[0.3em] transition-colors">
                       Abort Session
                     </button>
                   </div>
@@ -281,7 +281,6 @@ const Login = ({ onLoginSuccess }) => {
           </AnimatePresence>
         </div>
         
-        {/* Subtle Footer Info */}
         <div className="bg-black/50 border-t border-white/5 p-4 flex justify-between items-center px-8">
             <span className="text-[8px] text-gray-600 font-bold uppercase tracking-[0.2em]">System Status: Ready</span>
             <span className="text-[8px] text-gray-600 font-bold uppercase tracking-[0.2em]">Encryption: AES-256</span>
