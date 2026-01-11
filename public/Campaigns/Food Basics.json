@@ -1,0 +1,25 @@
+{
+  "name": "Food Basics",
+  "docketNumber": 111222,
+  "strategicYear": "2026",
+  "retailWeek": 1,
+  "banner": "Food Basics",
+  "pm": "Milad Moradi",
+  "startDate": "2026-01-01",
+  "endDate": "",
+  "channels": [
+    "Animation",
+    "Video",
+    "Email",
+    "In-Store Display"
+  ],
+  "status": "Planning",
+  "productCount": 0,
+  "assets": [],
+  "offerDataUrl": "",
+  "layoutUrl": "",
+  "previewUrl": "",
+  "year": null,
+  "updated_at": "2026-01-09 13:26:37",
+  "created_at": "2026-01-02 13:20:38"
+}

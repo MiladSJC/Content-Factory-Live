@@ -1,0 +1,50 @@
+{
+  "videoName": "IONIQ 5 - Trim.mp4",
+  "overlays": [
+    {
+      "id": 1762436298868,
+      "startTime": 2,
+      "endTime": 7,
+      "x": 28,
+      "y": 11,
+      "fontSize": 44,
+      "color": "#ffffff",
+      "entryTransition": "fadeIn",
+      "exitTransition": "fadeOut",
+      "transitionDuration": 0.5,
+      "text_EN": "Greatest Save Sales Event",
+      "text_FR": "L'Événement Super Rabais",
+      "text_CANTONESE": "Cantonese Text Here"
+    },
+    {
+      "id": 1762436357230,
+      "startTime": 7,
+      "endTime": 14,
+      "x": 50,
+      "y": 50,
+      "fontSize": 44,
+      "color": "#ffffff",
+      "entryTransition": "fadeIn",
+      "exitTransition": "fadeOut",
+      "transitionDuration": 0.5,
+      "text_EN": "The first-ever all-electric IONIQ 9",
+      "text_FR": "Le tout premier IONIQ 9 100 % électrique.",
+      "text_CANTONESE": "Cantonese Text Here"
+    },
+    {
+      "id": 1762436418491,
+      "startTime": 14,
+      "endTime": 20,
+      "x": 66,
+      "y": 89,
+      "fontSize": 44,
+      "color": "#ffffff",
+      "entryTransition": "fadeIn",
+      "exitTransition": "fadeOut",
+      "transitionDuration": 0.5,
+      "text_EN": "Introducing the all-new IONIQ 5",
+      "text_FR": "Voici le tout nouveau IONIQ 5.",
+      "text_CANTONESE": "Cantonese Text Here"
+    }
+  ]
+}

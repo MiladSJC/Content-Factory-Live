@@ -1,0 +1,66 @@
+﻿language,Brand,id,year,week,docket,campaign,page,adblock,category,markets,item_number,offer_copy,event_price,regular_price,savings,eco_fee,offer_type,record_type,unit
+EN,Metro,1348,2026,1,123456,Metro Flyer,1,1,Grocery,ON,2121221,"FRESH CANADIAN STEELHEAD TROUT OR TILAPIA FILLETS VALUE PACK
+MIN 900 g, 9.99/lb, 2.21/100 g
+PACIFIC WHITE COOKED SHRIMP RING 312 g
+9.99 EA., FROZEN",9,99,90,9⁹⁹,Save Now,featured,ea.
+EN,Metro,1098,2026,1,123456,Metro Flyer,1,2,Grocery,ON,2121222,"PLATINUM GRILL ANGUS TOP SIRLOIN STEAK VALUE PACK OR ROAST
+CUT FROM CANADA AAA GRADE
+21.78/kg",9,88,79,9⁹⁹,Save Now,featured,/lb
+EN,Metro,1099,2026,1,123456,Metro Flyer,1,3,Grocery,ON,2121223,"IRRESISTIBLE ARTISAN
+BLACK FOREST HAM OR SWISS CHEESE
+SELECTED VARIETIES, DELI SLICED, 13.56/lb",2,99,97,2⁹⁹,Save Now,featured,/100g
+EN,Metro,1100,2026,1,123456,Metro Flyer,1,4,Fresh,ON,2121224,"FRESH LAMB SHOULDER CHOPS VALUE PACK
+NEW ZEALAND SPRING LAMB
+13.21/kg",5,99,94,5⁹⁹ ,Metro Data.csv,featured,/lb
+EN,Metro,1101,2026,1,123456,Metro Flyer,1,5,Fresh,ON,2121225,"AGROPUR 3-YEAR AGED GRAND CHEDDAR 17.11/lb
+SWISS GRUYÈRE 21.56/lb 
+ILCHESTER APPLEWOOD SMOKED CHEDDAR 22.19/lb
+MANCHEGO CHEESE AGED 3 MONTHS 19.02/lb
+SARTORI PASILLA CHILE CHEESE 22.19/lb",5,99,94,5⁹⁹ ,Multi-Save,featured,off
+EN,Metro,1102,2026,1,123456,Metro Flyer,1,6,Fresh,ON,2121226,"MAPLE LEAF PRIME RAISED WITHOUT ANTIBIOTICS
+FRESH BONELESS SKINLESS CHICKEN BREAST VALUE PACK
+13.21/kg",5,99,94,5⁹⁹ ,Multi-Save,featured,/lb
+EN,Metro,1103,2026,1,123456,Metro Flyer,1,7,Grocery,ON,2121227,"KICKING HORSE
+GROUND COFFEE 284 g
+SELECTED VARIETIES",9,99,90,9⁹⁹,Multi-Save,featured,ea.
+EN,Metro,1104,2026,1,123456,Metro Flyer,1,8,Fresh,ON,2121228,"OIKOS YOGOURT TUBS 650 - 750 g or
+SIMPLY REFRIGERATED JUICE 2.25 L
+SELECTED VARIETIES",6,49,43,6⁴⁹,Multi-Save,featured,ea.
+EN,Metro,1105,2026,1,123456,Metro Flyer,1,9,Fresh,ON,2121229,"LACTANTIA MILK
+SELECTED SIZES
+SELECTED VARIETIES",4,99,95,4⁹⁹,Multi-Save,featured,ea.
+EN,Metro,1106,2026,1,123456,Metro Flyer,1,10,Fresh,ON,2121230,"QUAKER CRISPY MINIS OR
+CHEWY OR DIPPS BARS
+SELECTED SIZES, SELECTED VARIETIES",1,99,98,1⁹⁹,PA,featured,ea.
+EN,Metro,1107,2026,1,123456,Metro Flyer,1,11,Fresh,ON,2121231,"KELLOGG’S OR GENERAL MILLS
+FAMILY CEREAL
+SELECTED SIZES, SELECTED VARIETIES",5,49,44,5⁴⁹,PA,featured,ea.
+EN,Metro,1108,2026,1,123456,Metro Flyer,1,12,Grocery,ON,2121232,"UNICO SUNFLOWER OIL
+3 L",9,99,90,9⁹⁹,PA,featured,ea.
+EN,Metro,1109,2026,1,123456,Metro Flyer,1,13,Grocery,ON,2121233,"HABITANT SOUP 796 ml or
+CAMPBELL’S CHUNKY OR
+READY TO SERVE SOUP 515 ml
+SELECTED VARIETIES",1,99,98,1⁹⁹,PA,featured,ea.
+EN,Metro,1110,2026,1,123456,Metro Flyer,1,14,Consumables,ON,2121234,"BLACK DIAMOND
+BARS OR SHREDDED CHEESE
+SELECTED SIZES
+SELECTED VARIETIES",4,88,84,4⁸⁸,PA,featured,ea.
+EN,Metro,1341,2026,1,123456,Metro Flyer,1,15,Health & Wellness,ON,2121235,"PAMPERS OR HUGGIES
+BABY DIAPERS
+SELECTED SIZES
+SELECTED VARIETIES",29,99,70,29⁹⁹,Clearance,featured,ea.
+FR,Metro,1348,2026,1,123456,Metro Flyer,1,1,Grocery,ON,2121221,"Truite arc-en-ciel du Canada fraîche ou filets de tilapia format économique min 900 g, 9,99/lb, 2,21/100 g, Couronne de crevettes blanches du Pacifique cuites 312 g, 9,99 ch., surgelé",9,99,90,9⁹⁹,Save Now,featured,ea.
+FR,Metro,1098,2026,1,123456,Metro Flyer,1,2,Grocery,ON,2121222,"Bifteck de haut de surlonge Angus Platinum Grill format économique ou rôti, provenant de bœuf Canada AAA, 21,78/kg",9,88,79,9⁹⁹,Save Now,featured,/lb
+FR,Metro,1099,2026,1,123456,Metro Flyer,1,3,Grocery,ON,2121223,"Jambon Forêt-Noire ou fromage suisse Irresistibles Artisan, variétés sélectionnées, tranché au comptoir, 13,56/lb",2,99,97,2⁹⁹,Save Now,featured,/100g
+FR,Metro,1100,2026,1,123456,Metro Flyer,1,4,Fresh,ON,2121224,"Côtelettes d'épaule d'agneau fraîches format économique, Agneau de printemps de Nouvelle-Zélande, 13,21/kg",5,99,94,5⁹⁹ ,Metro Data.csv,featured,/lb
+FR,Metro,1101,2026,1,123456,Metro Flyer,1,5,Fresh,ON,2121225,"Grand Cheddar Agropur vieilli 3 ans 17,11/lb, Gruyère suisse 21,56/lb, Cheddar fumé Ilchester Applewood 22,19/lb, Fromage Manchego vieilli 3 mois 19,02/lb, Fromage Sartori Pasilla Chile 22,19/lb",5,99,94,5⁹⁹ ,Multi-Save,featured,off
+FR,Metro,1102,2026,1,123456,Metro Flyer,1,6,Fresh,ON,2121226,"Poitrines de poulet désossées sans peau fraîches Maple Leaf Prime élevé sans antibiotiques format économique, 13,21/kg",5,99,94,5⁹⁹ ,Multi-Save,featured,/lb
+FR,Metro,1103,2026,1,123456,Metro Flyer,1,7,Grocery,ON,2121227,"Café moulu Kicking Horse 284 g, variétés sélectionnées",9,99,90,9⁹⁹,Multi-Save,featured,ea.
+FR,Metro,1104,2026,1,123456,Metro Flyer,1,8,Fresh,ON,2121228,"Yogourt Oikos pots 650 - 750 g ou Jus réfrigéré Simply 2,25 L, variétés sélectionnées",6,49,43,6⁴⁹,Multi-Save,featured,ea.
+FR,Metro,1105,2026,1,123456,Metro Flyer,1,9,Fresh,ON,2121229,"Lait Lactantia, formats sélectionnés, variétés sélectionnées",4,99,95,4⁹⁹,Multi-Save,featured,ea.
+FR,Metro,1106,2026,1,123456,Metro Flyer,1,10,Fresh,ON,2121230,"Crispy Minis ou barres Chewy ou Dipps Quaker, formats sélectionnés, variétés sélectionnées",1,99,98,1⁹⁹,PA,featured,ea.
+FR,Metro,1107,2026,1,123456,Metro Flyer,1,11,Fresh,ON,2121231,"Céréales format familial Kellogg’s ou General Mills, formats sélectionnés, variétés sélectionnées",5,49,44,5⁴⁹,PA,featured,ea.
+FR,Metro,1108,2026,1,123456,Metro Flyer,1,12,Grocery,ON,2121232,Huile de tournesol Unico 3 L,9,99,90,9⁹⁹,PA,featured,ea.
+FR,Metro,1109,2026,1,123456,Metro Flyer,1,13,Grocery,ON,2121233,"Soupe Habitant 796 ml ou Soupe Chunky ou Prête à servir Campbell’s 515 ml, variétés sélectionnées",1,99,98,1⁹⁹,PA,featured,ea.
+FR,Metro,1110,2026,1,123456,Metro Flyer,1,14,Consumables,ON,2121234,"Fromage en barre ou râpé Black Diamond, formats sélectionnés, variétés sélectionnées",4,88,84,4⁸⁸,PA,featured,ea.
+FR,Metro,1341,2026,1,123456,Metro Flyer,1,15,Health & Wellness,ON,2121235,"Couches pour bébés Pampers ou Huggies, formats sélectionnés, variétés sélectionnées",29,99,70,29⁹⁹,Clearance,featured,ea.
