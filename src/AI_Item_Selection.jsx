@@ -484,6 +484,7 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
         if (cancelled) return;
         setCampaigns(valid);
         localStorage.setItem('sjc_campaign_storage', JSON.stringify(valid));
+        window.dispatchEvent(new Event("campaigns:updated"));
       } catch (e) { console.error(e); }
     };
     fetchCampaigns();
@@ -530,6 +531,18 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
   }, []);
 
   const selectedCampaign = useMemo(() => campaigns.find((c) => c.name === selectedCampaignName), [campaigns, selectedCampaignName]);
+
+// Handle external selection changes (e.g., if a bot or sidebar changes the project)
+  useEffect(() => {
+    const syncActiveProject = () => {
+      const storedName = localStorage.getItem('sjc_active_project_name');
+      if (storedName && storedName !== selectedCampaignName) {
+        setSelectedCampaignName(storedName);
+      }
+    };
+    window.addEventListener("activeProject:updated", syncActiveProject);
+    return () => window.removeEventListener("activeProject:updated", syncActiveProject);
+  }, [selectedCampaignName]);
 
   useEffect(() => {
     if (selectedCampaign?.channels?.length > 0) setActiveChannel(selectedCampaign.channels[0]);

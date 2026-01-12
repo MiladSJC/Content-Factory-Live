@@ -166,6 +166,9 @@ const CampaignManager = ({ onNavigateToAI, onNavigateToFlyer }) => {
 
   useEffect(() => {
     initializeCampaigns();
+    // Sync if other modules update the master list
+    window.addEventListener("campaigns:updated", initializeCampaigns);
+    return () => window.removeEventListener("campaigns:updated", initializeCampaigns);
   }, []);
 
   // Sync state to local storage and broadcast to other components
@@ -244,6 +247,14 @@ const CampaignManager = ({ onNavigateToAI, onNavigateToFlyer }) => {
   const handleDelete = (name) => {
     if (!window.confirm(`Delete ${name}?`)) return;
     const updatedList = campaigns.filter(c => c.name !== name);
+    
+    // Safety check: If we delete the active project, clear the selection system-wide
+    const activeProject = localStorage.getItem('sjc_active_project_name');
+    if (activeProject === name) {
+      localStorage.removeItem('sjc_active_project_name');
+      window.dispatchEvent(new Event("activeProject:updated"));
+    }
+
     syncCampaigns(updatedList);
   };
 

@@ -29,7 +29,7 @@ const ProjectTimeline = () => {
     // Listen for project selection changes from the AI Item Selection module
     const handleSync = () => {
         const selected = localStorage.getItem('sjc_active_project_name');
-        if (selected) setActiveProjectName(selected);
+        setActiveProjectName(selected || ''); // Handle clearing of selection
     };
     window.addEventListener("activeProject:updated", handleSync);
     window.addEventListener("campaigns:updated", fetchCampaigns);
@@ -40,15 +40,14 @@ const ProjectTimeline = () => {
     };
   }, []);
 
-  const fetchCampaigns = async () => {
+  const fetchCampaigns = () => {
     try {
-      const res = await fetch('http://localhost:5001/list-campaigns', { cache: 'no-store' });
-      if (res.ok) {
-        const data = await res.json();
-        setCampaigns(data.campaigns || []);
+      const localData = localStorage.getItem('sjc_campaign_storage');
+      if (localData) {
+        setCampaigns(JSON.parse(localData));
       }
     } catch (e) { 
-        console.error("Fetch Error:", e); 
+        console.error("Local Storage Sync Error:", e); 
     } finally { 
         setLoading(false); 
     }
