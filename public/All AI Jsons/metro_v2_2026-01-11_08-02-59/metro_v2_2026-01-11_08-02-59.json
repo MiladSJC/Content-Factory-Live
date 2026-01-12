@@ -1,0 +1,63 @@
+{
+  "version": 2,
+  "timestamp": "2026-01-11_08-02-59",
+  "config": {
+    "pageWidth": 555,
+    "pageHeight": 728,
+    "numRows": 6,
+    "borderColor": "#ffffff",
+    "backgroundColor": "#fecaca",
+    "cellPadding": 0,
+    "gap": 2
+  },
+  "designModel": "metro",
+  "serverVersion": "v2",
+  "rows": [
+    {
+      "cols": 3,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    },
+    {
+      "cols": 3,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    },
+    {
+      "cols": 3,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    },
+    {
+      "cols": 3,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    },
+    {
+      "cols": 3,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    },
+    {
+      "cols": 3,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    }
+  ],
+  "merges": {},
+  "hiddenCells": [],
+  "cellData": {},
+  "customModels": []
+}

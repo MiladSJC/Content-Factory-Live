@@ -1,0 +1,295 @@
+{
+  "version": 2,
+  "timestamp": "2025-12-25_14-25-18",
+  "config": {
+    "pageWidth": 500,
+    "pageHeight": 1215,
+    "numRows": 7,
+    "borderColor": "#ffffff",
+    "backgroundColor": "#bfdbfe",
+    "cellPadding": 0,
+    "gap": 2
+  },
+  "designModel": "ijijij",
+  "serverVersion": "v2",
+  "rows": [
+    {
+      "cols": 2,
+      "auto": true,
+      "scale": 1,
+      "height": 120,
+      "type": "banner"
+    },
+    {
+      "cols": 2,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    },
+    {
+      "cols": 2,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    },
+    {
+      "cols": 2,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    },
+    {
+      "cols": 3,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    },
+    {
+      "cols": 3,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    },
+    {
+      "cols": 3,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    }
+  ],
+  "merges": {},
+  "hiddenCells": [],
+  "cellData": {
+    "0_0": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\ijijij_v2_2025-12-25_14-25-18\\1.png",
+      "error": false,
+      "productData": {
+        "name": "Custom Banner"
+      },
+      "variations": []
+    },
+    "1_0": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\ijijij_v2_2025-12-25_14-25-18\\2.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\1.png",
+        "Product Name": "FRESH CANADIAN STEELHEAD TROUT OR TILAPIA FILLETS",
+        "Description": "VALUE PACK",
+        "Price": "9.99",
+        "SKU": "#30087402",
+        "Unit": "/lb"
+      },
+      "variations": []
+    },
+    "1_1": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\ijijij_v2_2025-12-25_14-25-18\\3.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\2.png",
+        "Product Name": "PLATINUM GRILL ANGUS TOP SIRLOIN STEAK VALUE",
+        "Description": "PACK OR ROAST",
+        "Price": "9.88",
+        "SKU": "#50374885",
+        "Unit": "/lb"
+      },
+      "variations": []
+    },
+    "2_0": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\ijijij_v2_2025-12-25_14-25-18\\4.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\3.png",
+        "Product Name": "IRRESISTIBLE ARTISAN",
+        "Description": "",
+        "Price": "2.99",
+        "SKU": "#50576420",
+        "Unit": "/100g"
+      },
+      "variations": []
+    },
+    "2_1": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\ijijij_v2_2025-12-25_14-25-18\\5.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\4.png",
+        "Product Name": "FRESH LAMB SHOULDER CHOPS",
+        "Description": "VALUE PACK",
+        "Price": "5.99",
+        "SKU": "#94451404",
+        "Unit": "/lb"
+      },
+      "variations": []
+    },
+    "3_0": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\ijijij_v2_2025-12-25_14-25-18\\6.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\5.png",
+        "Product Name": "AGROPUR 3-YEAR AGED GRAND CHEDDAR 17.11-lb SARTORI PASILLA CHILE CHEESE 22.19-lb",
+        "Description": "",
+        "Price": "3.97",
+        "SKU": "#30987541",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "3_1": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\ijijij_v2_2025-12-25_14-25-18\\7.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\6.png",
+        "Product Name": "MAPLE LEAF PRIME RAISED WITHOUT ANTIBIOTICS",
+        "Description": "",
+        "Price": "3.97",
+        "SKU": "#30562178",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "4_0": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\ijijij_v2_2025-12-25_14-25-18\\8.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\7.png",
+        "Product Name": "KICKING HORSEGROUND COFFEE 284 g",
+        "Description": "SELECTED VARIETIES",
+        "Price": "9.99",
+        "SKU": "#30087402",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "4_1": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\ijijij_v2_2025-12-25_14-25-18\\9.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\8.png",
+        "Product Name": "OIKOS YOGOURT TUBS 650 - 750 g orSIMPLY REFRIGERATED JUICE 2.25 L",
+        "Description": "SELECTED VARIETIES",
+        "Price": "6.49",
+        "SKU": "#50374885",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "4_2": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\ijijij_v2_2025-12-25_14-25-18\\10.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\9.png",
+        "Product Name": "LACTANTIA MILK",
+        "Description": "SELECTED SIZESSELECTED VARIETIES",
+        "Price": "4.99",
+        "SKU": "#50576420",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "5_0": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\ijijij_v2_2025-12-25_14-25-18\\11.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\10.png",
+        "Product Name": "QUAKER CRISPY MINIS ORCHEWY OR DIPPS BARS",
+        "Description": "SELECTED SIZES, SELECTED VARIETIES",
+        "Price": "1.99",
+        "SKU": "#94451404",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "5_1": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\ijijij_v2_2025-12-25_14-25-18\\12.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\11.png",
+        "Product Name": "KELLOGG\u2019S OR GENERAL MILLSFAMILY CEREAL",
+        "Description": "SELECTED SIZES, SELECTED VARIETIES",
+        "Price": "5.49",
+        "SKU": "#30987541",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "5_2": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\ijijij_v2_2025-12-25_14-25-18\\13.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\12.png",
+        "Product Name": "UNICO SUNFLOWER OIL",
+        "Description": "3 L",
+        "Price": "9.99",
+        "SKU": "#30562178",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "6_0": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\ijijij_v2_2025-12-25_14-25-18\\14.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\13.png",
+        "Product Name": "HABITANT SOUP 796 ml orCAMPBELL\u2019S CHUNKY ORREADY TO SERVE SOUP 515 ml",
+        "Description": "SELECTED VARIETIES",
+        "Price": "1.99",
+        "SKU": "#94451404",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "6_1": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\ijijij_v2_2025-12-25_14-25-18\\15.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\14.png",
+        "Product Name": "BLACK DIAMONDBARS OR SHREDDED CHEESE",
+        "Description": "SELECTED SIZESSELECTED VARIETIES",
+        "Price": "4.88",
+        "SKU": "#30987541",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "6_2": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\ijijij_v2_2025-12-25_14-25-18\\16.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\15.png",
+        "Product Name": "PAMPERS OR HUGGIESBABY DIAPERS",
+        "Description": "SELECTED SIZESSELECTED VARIETIES",
+        "Price": "29.99",
+        "SKU": "#30562178",
+        "Unit": "ea."
+      },
+      "variations": []
+    }
+  },
+  "customModels": [
+    {
+      "name": "ijijij",
+      "prompt": "**Role:** Retail Graphic Design Engine  \n**Prompt:** Generate an advertisement for a retail product in the style of 'ijijij.'  \n\n- **Background**: Use a plain white background (#FFFFFF) with soft, diffused lighting to create a clean and professional look. No shadows or gradients, ensuring the product stands out prominently.  \n- **Product Placement**: Position the product in the center of the composition, slightly angled to showcase the front label and key details. Add subtle reflections or highlights to emphasize the product's texture.  \n- **Typography Hierarchy**:  \n  - Product price: Use bold, sans-serif typography (e.g., Arial Black) in a large size, centered within a vibrant red rectangular badge (#FF0000). Place the price in white (#FFFFFF) with the decimal portion slightly smaller and elevated.  \n  - Product name: Use medium-weight sans-serif typography in black (#000000), left-aligned below the red price badge. Ensure the name is in uppercase letters for emphasis.  \n  - Subtext (e.g., size or description): Use smaller, regular-weight sans-serif typography in gray (#666666), left-aligned directly beneath the product name.  \n- **Badge Style**:  \n  - A rectangular red badge (#FF0000) with rounded corners located at the bottom center of the composition.  \n  - The badge should be large enough to contain the price clearly and leave some whitespace for visual balance.  \n- **Color Palette**:  \n  - Red (#FF0000) for the price badge.  \n  - White (#FFFFFF) for the price text.  \n  - Black (#000000) for the product name.  \n  - Gray (#666666) for subtext.  \n- **Additional Elements**:  \n  - If applicable, include small, rounded badge elements on the product packaging with complementary colors (e.g., blue, orange) to highlight features (e.g., promotions or certifications). Position these badges naturally on the product packaging.  \n\nEnsure the final design is minimalistic, clean, and focused on the product and price."
+    }
+  ]
+}

@@ -1,0 +1,371 @@
+{
+  "version": 2,
+  "timestamp": "2025-12-25_12-47-23",
+  "config": {
+    "pageWidth": 555,
+    "pageHeight": 1124,
+    "numRows": 8,
+    "borderColor": "#ffffff",
+    "backgroundColor": "#fecaca",
+    "cellPadding": 0,
+    "gap": 2
+  },
+  "designModel": "metro",
+  "serverVersion": "v2",
+  "rows": [
+    {
+      "cols": 3,
+      "auto": true,
+      "scale": 1,
+      "height": 33,
+      "type": "banner"
+    },
+    {
+      "cols": 3,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    },
+    {
+      "cols": 3,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    },
+    {
+      "cols": 3,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    },
+    {
+      "cols": 3,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    },
+    {
+      "cols": 3,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    },
+    {
+      "cols": 3,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    },
+    {
+      "cols": 3,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    }
+  ],
+  "merges": {},
+  "hiddenCells": [],
+  "cellData": {
+    "0_0": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\1.png",
+      "error": false,
+      "productData": {
+        "name": "Custom Banner"
+      },
+      "variations": []
+    },
+    "1_0": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\2.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\P2\\1.png",
+        "Product Name": "WONDER OR COUNTRY HARVEST BREADS",
+        "Description": "SELECTED SIZES SELECTED VARIETIES OR 3.99 EA.",
+        "Price": "2 for 7.00",
+        "SKU": "#30087402",
+        "Unit": ""
+      },
+      "variations": []
+    },
+    "1_1": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\3.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\P2\\2.png",
+        "Product Name": "VEGETARIAN, CALIFORNIA OR SPICY CALIFORNIA ROLLS",
+        "Description": "208 - 236 g, SELECTED VARIETIES",
+        "Price": "7.00",
+        "SKU": "#50374885",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "1_2": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\4.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\P2\\3.png",
+        "Product Name": "STORE MADE SAUSAGES VALUE PACK",
+        "Description": "SELECTED VARIETIES 13.21/kg",
+        "Price": "5.99",
+        "SKU": "#50576420",
+        "Unit": "/lb"
+      },
+      "variations": []
+    },
+    "2_0": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\5.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\P2\\4.png",
+        "Product Name": "SAN DANIELE, MASTRO, PILLER\u2019S OR OLYMEL",
+        "Description": "SLICED DELI 125 - 175 g, SELECTED VARIETIES",
+        "Price": "5.99",
+        "SKU": "#94451404",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "2_1": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\6.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\P2\\5.png",
+        "Product Name": "FONTAINE SANT\u00c9 OR ADONIS HUMMUS",
+        "Description": "227 - 260 g SELECTED VARIETIES",
+        "Price": "2 for 7.00",
+        "SKU": "#30987541",
+        "Unit": ""
+      },
+      "variations": []
+    },
+    "2_2": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\7.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\P2\\6.png",
+        "Product Name": "IRRESISTIBLE RICOTTA, COCKTAIL BOCCONCINI, GOAT CHEESE OR SELECTION FETA",
+        "Description": "113 - 400 g, SELECTED VARIETIES",
+        "Price": "5.99",
+        "SKU": "#30562178",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "3_0": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\8.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\P2\\7.png",
+        "Product Name": "JANES ULTIMATES BREADED FISH FILLETS",
+        "Description": "FROZEN, 530 - 615 g SELECTED VARIETIES",
+        "Price": "13.99",
+        "SKU": "#30087402",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "3_1": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\9.png",
+      "error": false,
+      "productData": {
+        "name": "Custom Banner"
+      },
+      "variations": []
+    },
+    "3_2": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\10.png",
+      "error": false,
+      "productData": {
+        "name": "Custom Banner"
+      },
+      "variations": []
+    },
+    "4_0": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\11.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\P2\\9.png",
+        "Product Name": "I\u00d6GO NANO 6 X 96 ml OR",
+        "Description": "SIGGI\u2019S SKYR 4 X 100 g SELECTED VARIETIES",
+        "Price": "3.49",
+        "SKU": "#50576420",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "4_1": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\12.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\P2\\10.png",
+        "Product Name": "MARLEY OR IRRESISTIBLE COFFEE CAPSULES 24 - 30 un.",
+        "Description": "SELECTED VARIETIES",
+        "Price": "15.99",
+        "SKU": "#94451404",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "4_2": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\13.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\P2\\11.png",
+        "Product Name": "HIDDEN VALLEY SALAD DRESSING 473 ml OR SWEET BABY RAY\u2019S SAUCE 425 ml",
+        "Description": "SELECTED VARIETIES",
+        "Price": "3.49",
+        "SKU": "#30987541",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "5_0": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\14.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\P2\\12.png",
+        "Product Name": "CELESTIAL TEA BAGS 20 un. OR PEARL MILLING COMPANY PANCAKE MIX 905 g OR",
+        "Description": "TABLE SYRUP 710 ml SELECTED VARIETIES",
+        "Price": "4.49",
+        "SKU": "#30562178",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "5_1": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\15.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\P2\\13.png",
+        "Product Name": "OASIS OR ALLEN\u2019S JUICE OR COCKTAILS",
+        "Description": "8 X 200 ml SELECTED VARIETIES",
+        "Price": "3.99",
+        "SKU": "#94451404",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "5_2": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\16.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\P2\\14.png",
+        "Product Name": "ESKA NATURAL SPRING WATER",
+        "Description": "24 X 500 ml",
+        "Price": "5.99",
+        "SKU": "#30087402",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "6_0": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\17.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\P2\\15.png",
+        "Product Name": "PERRIER, MAISON PERRIER OR SANPELLEGRINO SPARKLING WATER 6 X 1 L",
+        "Description": "SELECTED VARIETIES",
+        "Price": "10.99",
+        "SKU": "#50374885",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "6_1": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\18.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\P2\\16.png",
+        "Product Name": "LAY\u2019S FAMILY SIZE CHIPS, SMARTFOOD POPCORN, TAKIS OR QUE PASA CHIPS",
+        "Description": "SELECTED SIZES, SELECTED VARIETIES",
+        "Price": "2.99",
+        "SKU": "#50576420",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "6_2": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\19.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\P2\\17.png",
+        "Product Name": "PEPSI SOFT DRINKS 2 L",
+        "Description": "Less than 2 pay 3.99 ea",
+        "Price": "2 for 7.00",
+        "SKU": "#94451404",
+        "Unit": ""
+      },
+      "variations": []
+    },
+    "7_0": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\20.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\P2\\18.png",
+        "Product Name": "OCEAN SPRAY OR CLEARLY CANADIAN SPARKLING DRINKS 6 X 340 - 355 ml",
+        "Description": "SELECTED VARIETIES",
+        "Price": "6.99",
+        "SKU": "#30987541",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "7_1": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\21.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\P2\\19.png",
+        "Product Name": "BUDWEISER ZERO NON-ALCOHOLIC BEER 12 X 355 ml",
+        "Description": "",
+        "Price": "14.99",
+        "SKU": "#30562178",
+        "Unit": "ea."
+      },
+      "variations": []
+    },
+    "7_2": {
+      "loading": false,
+      "image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Jsons\\metro_v2_2025-12-25_12-47-23\\22.png",
+      "error": false,
+      "productData": {
+        "Product Image": "C:\\Users\\milad.moradi\\Desktop\\Demo Portal\\Assets\\Metro\\P2\\20.png",
+        "Product Name": "LA COCINA TORTILLA CHIPS 300 - 400 g",
+        "Description": "SELECTED VARIETIES",
+        "Price": "4.99",
+        "SKU": "#30087402",
+        "Unit": "ea."
+      },
+      "variations": []
+    }
+  },
+  "customModels": []
+}

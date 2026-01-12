@@ -1,0 +1,51 @@
+{
+  "version": 2,
+  "timestamp": "2025-12-27_16-51-31",
+  "config": {
+    "pageWidth": 700,
+    "pageHeight": 800,
+    "numRows": 2,
+    "borderColor": "#ffffff",
+    "backgroundColor": "#bfdbfe",
+    "cellPadding": 0,
+    "gap": 2
+  },
+  "designModel": "yyy",
+  "serverVersion": "v1",
+  "rows": [
+    {
+      "cols": 3,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    },
+    {
+      "cols": 3,
+      "auto": true,
+      "scale": 1,
+      "height": 180,
+      "type": "offer"
+    }
+  ],
+  "merges": {
+    "0_0": {
+      "rowSpan": 2,
+      "colSpan": 3
+    }
+  },
+  "hiddenCells": [
+    "0_1",
+    "0_2",
+    "1_0",
+    "1_1",
+    "1_2"
+  ],
+  "cellData": {},
+  "customModels": [
+    {
+      "name": "yyy",
+      "prompt": "**Role:** Retail Graphic Design Engine  \n**Prompt:** A retail promotional design for a new product in the style of 'yyy'. The background is a solid vibrant green (#009639), with a smooth, matte texture and even lighting. Place the product prominently in the center with a slight shadow for depth. Typography hierarchy: The product name is in bold white uppercase sans-serif font, aligned to the top-right corner, smaller than the price text. The price is bold, black, and prominently displayed in a large sans-serif font, with the price per unit in a smaller, thinner font just below it. Both texts are right-aligned. A bright yellow badge is positioned on the right side, mid-height, featuring a rectangular shape with slightly rounded corners and a bold red dollar symbol inside a circle on the right edge of the badge. Ensure the layout is clean, with balanced spacing between elements for a modern retail aesthetic."
+    }
+  ]
+}

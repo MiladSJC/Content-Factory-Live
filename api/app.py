@@ -53,7 +53,8 @@ REACT_PUBLIC_DIR = os.getenv("REACT_PUBLIC_DIR", r"C:\Users\milad.moradi\Desktop
 GOOGLE_CLOUD_API_KEY = os.getenv("GOOGLE_CLOUD_API_KEY")
 GOOGLE_IMAGE_MODEL = os.getenv("GOOGLE_IMAGE_MODEL", "gemini-3-pro-image-preview")
 
-SAVE_BASE_DIR = r"C:\Users\milad.moradi\Desktop\Demo Portal\Jsons"
+# Updated to point to the Public directory for web compatibility
+SAVE_BASE_DIR = r"C:\Users\milad.moradi\Desktop\Demo Portal\ReactVideo\public\All AI Jsons"
 # Unified Campaign directory inside the React Public folder for persistence
 CAMPAIGN_SAVE_DIR = r"C:\Users\milad.moradi\Desktop\Demo Portal\ReactVideo\public\Campaigns"
 
@@ -467,7 +468,14 @@ async def save_project(project: ProjectSaveRequest):
         image_counter = 1
         processed_cell_data = project.cellData.copy()
 
+        def get_relative_url(abs_path):
+            """Converts absolute disk path to a relative URL path from the public folder."""
+            # Ensure path uses forward slashes for web compatibility
+            rel_to_public = os.path.relpath(abs_path, REACT_PUBLIC_DIR).replace("\\", "/")
+            return f"/{rel_to_public}"
+
         for cell_id, cell_content in processed_cell_data.items():
+            # Handle Main Image
             if "image" in cell_content and cell_content["image"]:
                 img_str = cell_content["image"]
                 if img_str.startswith("data:image"):
@@ -478,11 +486,16 @@ async def save_project(project: ProjectSaveRequest):
                         file_path = os.path.join(full_folder_path, file_name)
                         with open(file_path, "wb") as f:
                             f.write(data)
-                        cell_content["image"] = file_path
+                        # Save as relative URL for the browser
+                        cell_content["image"] = get_relative_url(file_path)
                         image_counter += 1
                     except Exception:
                         pass
+                elif os.path.isabs(img_str) and REACT_PUBLIC_DIR in img_str:
+                    # Convert existing absolute paths to relative
+                    cell_content["image"] = get_relative_url(img_str)
 
+            # Handle Variations
             if "variations" in cell_content and isinstance(cell_content["variations"], list):
                 new_vars = []
                 for var_img in cell_content["variations"]:
@@ -494,10 +507,12 @@ async def save_project(project: ProjectSaveRequest):
                             file_path = os.path.join(full_folder_path, file_name)
                             with open(file_path, "wb") as f:
                                 f.write(data)
-                            new_vars.append(file_path)
+                            new_vars.append(get_relative_url(file_path))
                             image_counter += 1
                         except Exception:
                             new_vars.append(var_img)
+                    elif os.path.isabs(var_img) and REACT_PUBLIC_DIR in var_img:
+                        new_vars.append(get_relative_url(var_img))
                     else:
                         new_vars.append(var_img)
                 cell_content["variations"] = new_vars

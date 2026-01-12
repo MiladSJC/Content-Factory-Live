@@ -538,12 +538,19 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
 
           keys.forEach((key) => {
               const cell = data.cellData[key];
+              
+              // Handle relative paths. If path starts with "/", it is relative to public root.
+              // We only proxy via get-local-image if it's still an absolute Windows path (Legacy support).
               if (cell.image && !cell.image.startsWith('data:')) {
-                  cell.image = `http://localhost:5001/get-local-image?path=${encodeURIComponent(cell.image)}`;
+                  if (cell.image.includes(':') || cell.image.startsWith('\\\\')) {
+                      cell.image = `http://localhost:5001/get-local-image?path=${encodeURIComponent(cell.image)}`;
+                  }
+                  // Otherwise, if it starts with "/", the browser will resolve it automatically.
               }
+
               if (cell.variations && cell.variations.length > 0) {
                   cell.variations = cell.variations.map(v => {
-                      if (!v.startsWith('data:')) {
+                      if (!v.startsWith('data:') && (v.includes(':') || v.startsWith('\\\\'))) {
                            return `http://localhost:5001/get-local-image?path=${encodeURIComponent(v)}`;
                       }
                       return v;
