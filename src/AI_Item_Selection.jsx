@@ -40,6 +40,19 @@ const BANNERS = ['Metro', 'Food Basics'];
 const normalize = (v) => String(v ?? "").trim().toLowerCase();
 const getDigits = (s) => (String(s ?? "").match(/\d+/g) || []).join("");
 
+// Manual selection must NEVER rely on Excel "id" alone (often reused across pages/adblocks).
+// Build a stable, page-aware key to prevent cross-page selection collisions.
+const getSelectionKey = (row) => {
+  const docket = normalize(row?.docket);
+  const channel = normalize(row?.["Marketing Channels"]);
+  const page = String(row?.page ?? "").trim();
+  const adblock = String(row?.adblock ?? "").trim();
+  const copy = String(row?.Copy ?? "").trim();
+  const price = String(row?.Price ?? "").trim();
+  return [docket, channel, page, adblock, copy, price].join("|");
+};
+
+
 const isFlyerChannelName = (name) => {
   const n = normalize(name);
   if (!n) return false;
@@ -404,6 +417,7 @@ const DataGrid = ({
   startValidation,
   hasScanned,
   isManualMode,
+  manualView,
   selectedIds,
   onToggleItem,
   pickEnabled
@@ -413,20 +427,27 @@ const DataGrid = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
         {rows.map((row, idx) => {
           const prevRow = idx > 0 ? rows[idx - 1] : null;
+          const shouldGroupByPage = !(isManualMode && manualView === "sets");
 
-          const isNewPage = idx === 0 || row?.page !== prevRow?.page;
-          const isNewSet = idx > 0 && row?._assetSetLabel !== prevRow?._assetSetLabel;
+          const isNewPage = shouldGroupByPage && (idx === 0 || row?.page !== prevRow?.page);
+          const hasSetLabel = !!row?._assetSetLabel;
+          const isNewSet = hasSetLabel && (idx === 0 || row?._assetSetLabel !== prevRow?._assetSetLabel);
 
           return (
             <React.Fragment key={`${idx}-${row?.Copy}`}>
-              {(isNewPage || isNewSet) && (
+              {(isNewSet || isNewPage) && (
                 <div className="col-span-full mb-2 flex items-center gap-4">
-                  <div className={`flex-none text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-[0.2em] ${isNewSet ? "bg-indigo-600" : "bg-red-600"}`}>
+                  <div
+                    className={`flex-none text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-[0.2em] ${
+                      isNewSet ? "bg-indigo-600" : "bg-red-600"
+                    }`}
+                  >
                     {isNewSet ? row?._assetSetLabel : `Page ${row?.page || "Unknown"}`}
                   </div>
                   <div className="flex-1 h-px bg-gray-800"></div>
                 </div>
               )}
+
               <GridItem
                 row={row}
                 index={idx}
@@ -436,8 +457,8 @@ const DataGrid = ({
                 startValidation={startValidation}
                 hasScanned={hasScanned}
                 isManualMode={isManualMode}
-                isSelected={selectedIds?.has(row.id || `${row.page}-${row.adblock}-${row.Copy}`)}
-                onToggleSelect={() => onToggleItem?.(row.id || `${row.page}-${row.adblock}-${row.Copy}`)}
+                isSelected={selectedIds?.has(getSelectionKey(row))}
+                onToggleSelect={() => onToggleItem?.(getSelectionKey(row))}
                 pickEnabled={pickEnabled}
               />
             </React.Fragment>
@@ -708,7 +729,7 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
   };
 
   const handleSaveAssetSet = () => {
-    const selectedItems = resultRows.filter((r) => manualSelectedIds.has(r.id || `${r.page}-${r.adblock}-${r.Copy}`));
+    const selectedItems = resultRows.filter((r) => manualSelectedIds.has(getSelectionKey(r)));
     if (!selectedItems.length) return;
 
     const channelName = targetChannelForSet;
@@ -1030,6 +1051,7 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
                     startValidation={startValidation}
                     hasScanned={hasScanned}
                     isManualMode={isManualMode}
+                    manualView={manualView}
                     selectedIds={manualSelectedIds}
                     onToggleItem={handleToggleManualItem}
                     pickEnabled={pickEnabled}
