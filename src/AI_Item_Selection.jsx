@@ -43,7 +43,6 @@ const getDigits = (s) => (String(s ?? "").match(/\d+/g) || []).join("");
 const isFlyerChannelName = (name) => {
   const n = normalize(name);
   if (!n) return false;
-  // Broad match to handle variants like "Flyer", "Flyer EN", "Print Flyer", etc.
   return n === "flyer" || n.includes("flyer");
 };
 
@@ -59,7 +58,7 @@ const getAIInsights = (row) => {
   const marginLift = (2 + (seed % 8)).toFixed(1);
   const affinity = 75 + (seed % 20);
   const stock = 150 + (seed * 2);
-  
+
   const regions = ["Ontario (GTA)", "British Columbia", "Quebec", "Alberta"];
   const reasons = [
     "High historical affinity in regional GTA flyers.",
@@ -68,7 +67,7 @@ const getAIInsights = (row) => {
     "Social sentiment peaks for this SKU in mid-week browsing.",
     "Predictive model suggests high cross-sell conversion."
   ];
-  
+
   return {
     revenue: `$${revenue}`,
     roi: `${roi}x`,
@@ -95,7 +94,10 @@ const DataTable = ({ rows }) => {
         <thead className="sticky top-0 z-10 bg-gray-900 shadow-[0_1px_0_0_rgba(31,41,55,1)]">
           <tr>
             {columns.map((col) => (
-              <th key={col} className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap border-b border-gray-800">
+              <th
+                key={col}
+                className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap border-b border-gray-800"
+              >
                 {col}
               </th>
             ))}
@@ -117,9 +119,18 @@ const DataTable = ({ rows }) => {
   );
 };
 
-const GridItem = ({ 
-  row, index, allRows, onReplace, onSwap, startValidation, hasScanned, 
-  isManualMode, isSelected, onToggleSelect 
+const GridItem = ({
+  row,
+  index,
+  allRows,
+  onReplace,
+  onSwap,
+  startValidation,
+  hasScanned,
+  isManualMode,
+  isSelected,
+  onToggleSelect,
+  pickEnabled
 }) => {
   const [localIsScanning, setLocalIsScanning] = useState(false);
   const [localShowContent, setLocalShowContent] = useState(false);
@@ -135,31 +146,31 @@ const GridItem = ({
 
   useEffect(() => {
     if (hasScanned || isManualMode) {
-        setLocalIsScanning(false);
-        setLocalShowContent(true);
-        return;
+      setLocalIsScanning(false);
+      setLocalShowContent(true);
+      return;
     }
 
     if (startValidation) {
-        setLocalIsScanning(true);
-        setLocalShowContent(false);
-        const totalDuration = parseFloat(scanComplexity) * scanDurationPerCycle;
-        const timer = setTimeout(() => {
-            setLocalIsScanning(false);
-            setLocalShowContent(true);
-        }, totalDuration);
-        return () => clearTimeout(timer);
-    } else {
+      setLocalIsScanning(true);
+      setLocalShowContent(false);
+      const totalDuration = parseFloat(scanComplexity) * scanDurationPerCycle;
+      const timer = setTimeout(() => {
         setLocalIsScanning(false);
-        setLocalShowContent(false);
+        setLocalShowContent(true);
+      }, totalDuration);
+      return () => clearTimeout(timer);
+    } else {
+      setLocalIsScanning(false);
+      setLocalShowContent(false);
     }
   }, [startValidation, scanComplexity, hasScanned, isManualMode]);
 
   const insights = useMemo(() => getAIInsights(row), [row]);
-  
+
   const alternatives = useMemo(() => {
     return [...allRows]
-      .filter(r => r.Copy !== row.Copy && String(r.page) !== String(row.page))
+      .filter((r) => r.Copy !== row.Copy && String(r.page) !== String(row.page))
       .sort(() => 0.5 - Math.random())
       .slice(0, 2);
   }, [allRows, row]);
@@ -207,8 +218,16 @@ const GridItem = ({
   };
 
   return (
-    <div 
-      className={`group relative ${localShowContent ? (isManualMode ? 'cursor-default' : 'cursor-grab active:cursor-grabbing') : 'cursor-wait'}`}
+    <div
+      className={`group relative ${
+        localShowContent
+          ? isManualMode
+            ? pickEnabled
+              ? "cursor-pointer"
+              : "cursor-default"
+            : "cursor-grab active:cursor-grabbing"
+          : "cursor-wait"
+      }`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       draggable={localShowContent && !isManualMode}
@@ -216,86 +235,95 @@ const GridItem = ({
       onDragEnd={handleDragEnd}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      onClick={() => isManualMode && onToggleSelect?.()}
+      onClick={() => isManualMode && pickEnabled && onToggleSelect?.()}
     >
-      <div className={`relative aspect-square bg-gray-900 rounded-2xl border transition-all duration-700 ${localShowContent ? 'border-gray-800 group-hover:border-red-600 shadow-lg' : 'border-purple-500/10 bg-gray-950 shadow-inner'} ${isSelected ? 'ring-2 ring-red-500 border-red-500 shadow-red-900/40' : ''}`}>
-        
-        {isManualMode && localShowContent && (
+      <div
+        className={`relative aspect-square bg-gray-900 rounded-2xl border transition-all duration-700 ${
+          localShowContent ? "border-gray-800 group-hover:border-red-600 shadow-lg" : "border-purple-500/10 bg-gray-950 shadow-inner"
+        } ${isSelected ? "ring-2 ring-red-500 border-red-500 shadow-red-900/40" : ""}`}
+      >
+        {isManualMode && pickEnabled && localShowContent && (
           <div className="absolute top-3 right-3 z-[45]">
-             <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${isSelected ? 'bg-red-600 border-red-600 shadow-lg' : 'bg-black/40 border-white/40'}`}>
-                {isSelected && <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" /></svg>}
-             </div>
+            <div
+              className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
+                isSelected ? "bg-red-600 border-red-600 shadow-lg" : "bg-black/40 border-white/40"
+              }`}
+            >
+              {isSelected && (
+                <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
           </div>
         )}
 
         {localIsScanning && (
           <div className="absolute inset-0 z-[40] pointer-events-none overflow-hidden rounded-2xl">
-             <div 
-               className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-purple-400 to-transparent shadow-[0_0_20px_rgba(168,85,247,1)] animate-scan-infinite" 
-               style={{ animationDuration: `${scanDurationPerCycle}ms` }}
-             />
-             <div className="absolute inset-0 bg-gradient-to-b from-purple-500/10 via-transparent to-transparent animate-pulse" />
-             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 px-3 py-1 rounded-full border border-purple-500/20 backdrop-blur-md">
-                <p className="text-[8px] font-black text-purple-400 uppercase tracking-[0.2em] whitespace-nowrap">
-                  Neural Variance: {scanComplexity}
-                </p>
-             </div>
+            <div
+              className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-purple-400 to-transparent shadow-[0_0_20px_rgba(168,85,247,1)] animate-scan-infinite"
+              style={{ animationDuration: `${scanDurationPerCycle}ms` }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-purple-500/10 via-transparent to-transparent animate-pulse" />
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 px-3 py-1 rounded-full border border-purple-500/20 backdrop-blur-md">
+              <p className="text-[8px] font-black text-purple-400 uppercase tracking-[0.2em] whitespace-nowrap">Neural Variance: {scanComplexity}</p>
+            </div>
           </div>
         )}
 
-        <div className={`flex-1 w-full h-full flex flex-col transition-all duration-1000 ease-out ${localShowContent ? 'opacity-100 scale-100 rotate-0' : 'opacity-0 scale-90 rotate-1'}`}>
-            <div className="flex-1 w-full h-full relative overflow-hidden bg-white">
+        <div
+          className={`flex-1 w-full h-full flex flex-col transition-all duration-1000 ease-out ${
+            localShowContent ? "opacity-100 scale-100 rotate-0" : "opacity-0 scale-90 rotate-1"
+          }`}
+        >
+          <div className="flex-1 w-full h-full relative overflow-hidden bg-white">
             {apiImageUrl ? (
-                <img 
-                src={apiImageUrl} 
-                alt={row?.Copy} 
+              <img
+                src={apiImageUrl}
+                alt={row?.Copy}
                 className="w-full h-full object-contain block"
-                onError={(e) => { e.target.src = 'https://via.placeholder.com/200?text=No+Image'; }}
-                />
+                onError={(e) => {
+                  e.target.src = "https://via.placeholder.com/200?text=No+Image";
+                }}
+              />
             ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-black uppercase">No Preview</div>
+              <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-black uppercase">No Preview</div>
             )}
-            
+
             {row?.page && (
-                <div className="absolute top-3 left-3 bg-black/70 text-white text-[9px] font-black px-2 py-1 rounded-md backdrop-blur-md border border-white/10 uppercase">
+              <div className="absolute top-3 left-3 bg-black/70 text-white text-[9px] font-black px-2 py-1 rounded-md backdrop-blur-md border border-white/10 uppercase">
                 PG {row.page}
-                </div>
+              </div>
             )}
 
             {row?.adblock && (
-                <div className="absolute top-3 right-3 bg-red-600 text-white text-[9px] font-black px-2 py-1 rounded-md border border-white/10 uppercase shadow-lg z-20">
+              <div className="absolute top-3 right-3 bg-red-600 text-white text-[9px] font-black px-2 py-1 rounded-md border border-white/10 uppercase shadow-lg z-20">
                 POS: {row.adblock}
-                </div>
+              </div>
             )}
-            </div>
+          </div>
 
-            <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black via-black/80 to-transparent flex justify-between items-end gap-2">
+          <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black via-black/80 to-transparent flex justify-between items-end gap-2">
             <div className="flex-1 min-w-0">
-                <p className="text-[10px] text-gray-100 font-bold leading-tight line-clamp-2 uppercase">
-                {row?.Copy || "No Copy"}
-                </p>
+              <p className="text-[10px] text-gray-100 font-bold leading-tight line-clamp-2 uppercase">{row?.Copy || "No Copy"}</p>
             </div>
             <div className="flex-none text-right">
-                <p className="text-3xl font-black text-blue-400 tracking-tighter">
-                {row?.Price || "N/A"}
-                </p>
+              <p className="text-3xl font-black text-blue-400 tracking-tighter">{row?.Price || "N/A"}</p>
             </div>
-            </div>
+          </div>
         </div>
 
         {!localShowContent && !localIsScanning && (
-            <div className="absolute inset-0 flex items-center justify-center">
-                 <div className="w-10 h-10 border border-gray-800 rounded-full flex items-center justify-center opacity-30">
-                    <div className="w-2 h-2 bg-gray-700 rounded-full animate-ping" />
-                 </div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-10 h-10 border border-gray-800 rounded-full flex items-center justify-center opacity-30">
+              <div className="w-2 h-2 bg-gray-700 rounded-full animate-ping" />
             </div>
+          </div>
         )}
       </div>
 
       {showOverlay && localShowContent && !isManualMode && (
-        <div 
-          className={`absolute z-[500] top-1/2 -translate-y-1/2 ${side === 'right' ? 'left-[100%] pl-4' : 'right-[100%] pr-4'} pointer-events-auto animate-in fade-in zoom-in duration-200`}
-        >
+        <div className={`absolute z-[500] top-1/2 -translate-y-1/2 ${side === "right" ? "left-[100%] pl-4" : "right-[100%] pr-4"} pointer-events-auto animate-in fade-in zoom-in duration-200`}>
           <div className="w-[460px] bg-gray-950/95 backdrop-blur-xl border border-purple-500/50 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] p-5">
             <div className="absolute top-5 right-5 px-3 py-1 bg-green-900/30 border border-green-500/30 rounded-full">
               <p className="text-[9px] font-black text-green-400 uppercase tracking-[0.15em]">Confidence: 94%</p>
@@ -329,27 +357,6 @@ const GridItem = ({
               </div>
             </div>
 
-            <div className="space-y-3 mb-5 px-1">
-               <div className="flex flex-col gap-1.5">
-                  <div className="flex justify-between text-[9px] font-black uppercase tracking-widest">
-                    <span className="text-gray-500">Regional Affinity</span>
-                    <span className="text-white">{insights.affinity}</span>
-                  </div>
-                  <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
-                    <div className="h-full bg-purple-500" style={{ width: insights.affinity }} />
-                  </div>
-               </div>
-               <div className="flex flex-col gap-1.5">
-                  <div className="flex justify-between text-[9px] font-black uppercase tracking-widest">
-                    <span className="text-gray-500">Inventory Status</span>
-                    <span className="text-white">{insights.stock} Units</span>
-                  </div>
-                  <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-500" style={{ width: '70%' }} />
-                  </div>
-               </div>
-            </div>
-
             <div className="mb-5">
               <p className="text-[9px] text-gray-500 font-black uppercase mb-2">Strategic Reasoning</p>
               <p className="text-[11px] text-gray-200 font-medium leading-relaxed italic border-l-2 border-purple-500 pl-3">
@@ -364,13 +371,13 @@ const GridItem = ({
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {alternatives.map((alt, i) => (
-                  <button 
-                    key={i} 
+                  <button
+                    key={i}
                     onClick={() => onReplace(index, alt)}
                     className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/5 hover:border-purple-500/50 hover:bg-white/10 transition-all text-left group/alt"
                   >
                     <div className="w-12 h-12 bg-white rounded-lg flex-none overflow-hidden shadow-sm">
-                       {alt?.["Img1 Relative Path"] ? <img src={alt["Img1 Relative Path"]} className="w-full h-full object-contain block" alt="" /> : <div className="bg-gray-300 w-full h-full"/>}
+                      {alt?.["Img1 Relative Path"] ? <img src={alt["Img1 Relative Path"]} className="w-full h-full object-contain block" alt="" /> : <div className="bg-gray-300 w-full h-full" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[10px] font-bold text-white truncate uppercase mb-0.5">{alt.Copy || "Generic Item"}</p>
@@ -390,16 +397,23 @@ const GridItem = ({
   );
 };
 
-const DataGrid = ({ 
-  rows, onReplace, onSwap, startValidation, hasScanned, 
-  isManualMode, selectedIds, onToggleItem 
+const DataGrid = ({
+  rows,
+  onReplace,
+  onSwap,
+  startValidation,
+  hasScanned,
+  isManualMode,
+  selectedIds,
+  onToggleItem,
+  pickEnabled
 }) => {
   return (
     <div className="h-full overflow-y-auto custom-scrollbar p-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
         {rows.map((row, idx) => {
           const prevRow = idx > 0 ? rows[idx - 1] : null;
-          
+
           const isNewPage = idx === 0 || row?.page !== prevRow?.page;
           const isNewSet = idx > 0 && row?._assetSetLabel !== prevRow?._assetSetLabel;
 
@@ -407,23 +421,24 @@ const DataGrid = ({
             <React.Fragment key={`${idx}-${row?.Copy}`}>
               {(isNewPage || isNewSet) && (
                 <div className="col-span-full mb-2 flex items-center gap-4">
-                  <div className={`flex-none text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-[0.2em] ${isNewSet ? 'bg-indigo-600' : 'bg-red-600'}`}>
+                  <div className={`flex-none text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-[0.2em] ${isNewSet ? "bg-indigo-600" : "bg-red-600"}`}>
                     {isNewSet ? row?._assetSetLabel : `Page ${row?.page || "Unknown"}`}
                   </div>
                   <div className="flex-1 h-px bg-gray-800"></div>
                 </div>
               )}
-              <GridItem 
-                row={row} 
+              <GridItem
+                row={row}
                 index={idx}
-                allRows={rows} 
-                onReplace={onReplace} 
+                allRows={rows}
+                onReplace={onReplace}
                 onSwap={onSwap}
                 startValidation={startValidation}
                 hasScanned={hasScanned}
                 isManualMode={isManualMode}
                 isSelected={selectedIds?.has(row.id || `${row.Copy}-${idx}`)}
                 onToggleSelect={() => onToggleItem?.(row.id || `${row.Copy}-${idx}`)}
+                pickEnabled={pickEnabled}
               />
             </React.Fragment>
           );
@@ -447,10 +462,10 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
   const [resultRows, setResultRows] = useState([]);
   const [originalRows, setOriginalRows] = useState([]);
   const [analysisStatus, setAnalysisStatus] = useState("");
-  
+
   const [isManualMode, setIsManualMode] = useState(false);
   const [manualSelectedIds, setManualSelectedIds] = useState(new Set());
-  const [assetSets, setAssetSets] = useState([]); 
+  const [assetSets, setAssetSets] = useState([]);
   const [showChannelModal, setShowChannelModal] = useState(false);
   const [targetChannelForSet, setTargetChannelForSet] = useState("");
   const [manualView, setManualView] = useState("flyer"); // 'flyer' or 'sets'
@@ -470,7 +485,7 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
     let cancelled = false;
     const fetchCampaigns = () => {
       try {
-        const localData = localStorage.getItem('sjc_campaign_storage');
+        const localData = localStorage.getItem("sjc_campaign_storage");
         if (localData) {
           const fresh = JSON.parse(localData);
           if (cancelled) return;
@@ -478,22 +493,25 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
         } else {
           fetchFromPublic();
         }
-      } catch (e) { console.error(e); }
+      } catch (e) {
+        console.error(e);
+      }
     };
 
     const fetchFromPublic = async () => {
       const LIST = ["112233 Metro Demo.json", "Moi Campaign.json", "Super C Demo56.json", "Food Basics.json"];
       try {
-        const loaded = await Promise.all(
-          LIST.map(file => fetch(`/Campaigns/${file}`).then(res => res.json()))
-        );
-        const valid = loaded.filter(c => c && c.name);
+        const loaded = await Promise.all(LIST.map((file) => fetch(`/Campaigns/${file}`).then((res) => res.json())));
+        const valid = loaded.filter((c) => c && c.name);
         if (cancelled) return;
         setCampaigns(valid);
-        localStorage.setItem('sjc_campaign_storage', JSON.stringify(valid));
+        localStorage.setItem("sjc_campaign_storage", JSON.stringify(valid));
         window.dispatchEvent(new Event("campaigns:updated"));
-      } catch (e) { console.error(e); }
+      } catch (e) {
+        console.error(e);
+      }
     };
+
     fetchCampaigns();
     const onCampaignsUpdated = () => fetchCampaigns();
     window.addEventListener("campaigns:updated", onCampaignsUpdated);
@@ -504,27 +522,25 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
   }, []);
 
   const filteredCampaigns = useMemo(() => {
-    return campaigns.filter(c => c.banner === selectedBanner);
+    return campaigns.filter((c) => c.banner === selectedBanner);
   }, [campaigns, selectedBanner]);
 
   useEffect(() => {
-    const storedActive = localStorage.getItem('sjc_active_project_name');
-    
+    const storedActive = localStorage.getItem("sjc_active_project_name");
+
     if (filteredCampaigns.length > 0) {
-      // 1. Check if the "Global Active" project exists in this banner
-      const globalExistsInBanner = filteredCampaigns.some(c => c.name === storedActive);
-      
+      const globalExistsInBanner = filteredCampaigns.some((c) => c.name === storedActive);
+
       if (globalExistsInBanner) {
         setSelectedCampaignName(storedActive);
       } else {
-        // 2. Fallback to the first item in the new hierarchy (112233)
         const firstProject = filteredCampaigns[0].name;
         setSelectedCampaignName(firstProject);
-        localStorage.setItem('sjc_active_project_name', firstProject);
+        localStorage.setItem("sjc_active_project_name", firstProject);
       }
     } else {
       setSelectedCampaignName("");
-      localStorage.removeItem('sjc_active_project_name');
+      localStorage.removeItem("sjc_active_project_name");
     }
     window.dispatchEvent(new Event("activeProject:updated"));
   }, [filteredCampaigns, selectedBanner, selectedCampaignName]);
@@ -539,17 +555,20 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
         const ws = wb.Sheets[wb.SheetNames[0]];
         const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
         setExcelRows(json);
-      } catch (err) { console.error(err); } finally { setExcelLoading(false); }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setExcelLoading(false);
+      }
     };
     loadExcel();
   }, []);
 
   const selectedCampaign = useMemo(() => campaigns.find((c) => c.name === selectedCampaignName), [campaigns, selectedCampaignName]);
 
-// Handle external selection changes (e.g., if a bot or sidebar changes the project)
   useEffect(() => {
     const syncActiveProject = () => {
-      const storedName = localStorage.getItem('sjc_active_project_name');
+      const storedName = localStorage.getItem("sjc_active_project_name");
       if (storedName && storedName !== selectedCampaignName) {
         setSelectedCampaignName(storedName);
       }
@@ -573,33 +592,36 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
     if (showResults && !hasScanned) {
       const timer = setTimeout(() => {
         setHasScanned(true);
-      }, 4000); 
+      }, 4000);
       return () => clearTimeout(timer);
     }
   }, [showResults, hasScanned]);
 
-  // MANUAL MODE: show ONLY Flyer inventory rows (from Excel) for the selected docket.
-  // Other channels are populated ONLY via Channel Asset Picker + Save Asset Set.
+  // Manual Mode: ONLY show Flyer rows from Excel. Other channels are shown ONLY via saved asset sets.
   useEffect(() => {
     if (isManualMode && selectedCampaignName) {
-        const raw = String(selectedCampaignName || "").trim();
-        const digits = getDigits(raw);
-        let base = excelRows.filter((r) => normalize(r?.docket) === normalize(raw));
-        if (!base.length && digits) base = excelRows.filter((r) => getDigits(r?.docket) === digits);
+      const raw = String(selectedCampaignName || "").trim();
+      const digits = getDigits(raw);
+      let base = excelRows.filter((r) => normalize(r?.docket) === normalize(raw));
+      if (!base.length && digits) base = excelRows.filter((r) => getDigits(r?.docket) === digits);
 
-        const flyerOnly = base.filter((r) => isFlyerChannelName(r?.["Marketing Channels"]));
-        
-        setResultRows(flyerOnly);
-        setOriginalRows(flyerOnly);
-        setShowResults(true);
-        setStartValidation(true);
-        setManualView("flyer");
-        setManualSelectedIds(new Set());
+      const flyerOnly = base.filter((r) => isFlyerChannelName(r?.["Marketing Channels"]));
+
+      setResultRows(flyerOnly);
+      setOriginalRows(flyerOnly);
+      setShowResults(true);
+      setStartValidation(true);
+
+      // POLISH #1: auto-switch to Flyer view + Flyer channel when manual is enabled
+      setManualView("flyer");
+      setManualSelectedIds(new Set());
+      const flyerChannel = selectedCampaign?.channels?.find((ch) => isFlyerChannelName(ch));
+      if (flyerChannel) setActiveChannel(flyerChannel);
     } else if (!isManualMode) {
-        setShowResults(false);
-        setResultRows([]);
+      setShowResults(false);
+      setResultRows([]);
     }
-  }, [isManualMode, selectedCampaignName, excelRows]);
+  }, [isManualMode, selectedCampaignName, excelRows, selectedCampaign]);
 
   const rowsForDocketAndChannel = useMemo(() => {
     if (!excelRows.length) return [];
@@ -616,7 +638,7 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
     setShowResults(false);
     setStartValidation(false);
     setHasScanned(false);
-    
+
     let currentStep = 0;
     const interval = setInterval(() => {
       if (currentStep < STATUS_MESSAGES.length) {
@@ -630,28 +652,28 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
       setResultRows(rowsForDocketAndChannel);
       setOriginalRows(rowsForDocketAndChannel);
       setIsAnalyzing(false);
-      setShowResults(true); 
+      setShowResults(true);
       setStartValidation(true);
-    }, 3200); 
+    }, 3200);
   };
 
   const handleResetLayout = () => {
     if (isManualMode) {
-        setAssetSets([]);
-        setManualSelectedIds(new Set());
-        setManualView("flyer");
-        setTargetChannelForSet("");
+      setAssetSets([]);
+      setManualSelectedIds(new Set());
+      setManualView("flyer");
+      setTargetChannelForSet("");
     } else {
-        setResultRows([...originalRows]);
+      setResultRows([...originalRows]);
     }
   };
 
   const handleReplaceItem = (index, newRow) => {
-    setResultRows(prev => {
+    setResultRows((prev) => {
       const updated = [...prev];
       const targetItem = updated[index];
-      const existingIdx = updated.findIndex(r => r.Copy === newRow.Copy && r.docket === newRow.docket);
-      
+      const existingIdx = updated.findIndex((r) => r.Copy === newRow.Copy && r.docket === newRow.docket);
+
       if (existingIdx !== -1 && existingIdx !== index) {
         const sourceItem = { ...updated[existingIdx] };
         updated[existingIdx] = { ...targetItem, page: sourceItem.page, adblock: sourceItem.adblock };
@@ -664,7 +686,7 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
   };
 
   const handleSwapItems = (sourceIdx, targetIdx) => {
-    setResultRows(prev => {
+    setResultRows((prev) => {
       const updated = [...prev];
       const sourceItem = { ...updated[sourceIdx] };
       const targetItem = { ...updated[targetIdx] };
@@ -677,11 +699,11 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
   };
 
   const handleToggleManualItem = (id) => {
-    setManualSelectedIds(prev => {
-        const next = new Set(prev);
-        if (next.has(id)) next.delete(id);
-        else next.add(id);
-        return next;
+    setManualSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
     });
   };
 
@@ -689,40 +711,35 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
     const selectedItems = resultRows.filter((r, idx) => manualSelectedIds.has(r.id || `${r.Copy}-${idx}`));
     if (!selectedItems.length) return;
 
-    // Manual mode requires an explicit non-flyer target channel
     const channelName = targetChannelForSet;
     if (!channelName || isFlyerChannelName(channelName)) {
       alert("Please choose a non-flyer Target Channel using 'Channel asset picker' before saving.");
       return;
     }
-    
-    // Calculate set number for this specific channel
-    const existingSetsForChannel = assetSets.filter(item => item._targetChannel === channelName);
-    const existingSetLabels = new Set(existingSetsForChannel.map(i => i._assetSetLabel));
+
+    const existingSetsForChannel = assetSets.filter((item) => item._targetChannel === channelName);
+    const existingSetLabels = new Set(existingSetsForChannel.map((i) => i._assetSetLabel));
     const nextSetNumber = existingSetLabels.size + 1;
 
-    const itemsWithSetLabel = selectedItems.map(item => ({
-        ...item,
-        _assetSetLabel: `Asset Set ${nextSetNumber} (${channelName})`,
-        _targetChannel: channelName
+    const itemsWithSetLabel = selectedItems.map((item) => ({
+      ...item,
+      _assetSetLabel: `Asset Set ${nextSetNumber} (${channelName})`,
+      _targetChannel: channelName
     }));
 
-    setAssetSets(prev => [...prev, ...itemsWithSetLabel]);
+    setAssetSets((prev) => [...prev, ...itemsWithSetLabel]);
     setManualSelectedIds(new Set());
-    setManualView("sets"); // Automatically switch to view the sets
-    setActiveChannel(channelName); // Show the set in the channel view immediately
+    setManualView("sets");
+    setActiveChannel(channelName);
   };
 
   const displayRows = useMemo(() => {
-    if (isManualMode) {
-      if (manualView === "sets") {
-        // Show picked assets for the selected channel (via Marketing Channels clicks)
-        return assetSets.filter(s => normalize(s._targetChannel) === normalize(activeChannel));
-      }
-      // Flyer inventory only (from Excel)
-      return resultRows;
+    if (!isManualMode) return resultRows;
+
+    if (manualView === "sets") {
+      return assetSets.filter((s) => normalize(s._targetChannel) === normalize(activeChannel));
     }
-    return resultRows;
+    return resultRows; // flyer inventory only
   }, [isManualMode, manualView, assetSets, resultRows, activeChannel]);
 
   const canRun = !!selectedCampaign && !!activeChannel && !excelLoading && !isAnalyzing;
@@ -768,145 +785,133 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
 
   const nonFlyerChannels = useMemo(() => {
     const list = selectedCampaign?.channels || [];
-    return list.filter(ch => !isFlyerChannelName(ch));
+    return list.filter((ch) => !isFlyerChannelName(ch));
   }, [selectedCampaign]);
+
+  const pickEnabled = isManualMode && manualView === "flyer"; // POLISH #3: disable picking in sets view
 
   return (
     <div className="flex h-[calc(100vh-140px)] gap-6 text-white animate-fadeIn font-sans">
-      
       <div className="w-[21.5%] min-w-[250px] bg-gray-800 rounded-2xl p-4 overflow-y-auto space-y-6 border border-gray-700 shadow-xl custom-scrollbar">
-        
         <div className="flex justify-between items-center border-b border-gray-700 pb-4">
-             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <span className="p-1.5 bg-purple-600 rounded-lg"><AI_Icons.Sparkles /></span> 
-                Item Selection
-             </h2>
-             <div className="flex items-center gap-3 bg-gray-900 px-2 py-1 rounded border border-gray-700">
-                <span className={`text-[10px] font-bold uppercase transition-colors ${isManualMode ? 'text-gray-500' : 'text-purple-500'}`}>
-                    AI
-                </span>
-                <button 
-                    onClick={() => setIsManualMode(!isManualMode)} 
-                    className={`w-8 h-4 rounded-full relative transition-colors ${isManualMode ? 'bg-indigo-600' : 'bg-gray-700'}`}
-                >
-                    <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isManualMode ? 'translate-x-4' : 'translate-x-0.5'}`} />
-                </button>
-                <span className={`text-[10px] font-bold uppercase transition-colors ${isManualMode ? 'text-indigo-400' : 'text-gray-500'}`}>
-                    Manual
-                </span>
-             </div>
-        </div>
-
-        <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Retail Banner</label>
-            <div className="grid grid-cols-2 gap-2">
-              {BANNERS.map(b => (
-                <button
-                  key={b}
-                  onClick={() => setSelectedBanner(b)}
-                  className={`py-2 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all ${
-                    selectedBanner === b 
-                    ? 'bg-white text-black border-white' 
-                    : 'bg-gray-900 text-gray-500 border-gray-700 hover:border-gray-500'
-                  }`}
-                >
-                  {b}
-                </button>
-              ))}
-            </div>
-        </div>
-
-        <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Active Project</label>
-            <select
-                value={selectedCampaignName}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setSelectedCampaignName(val);
-                  localStorage.setItem('sjc_active_project_name', val);
-                  window.dispatchEvent(new Event("activeProject:updated"));
-                }}
-                className="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-sm font-bold text-white focus:border-red-500 outline-none appearance-none"
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <span className="p-1.5 bg-purple-600 rounded-lg">
+              <AI_Icons.Sparkles />
+            </span>
+            Item Selection
+          </h2>
+          <div className="flex items-center gap-3 bg-gray-900 px-2 py-1 rounded border border-gray-700">
+            <span className={`text-[10px] font-bold uppercase transition-colors ${isManualMode ? "text-gray-500" : "text-purple-500"}`}>AI</span>
+            <button
+              onClick={() => {
+                const next = !isManualMode;
+                setIsManualMode(next);
+                // POLISH #1 safety: immediately snap view to flyer when enabling
+                if (next) setManualView("flyer");
+              }}
+              className={`w-8 h-4 rounded-full relative transition-colors ${isManualMode ? "bg-indigo-600" : "bg-gray-700"}`}
             >
-                {filteredCampaigns.length > 0 ? (
-                  filteredCampaigns.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)
-                ) : (
-                  <option disabled>No projects found</option>
-                )}
-            </select>
+              <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isManualMode ? "translate-x-4" : "translate-x-0.5"}`} />
+            </button>
+            <span className={`text-[10px] font-bold uppercase transition-colors ${isManualMode ? "text-indigo-400" : "text-gray-500"}`}>Manual</span>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Retail Banner</label>
+          <div className="grid grid-cols-2 gap-2">
+            {BANNERS.map((b) => (
+              <button
+                key={b}
+                onClick={() => setSelectedBanner(b)}
+                className={`py-2 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all ${
+                  selectedBanner === b ? "bg-white text-black border-white" : "bg-gray-900 text-gray-500 border-gray-700 hover:border-gray-500"
+                }`}
+              >
+                {b}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Active Project</label>
+          <select
+            value={selectedCampaignName}
+            onChange={(e) => {
+              const val = e.target.value;
+              setSelectedCampaignName(val);
+              localStorage.setItem("sjc_active_project_name", val);
+              window.dispatchEvent(new Event("activeProject:updated"));
+            }}
+            className="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-sm font-bold text-white focus:border-red-500 outline-none appearance-none"
+          >
+            {filteredCampaigns.length > 0 ? filteredCampaigns.map((c) => <option key={c.name} value={c.name}>{c.name}</option>) : <option disabled>No projects found</option>}
+          </select>
         </div>
 
         <div className="space-y-3">
-            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Marketing Channels</label>
-            <div className="flex flex-col gap-2">
-                {selectedCampaign?.channels?.length > 0 ? (
-                    selectedCampaign.channels.map(ch => (
-                        <button
-                            key={ch}
-                            onClick={() => {
-                              if (isManualMode) {
-                                setActiveChannel(ch);
-                                // In Manual mode:
-                                // - Clicking Flyer shows flyer inventory (Excel flyer rows only)
-                                // - Clicking any other channel shows picked assets (sets) for that channel
-                                if (isFlyerChannelName(ch)) setManualView("flyer");
-                                else setManualView("sets");
-                              } else {
-                                setActiveChannel(ch);
-                              }
-                            }}
-                            className={`flex items-center justify-between px-4 py-3 rounded-xl border font-bold text-xs uppercase tracking-wider transition-all ${
-                                activeChannel === ch 
-                                ? 'bg-red-600 border-red-500 text-white shadow-lg' 
-                                : 'bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-500'
-                            }`}
-                        >
-                            {ch}
-                            <div className={`w-2 h-2 rounded-full ${activeChannel === ch ? 'bg-white animate-pulse' : 'bg-gray-700'}`} />
-                        </button>
-                    ))
-                ) : (
-                    <div className="text-[10px] text-gray-600 italic p-4 bg-gray-900/50 rounded-xl border border-dashed border-gray-700">
-                        No channels available for this docket
-                    </div>
-                )}
-            </div>
+          <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Marketing Channels</label>
+          <div className="flex flex-col gap-2">
+            {selectedCampaign?.channels?.length > 0 ? (
+              selectedCampaign.channels.map((ch) => (
+                <button
+                  key={ch}
+                  onClick={() => {
+                    if (isManualMode) {
+                      setActiveChannel(ch);
+                      if (isFlyerChannelName(ch)) setManualView("flyer");
+                      else setManualView("sets");
+                    } else {
+                      setActiveChannel(ch);
+                    }
+                  }}
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl border font-bold text-xs uppercase tracking-wider transition-all ${
+                    activeChannel === ch ? "bg-red-600 border-red-500 text-white shadow-lg" : "bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-500"
+                  }`}
+                >
+                  {ch}
+                  <div className={`w-2 h-2 rounded-full ${activeChannel === ch ? "bg-white animate-pulse" : "bg-gray-700"}`} />
+                </button>
+              ))
+            ) : (
+              <div className="text-[10px] text-gray-600 italic p-4 bg-gray-900/50 rounded-xl border border-dashed border-gray-700">No channels available for this docket</div>
+            )}
+          </div>
         </div>
 
         <div className="pt-4 border-t border-gray-700 space-y-3">
-            {!isManualMode ? (
+          {!isManualMode ? (
+            <button
+              disabled={!canRun}
+              onClick={runAISelection}
+              className={`w-full py-4 rounded-xl font-black uppercase text-sm tracking-[0.2em] flex items-center justify-center gap-3 transition-all shadow-lg ${
+                canRun ? "bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-500 hover:to-red-600 active:scale-95" : "bg-gray-700 text-gray-500 cursor-not-allowed"
+              }`}
+            >
+              {isAnalyzing ? "Processing..." : <>AI Item Picker <AI_Icons.Sparkles /></>}
+            </button>
+          ) : (
+            <>
               <button
-                disabled={!canRun}
-                onClick={runAISelection}
-                className={`w-full py-4 rounded-xl font-black uppercase text-sm tracking-[0.2em] flex items-center justify-center gap-3 transition-all shadow-lg ${
-                    canRun 
-                    ? "bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-500 hover:to-red-600 active:scale-95" 
+                onClick={() => setShowChannelModal(true)}
+                className="w-full py-4 rounded-xl font-black uppercase text-[11px] tracking-widest flex items-center justify-center gap-3 transition-all bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg active:scale-95"
+              >
+                Channel asset picker
+              </button>
+              <button
+                disabled={manualSelectedIds.size === 0 || !targetChannelForSet || isFlyerChannelName(targetChannelForSet)}
+                onClick={handleSaveAssetSet}
+                className={`w-full py-4 rounded-xl font-black uppercase text-[11px] tracking-widest flex items-center justify-center gap-3 transition-all shadow-lg ${
+                  manualSelectedIds.size > 0 && targetChannelForSet && !isFlyerChannelName(targetChannelForSet)
+                    ? "bg-green-600 hover:bg-green-500 text-white active:scale-95"
                     : "bg-gray-700 text-gray-500 cursor-not-allowed"
                 }`}
               >
-                {isAnalyzing ? "Processing..." : <>AI Item Picker <AI_Icons.Sparkles /></>}
+                Save Asset Set
               </button>
-            ) : (
-              <>
-                <button
-                  onClick={() => setShowChannelModal(true)}
-                  className="w-full py-4 rounded-xl font-black uppercase text-[11px] tracking-widest flex items-center justify-center gap-3 transition-all bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg active:scale-95"
-                >
-                  Channel asset picker
-                </button>
-                <button
-                  disabled={manualSelectedIds.size === 0 || !targetChannelForSet || isFlyerChannelName(targetChannelForSet)}
-                  onClick={handleSaveAssetSet}
-                  className={`w-full py-4 rounded-xl font-black uppercase text-[11px] tracking-widest flex items-center justify-center gap-3 transition-all shadow-lg ${
-                    manualSelectedIds.size > 0 && targetChannelForSet && !isFlyerChannelName(targetChannelForSet)
-                    ? "bg-green-600 hover:bg-green-500 text-white active:scale-95" 
-                    : "bg-gray-700 text-gray-500 cursor-not-allowed"
-                  }`}
-                >
-                  Save Asset Set
-                </button>
-              </>
-            )}
+            </>
+          )}
         </div>
       </div>
 
@@ -916,36 +921,32 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
         ) : isAnalyzing ? (
           <div className="h-full flex flex-col items-center justify-center relative overflow-hidden bg-gray-950/40">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/5 to-transparent skeleton-shimmer z-0" />
-            
-            <div className="relative z-10 flex flex-col items-center">
-                <div className="relative w-32 h-32 mb-8">
-                    <div className="absolute inset-0 border border-purple-500/20 rounded-full animate-ping" />
-                    <div className="absolute inset-2 border-t-2 border-purple-500 rounded-full animate-spin" />
-                    <div className="absolute inset-4 border-r-2 border-blue-500 rounded-full animate-spin [animation-duration:3s]" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="p-3 bg-purple-600 rounded-xl shadow-[0_0_30px_rgba(147,51,234,0.4)] animate-bounce">
-                            <AI_Icons.Sparkles />
-                        </div>
-                    </div>
-                </div>
 
-                <div className="text-center space-y-3">
-                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-purple-400 animate-pulse">
-                        Neural Synthesizing
-                    </p>
-                    <div className="h-4 flex items-center justify-center">
-                        <p className="text-xs text-gray-500 font-mono italic animate-fadeIn">
-                            {analysisStatus || "Initializing Intelligence Engines..."}
-                        </p>
-                    </div>
+            <div className="relative z-10 flex flex-col items-center">
+              <div className="relative w-32 h-32 mb-8">
+                <div className="absolute inset-0 border border-purple-500/20 rounded-full animate-ping" />
+                <div className="absolute inset-2 border-t-2 border-purple-500 rounded-full animate-spin" />
+                <div className="absolute inset-4 border-r-2 border-blue-500 rounded-full animate-spin [animation-duration:3s]" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="p-3 bg-purple-600 rounded-xl shadow-[0_0_30px_rgba(147,51,234,0.4)] animate-bounce">
+                    <AI_Icons.Sparkles />
+                  </div>
                 </div>
+              </div>
+
+              <div className="text-center space-y-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-purple-400 animate-pulse">Neural Synthesizing</p>
+                <div className="h-4 flex items-center justify-center">
+                  <p className="text-xs text-gray-500 font-mono italic animate-fadeIn">{analysisStatus || "Initializing Intelligence Engines..."}</p>
+                </div>
+              </div>
             </div>
           </div>
         ) : !showResults ? (
           <div className="h-full flex flex-col items-center justify-center text-center p-12">
-             <div className="text-5xl opacity-20 mb-4 animate-bounce">🤔</div>
-             <h2 className="text-xl font-black text-white uppercase tracking-tighter">AI Models Loaded</h2>
-             <p className="text-gray-500 text-xs mt-2 font-medium">Click AI Item Picker to analyze and filter your docket.</p>
+            <div className="text-5xl opacity-20 mb-4 animate-bounce">🤔</div>
+            <h2 className="text-xl font-black text-white uppercase tracking-tighter">AI Models Loaded</h2>
+            <p className="text-gray-500 text-xs mt-2 font-medium">Click AI Item Picker to analyze and filter your docket.</p>
           </div>
         ) : (
           <div className="absolute inset-0 flex flex-col p-6 min-h-0">
@@ -954,21 +955,32 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
                 <div className="flex items-center gap-6">
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">
-                        {isManualMode ? (manualView === 'sets' ? "Saved Asset Sets" : "Flyer Inventory (Manual)") : "Filtered Intelligence"}
+                      {isManualMode ? (manualView === "sets" ? "Saved Asset Sets" : "Flyer Inventory (Manual)") : "Filtered Intelligence"}
                     </p>
                     <p className="text-sm font-black text-white">{displayRows.length.toLocaleString()} items</p>
+
+                    {/* POLISH #2: badges for clarity while picking */}
                     {isManualMode && manualView === "flyer" && (
-                      <p className="text-[10px] text-gray-500 mt-1 font-bold uppercase tracking-widest">
-                        Target Channel: <span className="text-indigo-400">{targetChannelForSet || "None selected"}</span>
-                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-gray-900 border border-gray-800 text-gray-300">
+                          Selected: <span className="text-white">{manualSelectedIds.size}</span>
+                        </span>
+                        <span className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-indigo-900/30 border border-indigo-600/30 text-indigo-300">
+                          Target: <span className="text-indigo-200">{targetChannelForSet || "None"}</span>
+                        </span>
+                      </div>
                     )}
+
                     {isManualMode && manualView === "sets" && !isFlyerChannelName(activeChannel) && (
-                      <p className="text-[10px] text-gray-500 mt-1 font-bold uppercase tracking-widest">
-                        Viewing Channel: <span className="text-indigo-400">{activeChannel}</span>
-                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-indigo-900/30 border border-indigo-600/30 text-indigo-300">
+                          Viewing: <span className="text-indigo-200">{activeChannel}</span>
+                        </span>
+                      </div>
                     )}
                   </div>
-                  <button 
+
+                  <button
                     onClick={handleResetLayout}
                     className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border border-gray-700"
                   >
@@ -976,43 +988,64 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
                   </button>
 
                   {isManualMode && (
-                      <div className="flex bg-gray-900 rounded-xl p-1 border border-gray-800">
-                        <button 
-                            onClick={() => setManualView("flyer")} 
-                            className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${manualView === 'flyer' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}
-                        >
-                            Flyer Pick
-                        </button>
-                        <button 
-                            onClick={() => setManualView("sets")} 
-                            className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${manualView === 'sets' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}
-                        >
-                            View Sets ({new Set(assetSets.map(s => s._assetSetLabel)).size})
-                        </button>
-                      </div>
+                    <div className="flex bg-gray-900 rounded-xl p-1 border border-gray-800">
+                      <button
+                        onClick={() => setManualView("flyer")}
+                        className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${
+                          manualView === "flyer" ? "bg-indigo-600 text-white" : "text-gray-500 hover:text-gray-300"
+                        }`}
+                      >
+                        Flyer Pick
+                      </button>
+                      <button
+                        onClick={() => setManualView("sets")}
+                        className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${
+                          manualView === "sets" ? "bg-indigo-600 text-white" : "text-gray-500 hover:text-gray-300"
+                        }`}
+                      >
+                        View Sets ({new Set(assetSets.map((s) => s._assetSetLabel)).size})
+                      </button>
+                    </div>
                   )}
                 </div>
+
                 <div className="flex items-center gap-2">
                   <WorkflowNavigation />
                   <div className="flex bg-gray-900 rounded-xl p-1 border border-gray-800 ml-2">
-                    <button onClick={() => setViewMode("table")} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'table' ? 'bg-red-600 text-white shadow-lg' : 'text-gray-400'}`}><AI_Icons.List /> Table</button>
-                    <button onClick={() => setViewMode("grid")} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'grid' ? 'bg-red-600 text-white shadow-lg' : 'text-gray-400'}`}><AI_Icons.LayoutGrid /> Grid</button>
+                    <button
+                      onClick={() => setViewMode("table")}
+                      className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                        viewMode === "table" ? "bg-red-600 text-white shadow-lg" : "text-gray-400"
+                      }`}
+                    >
+                      <AI_Icons.List /> Table
+                    </button>
+                    <button
+                      onClick={() => setViewMode("grid")}
+                      className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                        viewMode === "grid" ? "bg-red-600 text-white shadow-lg" : "text-gray-400"
+                      }`}
+                    >
+                      <AI_Icons.LayoutGrid /> Grid
+                    </button>
                   </div>
                 </div>
               </div>
+
               <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar relative z-[10]">
                 {viewMode === "table" ? (
                   <DataTable rows={displayRows} />
                 ) : (
-                  <DataGrid 
-                    rows={displayRows} 
-                    onReplace={handleReplaceItem} 
+                  <DataGrid
+                    rows={displayRows}
+                    onReplace={handleReplaceItem}
                     onSwap={handleSwapItems}
                     startValidation={startValidation}
                     hasScanned={hasScanned}
                     isManualMode={isManualMode}
                     selectedIds={manualSelectedIds}
                     onToggleItem={handleToggleManualItem}
+                    pickEnabled={pickEnabled}
                   />
                 )}
               </div>
@@ -1022,43 +1055,47 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
       </div>
 
       {showChannelModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
-              <div className="bg-gray-800 border border-gray-700 rounded-3xl p-8 w-[450px] shadow-2xl">
-                  <div className="flex justify-between items-center mb-6">
-                      <div>
-                        <h3 className="text-xl font-bold text-white">Target Channel</h3>
-                        <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest font-bold">Pick items for specific output</p>
-                      </div>
-                      <button onClick={() => setShowChannelModal(false)} className="text-gray-500 hover:text-white transition-colors bg-gray-900 w-8 h-8 rounded-full flex items-center justify-center border border-gray-700">✕</button>
-                  </div>
-                  <div className="grid grid-cols-1 gap-3">
-                      {nonFlyerChannels.map(ch => (
-                          <button
-                            key={ch}
-                            onClick={() => {
-                                setTargetChannelForSet(ch);
-                                setManualView("flyer"); // Ensure we are looking at flyer to pick
-                                setShowChannelModal(false);
-                            }}
-                            className={`w-full py-4 px-6 rounded-2xl font-bold text-sm uppercase text-left flex items-center justify-between transition-all border group ${
-                                targetChannelForSet === ch 
-                                ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg' 
-                                : 'bg-gray-900 border-gray-700 text-gray-400 hover:border-indigo-500/50'
-                            }`}
-                          >
-                            {ch}
-                            <div className={`w-2 h-2 rounded-full ${targetChannelForSet === ch ? 'bg-white' : 'bg-gray-800 group-hover:bg-indigo-400'}`} />
-                          </button>
-                      ))}
-
-                      {nonFlyerChannels.length === 0 && (
-                        <div className="text-[10px] text-gray-600 italic p-4 bg-gray-900/50 rounded-xl border border-dashed border-gray-700">
-                          No non-flyer target channels available.
-                        </div>
-                      )}
-                  </div>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-gray-800 border border-gray-700 rounded-3xl p-8 w-[450px] shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="text-xl font-bold text-white">Target Channel</h3>
+                <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest font-bold">Pick items for specific output</p>
               </div>
+              <button
+                onClick={() => setShowChannelModal(false)}
+                className="text-gray-500 hover:text-white transition-colors bg-gray-900 w-8 h-8 rounded-full flex items-center justify-center border border-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3">
+              {nonFlyerChannels.map((ch) => (
+                <button
+                  key={ch}
+                  onClick={() => {
+                    setTargetChannelForSet(ch);
+                    setManualView("flyer");
+                    setShowChannelModal(false);
+                  }}
+                  className={`w-full py-4 px-6 rounded-2xl font-bold text-sm uppercase text-left flex items-center justify-between transition-all border group ${
+                    targetChannelForSet === ch ? "bg-indigo-600 border-indigo-400 text-white shadow-lg" : "bg-gray-900 border-gray-700 text-gray-400 hover:border-indigo-500/50"
+                  }`}
+                >
+                  {ch}
+                  <div className={`w-2 h-2 rounded-full ${targetChannelForSet === ch ? "bg-white" : "bg-gray-800 group-hover:bg-indigo-400"}`} />
+                </button>
+              ))}
+
+              {nonFlyerChannels.length === 0 && (
+                <div className="text-[10px] text-gray-600 italic p-4 bg-gray-900/50 rounded-xl border border-dashed border-gray-700">
+                  No non-flyer target channels available.
+                </div>
+              )}
+            </div>
           </div>
+        </div>
       )}
 
       <style>{`
@@ -1066,19 +1103,11 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #4b5563; }
-        
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        .skeleton-shimmer {
-          animation: shimmer 1.5s infinite;
-        }
 
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(4px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        .skeleton-shimmer { animation: shimmer 1.5s infinite; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
 
         @keyframes scan {
@@ -1087,9 +1116,7 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
           90% { opacity: 1; }
           100% { top: 110%; opacity: 0; }
         }
-        .animate-scan-infinite {
-          animation: scan 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-        }
+        .animate-scan-infinite { animation: scan 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
       `}</style>
     </div>
   );
