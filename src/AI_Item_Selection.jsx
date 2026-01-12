@@ -436,8 +436,8 @@ const DataGrid = ({
                 startValidation={startValidation}
                 hasScanned={hasScanned}
                 isManualMode={isManualMode}
-                isSelected={selectedIds?.has(row.id || `${row.Copy}-${idx}`)}
-                onToggleSelect={() => onToggleItem?.(row.id || `${row.Copy}-${idx}`)}
+                isSelected={selectedIds?.has(row.id || `${row.page}-${row.adblock}-${row.Copy}`)}
+                onToggleSelect={() => onToggleItem?.(row.id || `${row.page}-${row.adblock}-${row.Copy}`)}
                 pickEnabled={pickEnabled}
               />
             </React.Fragment>
@@ -708,7 +708,7 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
   };
 
   const handleSaveAssetSet = () => {
-    const selectedItems = resultRows.filter((r, idx) => manualSelectedIds.has(r.id || `${r.Copy}-${idx}`));
+    const selectedItems = resultRows.filter((r) => manualSelectedIds.has(r.id || `${r.page}-${r.adblock}-${r.Copy}`));
     if (!selectedItems.length) return;
 
     const channelName = targetChannelForSet;
@@ -788,7 +788,13 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
     return list.filter((ch) => !isFlyerChannelName(ch));
   }, [selectedCampaign]);
 
-  const pickEnabled = isManualMode && manualView === "flyer"; // POLISH #3: disable picking in sets view
+  const pickEnabled = isManualMode && manualView === "flyer";
+
+  const saveLabel =
+    targetChannelForSet && !isFlyerChannelName(targetChannelForSet)
+      ? `Save Asset Set → ${targetChannelForSet}`
+      : "Save Asset Set";
+
 
   return (
     <div className="flex h-[calc(100vh-140px)] gap-6 text-white animate-fadeIn font-sans">
@@ -908,7 +914,7 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
                     : "bg-gray-700 text-gray-500 cursor-not-allowed"
                 }`}
               >
-                Save Asset Set
+                {saveLabel}
               </button>
             </>
           )}
@@ -960,22 +966,16 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
                     <p className="text-sm font-black text-white">{displayRows.length.toLocaleString()} items</p>
 
                     {/* POLISH #2: badges for clarity while picking */}
-                    {isManualMode && manualView === "flyer" && (
+                    {isManualMode && (
                       <div className="flex items-center gap-2 mt-2">
                         <span className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-gray-900 border border-gray-800 text-gray-300">
                           Selected: <span className="text-white">{manualSelectedIds.size}</span>
                         </span>
-                        <span className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-indigo-900/30 border border-indigo-600/30 text-indigo-300">
-                          Target: <span className="text-indigo-200">{targetChannelForSet || "None"}</span>
-                        </span>
-                      </div>
-                    )}
-
-                    {isManualMode && manualView === "sets" && !isFlyerChannelName(activeChannel) && (
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-indigo-900/30 border border-indigo-600/30 text-indigo-300">
-                          Viewing: <span className="text-indigo-200">{activeChannel}</span>
-                        </span>
+                        {manualView === "flyer" && targetChannelForSet && (
+                          <span className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-green-900/20 border border-green-600/30 text-green-400">
+                            Target: <span className="text-green-200">{targetChannelForSet}</span>
+                          </span>
+                        )}
                       </div>
                     )}
                   </div>
@@ -987,24 +987,11 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
                     <AI_Icons.RotateCcw /> Reset Layout
                   </button>
 
-                  {isManualMode && (
-                    <div className="flex bg-gray-900 rounded-xl p-1 border border-gray-800">
-                      <button
-                        onClick={() => setManualView("flyer")}
-                        className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${
-                          manualView === "flyer" ? "bg-indigo-600 text-white" : "text-gray-500 hover:text-gray-300"
-                        }`}
-                      >
-                        Flyer Pick
-                      </button>
-                      <button
-                        onClick={() => setManualView("sets")}
-                        className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${
-                          manualView === "sets" ? "bg-indigo-600 text-white" : "text-gray-500 hover:text-gray-300"
-                        }`}
-                      >
-                        View Sets ({new Set(assetSets.map((s) => s._assetSetLabel)).size})
-                      </button>
+                  {isManualMode && activeChannel && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-900/30 border border-indigo-600/30 rounded-lg">
+                      <span className="text-[9px] font-black uppercase tracking-widest text-indigo-300">
+                        Viewing: <span className="text-indigo-200">{activeChannel}</span>
+                      </span>
                     </div>
                   )}
                 </div>
