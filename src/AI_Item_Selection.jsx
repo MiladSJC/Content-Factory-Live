@@ -502,11 +502,17 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
   useEffect(() => {
     if (filteredCampaigns.length > 0) {
       const exists = filteredCampaigns.some(c => c.name === selectedCampaignName);
-      if (!exists) setSelectedCampaignName(filteredCampaigns[0].name);
+      if (!exists) {
+        const firstProject = filteredCampaigns[0].name;
+        setSelectedCampaignName(firstProject);
+        localStorage.setItem('sjc_active_project_name', firstProject);
+      }
     } else {
       setSelectedCampaignName("");
+      localStorage.removeItem('sjc_active_project_name');
     }
-  }, [filteredCampaigns, selectedBanner]);
+    window.dispatchEvent(new Event("activeProject:updated"));
+  }, [filteredCampaigns, selectedBanner, selectedCampaignName]);
 
   useEffect(() => {
     const loadExcel = async () => {
@@ -761,7 +767,12 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
             <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Active Project</label>
             <select
                 value={selectedCampaignName}
-                onChange={(e) => setSelectedCampaignName(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSelectedCampaignName(val);
+                  localStorage.setItem('sjc_active_project_name', val);
+                  window.dispatchEvent(new Event("activeProject:updated"));
+                }}
                 className="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-sm font-bold text-white focus:border-red-500 outline-none appearance-none"
             >
                 {filteredCampaigns.length > 0 ? (

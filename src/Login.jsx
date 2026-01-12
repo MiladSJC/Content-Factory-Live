@@ -89,7 +89,13 @@ const Login = ({ onLoginSuccess }) => {
     }
   };
 
-  // Manual submission only - auto-submission hook removed to allow "Authorize Device" click
+  // Auto-submission trigger: executes when all 4 digits are present
+  useEffect(() => {
+    const code = mfaValues.join('');
+    if (code.length === 4) {
+      handleMfaSubmit();
+    }
+  }, [mfaValues]);
 
   const handleKeyDown = (index, e) => {
     if (e.key === 'Backspace' && !mfaValues[index] && index > 0) {
@@ -98,7 +104,7 @@ const Login = ({ onLoginSuccess }) => {
   };
 
   const handleMfaSubmit = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     const code = mfaValues.join('');
     if (code === '6746') {
       onLoginSuccess();
