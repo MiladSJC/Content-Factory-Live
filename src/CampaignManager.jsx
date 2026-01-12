@@ -27,10 +27,10 @@ const safeInt = (v, fallback = 0) => {
 // --- FRONTEND-ONLY PERSISTENCE CONFIG ---
 // List of initial JSON files to fetch from the public folder on first load
 const PUBLIC_CAMPAIGNS = [
+  "112233 Metro Demo.json",
   "Moi Campaign.json",
   "Super C Demo56.json",
-  "Food Basics.json",
-  "112233 Metro Demo.json"
+  "Food Basics.json"
 ];
 
 const openInNewTab = (url) => {

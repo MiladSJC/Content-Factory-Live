@@ -5,11 +5,14 @@
   "retailWeek": 16,
   "banner": "Metro",
   "pm": "Milad Moradi",
-  "startDate": "2025-12-22",
+  "startDate": "2026-01-01",
   "endDate": "2026-04-22",
   "channels": [
     "Flyer",
-    "Web Banner"
+    "Web Banner",
+    "Animation",
+    "Video",
+    "Social Ad"
   ],
   "status": "In Progress",
   "productCount": 0,
