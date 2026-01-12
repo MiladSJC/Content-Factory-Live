@@ -40,6 +40,13 @@ const BANNERS = ['Metro', 'Food Basics'];
 const normalize = (v) => String(v ?? "").trim().toLowerCase();
 const getDigits = (s) => (String(s ?? "").match(/\d+/g) || []).join("");
 
+const isFlyerChannelName = (name) => {
+  const n = normalize(name);
+  if (!n) return false;
+  // Broad match to handle variants like "Flyer", "Flyer EN", "Print Flyer", etc.
+  return n === "flyer" || n.includes("flyer");
+};
+
 const openInNewTab = (url) => {
   if (!url) return;
   window.open(url, '_blank', 'noopener,noreferrer');
@@ -559,6 +566,7 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
     setManualSelectedIds(new Set());
     setAssetSets([]);
     setManualView("flyer");
+    setTargetChannelForSet("");
   }, [selectedCampaign]);
 
   useEffect(() => {
@@ -570,17 +578,23 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
     }
   }, [showResults, hasScanned]);
 
+  // MANUAL MODE: show ONLY Flyer inventory rows (from Excel) for the selected docket.
+  // Other channels are populated ONLY via Channel Asset Picker + Save Asset Set.
   useEffect(() => {
     if (isManualMode && selectedCampaignName) {
         const raw = String(selectedCampaignName || "").trim();
         const digits = getDigits(raw);
         let base = excelRows.filter((r) => normalize(r?.docket) === normalize(raw));
         if (!base.length && digits) base = excelRows.filter((r) => getDigits(r?.docket) === digits);
+
+        const flyerOnly = base.filter((r) => isFlyerChannelName(r?.["Marketing Channels"]));
         
-        setResultRows(base);
-        setOriginalRows(base);
+        setResultRows(flyerOnly);
+        setOriginalRows(flyerOnly);
         setShowResults(true);
         setStartValidation(true);
+        setManualView("flyer");
+        setManualSelectedIds(new Set());
     } else if (!isManualMode) {
         setShowResults(false);
         setResultRows([]);
@@ -626,6 +640,7 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
         setAssetSets([]);
         setManualSelectedIds(new Set());
         setManualView("flyer");
+        setTargetChannelForSet("");
     } else {
         setResultRows([...originalRows]);
     }
@@ -674,7 +689,12 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
     const selectedItems = resultRows.filter((r, idx) => manualSelectedIds.has(r.id || `${r.Copy}-${idx}`));
     if (!selectedItems.length) return;
 
-    const channelName = targetChannelForSet || activeChannel;
+    // Manual mode requires an explicit non-flyer target channel
+    const channelName = targetChannelForSet;
+    if (!channelName || isFlyerChannelName(channelName)) {
+      alert("Please choose a non-flyer Target Channel using 'Channel asset picker' before saving.");
+      return;
+    }
     
     // Calculate set number for this specific channel
     const existingSetsForChannel = assetSets.filter(item => item._targetChannel === channelName);
@@ -690,12 +710,20 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
     setAssetSets(prev => [...prev, ...itemsWithSetLabel]);
     setManualSelectedIds(new Set());
     setManualView("sets"); // Automatically switch to view the sets
+    setActiveChannel(channelName); // Show the set in the channel view immediately
   };
 
   const displayRows = useMemo(() => {
-    if (isManualMode && manualView === "sets") return assetSets;
+    if (isManualMode) {
+      if (manualView === "sets") {
+        // Show picked assets for the selected channel (via Marketing Channels clicks)
+        return assetSets.filter(s => normalize(s._targetChannel) === normalize(activeChannel));
+      }
+      // Flyer inventory only (from Excel)
+      return resultRows;
+    }
     return resultRows;
-  }, [isManualMode, manualView, assetSets, resultRows]);
+  }, [isManualMode, manualView, assetSets, resultRows, activeChannel]);
 
   const canRun = !!selectedCampaign && !!activeChannel && !excelLoading && !isAnalyzing;
 
@@ -737,6 +765,11 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
       </div>
     );
   };
+
+  const nonFlyerChannels = useMemo(() => {
+    const list = selectedCampaign?.channels || [];
+    return list.filter(ch => !isFlyerChannelName(ch));
+  }, [selectedCampaign]);
 
   return (
     <div className="flex h-[calc(100vh-140px)] gap-6 text-white animate-fadeIn font-sans">
@@ -810,7 +843,18 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
                     selectedCampaign.channels.map(ch => (
                         <button
                             key={ch}
-                            onClick={() => setActiveChannel(ch)}
+                            onClick={() => {
+                              if (isManualMode) {
+                                setActiveChannel(ch);
+                                // In Manual mode:
+                                // - Clicking Flyer shows flyer inventory (Excel flyer rows only)
+                                // - Clicking any other channel shows picked assets (sets) for that channel
+                                if (isFlyerChannelName(ch)) setManualView("flyer");
+                                else setManualView("sets");
+                              } else {
+                                setActiveChannel(ch);
+                              }
+                            }}
                             className={`flex items-center justify-between px-4 py-3 rounded-xl border font-bold text-xs uppercase tracking-wider transition-all ${
                                 activeChannel === ch 
                                 ? 'bg-red-600 border-red-500 text-white shadow-lg' 
@@ -851,10 +895,10 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
                   Channel asset picker
                 </button>
                 <button
-                  disabled={manualSelectedIds.size === 0}
+                  disabled={manualSelectedIds.size === 0 || !targetChannelForSet || isFlyerChannelName(targetChannelForSet)}
                   onClick={handleSaveAssetSet}
                   className={`w-full py-4 rounded-xl font-black uppercase text-[11px] tracking-widest flex items-center justify-center gap-3 transition-all shadow-lg ${
-                    manualSelectedIds.size > 0 
+                    manualSelectedIds.size > 0 && targetChannelForSet && !isFlyerChannelName(targetChannelForSet)
                     ? "bg-green-600 hover:bg-green-500 text-white active:scale-95" 
                     : "bg-gray-700 text-gray-500 cursor-not-allowed"
                   }`}
@@ -913,6 +957,16 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
                         {isManualMode ? (manualView === 'sets' ? "Saved Asset Sets" : "Flyer Inventory (Manual)") : "Filtered Intelligence"}
                     </p>
                     <p className="text-sm font-black text-white">{displayRows.length.toLocaleString()} items</p>
+                    {isManualMode && manualView === "flyer" && (
+                      <p className="text-[10px] text-gray-500 mt-1 font-bold uppercase tracking-widest">
+                        Target Channel: <span className="text-indigo-400">{targetChannelForSet || "None selected"}</span>
+                      </p>
+                    )}
+                    {isManualMode && manualView === "sets" && !isFlyerChannelName(activeChannel) && (
+                      <p className="text-[10px] text-gray-500 mt-1 font-bold uppercase tracking-widest">
+                        Viewing Channel: <span className="text-indigo-400">{activeChannel}</span>
+                      </p>
+                    )}
                   </div>
                   <button 
                     onClick={handleResetLayout}
@@ -978,7 +1032,7 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
                       <button onClick={() => setShowChannelModal(false)} className="text-gray-500 hover:text-white transition-colors bg-gray-900 w-8 h-8 rounded-full flex items-center justify-center border border-gray-700">✕</button>
                   </div>
                   <div className="grid grid-cols-1 gap-3">
-                      {selectedCampaign?.channels?.map(ch => (
+                      {nonFlyerChannels.map(ch => (
                           <button
                             key={ch}
                             onClick={() => {
@@ -996,6 +1050,12 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
                             <div className={`w-2 h-2 rounded-full ${targetChannelForSet === ch ? 'bg-white' : 'bg-gray-800 group-hover:bg-indigo-400'}`} />
                           </button>
                       ))}
+
+                      {nonFlyerChannels.length === 0 && (
+                        <div className="text-[10px] text-gray-600 italic p-4 bg-gray-900/50 rounded-xl border border-dashed border-gray-700">
+                          No non-flyer target channels available.
+                        </div>
+                      )}
                   </div>
               </div>
           </div>
