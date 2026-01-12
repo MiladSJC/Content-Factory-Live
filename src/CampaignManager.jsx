@@ -144,7 +144,14 @@ const CampaignManager = ({ onNavigateToAI, onNavigateToFlyer }) => {
   // Persistence Helper: Merge Public Files with LocalStorage
   const initializeCampaigns = async () => {
     try {
-      const localData = localStorage.getItem('sjc_campaign_storage');
+      const APP_VERSION = '1.0.1'; // Increment this when you push changes
+const storedVersion = localStorage.getItem('sjc_app_version');
+
+if (storedVersion !== APP_VERSION) {
+  localStorage.clear(); // Safety wipe for major logic changes
+  localStorage.setItem('sjc_app_version', APP_VERSION);
+}
+const localData = localStorage.getItem('sjc_campaign_storage');
       
       if (localData) {
         setCampaigns(JSON.parse(localData));

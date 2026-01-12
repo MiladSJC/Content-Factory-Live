@@ -475,7 +475,7 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
     };
 
     const fetchFromPublic = async () => {
-      const LIST = ["Moi Campaign.json", "Super C Demo56.json", "Food Basics.json", "112233 Metro Demo.json"];
+      const LIST = ["112233 Metro Demo.json", "Moi Campaign.json", "Super C Demo56.json", "Food Basics.json"];
       try {
         const loaded = await Promise.all(
           LIST.map(file => fetch(`/Campaigns/${file}`).then(res => res.json()))
@@ -501,9 +501,16 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
   }, [campaigns, selectedBanner]);
 
   useEffect(() => {
+    const storedActive = localStorage.getItem('sjc_active_project_name');
+    
     if (filteredCampaigns.length > 0) {
-      const exists = filteredCampaigns.some(c => c.name === selectedCampaignName);
-      if (!exists) {
+      // 1. Check if the "Global Active" project exists in this banner
+      const globalExistsInBanner = filteredCampaigns.some(c => c.name === storedActive);
+      
+      if (globalExistsInBanner) {
+        setSelectedCampaignName(storedActive);
+      } else {
+        // 2. Fallback to the first item in the new hierarchy (112233)
         const firstProject = filteredCampaigns[0].name;
         setSelectedCampaignName(firstProject);
         localStorage.setItem('sjc_active_project_name', firstProject);

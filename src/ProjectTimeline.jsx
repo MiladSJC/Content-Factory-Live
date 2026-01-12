@@ -26,11 +26,15 @@ const ProjectTimeline = () => {
 
   useEffect(() => { 
     fetchCampaigns(); 
-    // Listen for project selection changes from the AI Item Selection module
+    // Listen for project selection changes from any module
     const handleSync = () => {
         const selected = localStorage.getItem('sjc_active_project_name');
-        setActiveProjectName(selected || ''); // Handle clearing of selection
+        setActiveProjectName(selected || ''); 
     };
+    
+    // Immediate check for existing selection on mount
+    handleSync();
+
     window.addEventListener("activeProject:updated", handleSync);
     window.addEventListener("campaigns:updated", fetchCampaigns);
     
