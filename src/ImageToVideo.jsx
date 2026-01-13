@@ -24,6 +24,7 @@ function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
   // --- State ---
   const [inputImages, setInputImages] = useState([]); 
   const [prompt, setPrompt] = useState('');
+  const [pendingQueue, setPendingQueue] = useState([]);
   
   // NEW: Live Mode State
   const [isLiveMode, setIsLiveMode] = useState(false);
@@ -59,19 +60,27 @@ function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
   const imageInputRef = useRef(null);
   const configInputRef = useRef(null);
 
-  // --- External Transfer Logic ---
+  // --- External Transfer Logic (Sequential Set Loading) ---
   useEffect(() => {
     if (incomingAssets && incomingAssets.length > 0) {
-        const newImages = incomingAssets.map(asset => ({
+        const [firstSet, ...remainingSets] = incomingAssets;
+
+        const firstSetMapped = firstSet.map(asset => ({
             id: Date.now() + Math.random(),
             url: asset.url,
             name: asset.name,
-            file: null // Assuming URL based transfer for production logic
+            file: null
         }));
-        setInputImages(prev => [...prev, ...newImages]);
+
+        setInputImages(firstSetMapped);
+        setPendingQueue(remainingSets);
+        
+        // Reset state for new set to prevent data leakage
+        setIsGenerated(false);
+        setLiveVideos({});
         const newVersions = {};
-        newImages.forEach(img => newVersions[img.id] = 0);
-        setImageVersions(prev => ({ ...prev, ...newVersions }));
+        firstSetMapped.forEach(img => newVersions[img.id] = 0);
+        setImageVersions(newVersions);
         onClearIncoming();
     }
   }, [incomingAssets]);
@@ -97,6 +106,27 @@ function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
 
   // --- Handlers ---
   const handleAutoLoadAndUpload = async () => {
+    if (pendingQueue.length > 0) {
+        const [nextSet, ...rest] = pendingQueue;
+        const mappedNext = nextSet.map(asset => ({
+            id: Date.now() + Math.random(),
+            url: asset.url,
+            name: asset.name,
+            file: null
+        }));
+        // SWAP: Replace existing images with the next set from queue
+        setInputImages(mappedNext);
+        setIsGenerated(false);
+        setLiveVideos({});
+        setImageVersions(() => {
+            const upd = {};
+            mappedNext.forEach(img => upd[img.id] = 0);
+            return upd;
+        });
+        setPendingQueue(rest);
+        return;
+    }
+
     if (videoPool.length < KNOWN_VIDEO_FILES.length) {
         const autoLoadedVideos = KNOWN_VIDEO_FILES.map(filename => ({
             id: Date.now() + Math.random(),

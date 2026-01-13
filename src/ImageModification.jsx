@@ -31,6 +31,7 @@ function ImageModification({ onPushToDAM, incomingAssets, onClearIncoming }) {
   // --- State ---
   const [inputImages, setInputImages] = useState([]); 
   const [prompt, setPrompt] = useState('');
+  const [pendingQueue, setPendingQueue] = useState([]);
   
   const [isLiveMode, setIsLiveMode] = useState(false);
   const [settings, setSettings] = useState({
@@ -67,19 +68,28 @@ function ImageModification({ onPushToDAM, incomingAssets, onClearIncoming }) {
 
   const imageInputRef = useRef(null);
 
-  // --- External Transfer Logic ---
+  // --- External Transfer Logic (Sequential Set Loading) ---
   useEffect(() => {
     if (incomingAssets && incomingAssets.length > 0) {
-        const newImages = incomingAssets.map(asset => ({
+        // incomingAssets is now an array of arrays (sets)
+        const [firstSet, ...remainingSets] = incomingAssets;
+
+        const firstSetMapped = firstSet.map(asset => ({
             id: Date.now() + Math.random(),
             url: asset.url,
             name: asset.name,
             localPath: asset.localPath || null
         }));
-        setInputImages(prev => [...prev, ...newImages]);
+
+        setInputImages(firstSetMapped);
+        setPendingQueue(remainingSets);
+        
+        // Reset state for new set to prevent data leakage from previous sets
+        setIsGenerated(false);
+        setLiveResults({});
         const newVersions = {};
-        newImages.forEach(img => newVersions[img.id] = 0);
-        setImageVersions(prev => ({ ...prev, ...newVersions }));
+        firstSetMapped.forEach(img => newVersions[img.id] = 0);
+        setImageVersions(newVersions);
         onClearIncoming();
     }
   }, [incomingAssets]);
@@ -125,6 +135,27 @@ function ImageModification({ onPushToDAM, incomingAssets, onClearIncoming }) {
 
   // --- Handlers ---
   const handleAutoLoadAndUpload = async () => {
+    if (pendingQueue.length > 0) {
+        const [nextSet, ...rest] = pendingQueue;
+        const mappedNext = nextSet.map(asset => ({
+            id: Date.now() + Math.random(),
+            url: asset.url,
+            name: asset.name,
+            localPath: asset.localPath || null
+        }));
+        // SWAP: Replace existing images with the next set from queue
+        setInputImages(mappedNext);
+        setIsGenerated(false);
+        setLiveResults({});
+        setImageVersions(() => {
+            const upd = {};
+            mappedNext.forEach(img => upd[img.id] = 0);
+            return upd;
+        });
+        setPendingQueue(rest);
+        return;
+    }
+
     if (resultPool.length < KNOWN_RESULT_FILES.length) {
         const autoLoadedResults = KNOWN_RESULT_FILES.map(filename => ({
             id: Date.now() + Math.random(),

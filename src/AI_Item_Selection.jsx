@@ -755,20 +755,28 @@ const AI_Item_Selection = ({ onNavigateToFlyer, setActiveTab, onTransferImageMod
   };
 
   const handleGoToProduction = () => {
-    // Collect images from the current visible sets
-    const assetsToTransfer = displayRows.map(row => ({
+    // Group assets into arrays of sets (by Page for AI, by Set Label for Manual)
+    const groupedData = [];
+    const groups = new Map();
+
+    displayRows.forEach(row => {
+      const key = isManualMode ? row._assetSetLabel : `Page ${row.page}`;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push({
         url: row?.["Img1 Relative Path"] || "",
         name: row?.Copy || "Asset",
         localPath: row?.["Img1 Relative Path"] || ""
-    }));
+      });
+    });
+
+    groups.forEach(value => groupedData.push(value));
 
     const channelKey = normalize(activeChannel);
-
-    if (channelKey === "web banner") {
-        onTransferImageMod(assetsToTransfer);
+    if (channelKey === "web banner" || channelKey === "social" || channelKey === "e-blast") {
+        onTransferImageMod(groupedData);
         setActiveTab("image-modification");
-    } else if (channelKey === "video") {
-        onTransferVideo(assetsToTransfer);
+    } else if (channelKey === "video" || channelKey === "youtube") {
+        onTransferVideo(groupedData);
         setActiveTab("image-to-video");
     } else {
         alert(`Production module routing for "${activeChannel}" is pending architectural review.`);
@@ -1039,7 +1047,7 @@ const AI_Item_Selection = ({ onNavigateToFlyer, setActiveTab, onTransferImageMod
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {isManualMode && manualView === "sets" && displayRows.length > 0 && (
+                  {((isManualMode && manualView === "sets") || (!isManualMode && showResults)) && displayRows.length > 0 && (
                     <button
                         onClick={handleGoToProduction}
                         className="mr-4 flex items-center gap-2 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg border border-indigo-400 active:scale-95"
