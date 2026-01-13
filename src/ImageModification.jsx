@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 // --- CONFIGURATION ---
 const KNOWN_RESULT_FILES = [
@@ -27,7 +27,7 @@ const UploadIcon = () => (
   </svg>
 );
 
-function ImageModification({ onPushToDAM }) {
+function ImageModification({ onPushToDAM, incomingAssets, onClearIncoming }) {
   // --- State ---
   const [inputImages, setInputImages] = useState([]); 
   const [prompt, setPrompt] = useState('');
@@ -66,6 +66,23 @@ function ImageModification({ onPushToDAM }) {
   });
 
   const imageInputRef = useRef(null);
+
+  // --- External Transfer Logic ---
+  useEffect(() => {
+    if (incomingAssets && incomingAssets.length > 0) {
+        const newImages = incomingAssets.map(asset => ({
+            id: Date.now() + Math.random(),
+            url: asset.url,
+            name: asset.name,
+            localPath: asset.localPath || null
+        }));
+        setInputImages(prev => [...prev, ...newImages]);
+        const newVersions = {};
+        newImages.forEach(img => newVersions[img.id] = 0);
+        setImageVersions(prev => ({ ...prev, ...newVersions }));
+        onClearIncoming();
+    }
+  }, [incomingAssets]);
 
   // --- Helpers ---
   const getBaseName = (filename) => filename.split('.').slice(0, -1).join('.').toLowerCase();
@@ -566,7 +583,7 @@ function ImageModification({ onPushToDAM }) {
                 <div>
                   <label className="block text-[10px] uppercase font-bold text-gray-500 mb-1">Variations</label>
                   <select value={refineModal.variations} onChange={(e) => setRefineModal(p => ({ ...p, variations: parseInt(e.target.value) }))} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white outline-none">
-                    {[1, 2, 3, 4].map(n => <option key={n} value={n}>{n} Image{n > 1 ? 's' : ''}</option>)}
+                    {[1, 2, 3, 4].map(n => <option key={n} value={n} >{n} Image{n > 1 ? 's' : ''}</option>)}
                   </select>
                 </div>
               </div>

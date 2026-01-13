@@ -114,6 +114,10 @@ function App() {
   // --- SESSION DAM STORAGE ---
   const [sharedDAMAssets, setSharedDAMAssets] = useState([]);
 
+  // --- CROSS-MODULE PRODUCTION TRANSFER ---
+  const [transferImageMod, setTransferImageMod] = useState(null);
+  const [transferVideo, setTransferVideo] = useState(null);
+
   const handlePushToDAM = (newAsset) => {
     setSharedDAMAssets(prev => [newAsset, ...prev]);
     alert(`Asset "${newAsset.name}" pushed to DAM Shared Workspace!`);
@@ -284,7 +288,12 @@ function App() {
           )}
 
           <div style={{ display: activeTab === 'item-picker' ? 'block' : 'none' }}>
-            <AI_Item_Selection onNavigateToFlyer={() => setActiveTab('flyer')} />
+            <AI_Item_Selection 
+                onNavigateToFlyer={() => setActiveTab('flyer')} 
+                setActiveTab={setActiveTab}
+                onTransferImageMod={setTransferImageMod}
+                onTransferVideo={setTransferVideo}
+            />
           </div>
 
           <div style={{ display: activeTab === 'flyer' ? 'block' : 'none' }}>
@@ -311,10 +320,18 @@ function App() {
           </div>
 
           <div style={{ display: activeTab === 'image-to-video' ? 'block' : 'none' }}>
-            <ImageToVideo onPushToDAM = {handlePushToDAM} />
+            <ImageToVideo 
+                onPushToDAM = {handlePushToDAM} 
+                incomingAssets={transferVideo}
+                onClearIncoming={() => setTransferVideo(null)}
+            />
           </div>
           <div style={{ display: activeTab === 'image-modification' ? 'block' : 'none' }}>
-            <ImageModification onPushToDAM = {handlePushToDAM} />
+            <ImageModification 
+                onPushToDAM = {handlePushToDAM} 
+                incomingAssets={transferImageMod}
+                onClearIncoming={() => setTransferImageMod(null)}
+            />
           </div>
           <div style={{ display: activeTab === 'eblast-automation' ? 'block' : 'none' }}>
             <EblastAutomation onPushToDAM = {handlePushToDAM} />

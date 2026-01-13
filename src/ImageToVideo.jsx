@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 // --- CONFIGURATION ---
 const KNOWN_VIDEO_FILES = [
@@ -20,7 +20,7 @@ const UploadIcon = () => (
   </svg>
 );
 
-function ImageToVideo({ onPushToDAM }) {
+function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
   // --- State ---
   const [inputImages, setInputImages] = useState([]); 
   const [prompt, setPrompt] = useState('');
@@ -58,6 +58,23 @@ function ImageToVideo({ onPushToDAM }) {
   // --- Refs ---
   const imageInputRef = useRef(null);
   const configInputRef = useRef(null);
+
+  // --- External Transfer Logic ---
+  useEffect(() => {
+    if (incomingAssets && incomingAssets.length > 0) {
+        const newImages = incomingAssets.map(asset => ({
+            id: Date.now() + Math.random(),
+            url: asset.url,
+            name: asset.name,
+            file: null // Assuming URL based transfer for production logic
+        }));
+        setInputImages(prev => [...prev, ...newImages]);
+        const newVersions = {};
+        newImages.forEach(img => newVersions[img.id] = 0);
+        setImageVersions(prev => ({ ...prev, ...newVersions }));
+        onClearIncoming();
+    }
+  }, [incomingAssets]);
 
   // --- Helpers ---
   const getBaseName = (filename) => {

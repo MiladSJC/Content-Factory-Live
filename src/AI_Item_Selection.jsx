@@ -469,7 +469,7 @@ const DataGrid = ({
   );
 };
 
-const AI_Item_Selection = ({ onNavigateToFlyer }) => {
+const AI_Item_Selection = ({ onNavigateToFlyer, setActiveTab, onTransferImageMod, onTransferVideo }) => {
   const [campaigns, setCampaigns] = useState([]);
   const [selectedBanner, setSelectedBanner] = useState("Metro");
   const [selectedCampaignName, setSelectedCampaignName] = useState("");
@@ -754,6 +754,27 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
     setActiveChannel(channelName);
   };
 
+  const handleGoToProduction = () => {
+    // Collect images from the current visible sets
+    const assetsToTransfer = displayRows.map(row => ({
+        url: row?.["Img1 Relative Path"] || "",
+        name: row?.Copy || "Asset",
+        localPath: row?.["Img1 Relative Path"] || ""
+    }));
+
+    const channelKey = normalize(activeChannel);
+
+    if (channelKey === "web banner") {
+        onTransferImageMod(assetsToTransfer);
+        setActiveTab("image-modification");
+    } else if (channelKey === "video") {
+        onTransferVideo(assetsToTransfer);
+        setActiveTab("image-to-video");
+    } else {
+        alert(`Production module routing for "${activeChannel}" is pending architectural review.`);
+    }
+  };
+
   const displayRows = useMemo(() => {
     if (!isManualMode) return resultRows;
 
@@ -1018,6 +1039,14 @@ const AI_Item_Selection = ({ onNavigateToFlyer }) => {
                 </div>
 
                 <div className="flex items-center gap-2">
+                  {isManualMode && manualView === "sets" && displayRows.length > 0 && (
+                    <button
+                        onClick={handleGoToProduction}
+                        className="mr-4 flex items-center gap-2 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg border border-indigo-400 active:scale-95"
+                    >
+                        🚀 Go to production
+                    </button>
+                  )}
                   <WorkflowNavigation />
                   <div className="flex bg-gray-900 rounded-xl p-1 border border-gray-800 ml-2">
                     <button
