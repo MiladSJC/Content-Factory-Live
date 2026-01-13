@@ -158,7 +158,7 @@ function App() {
   const navSecondary = [
     { id: 'flyer', label: 'Flyer Production', icon: Icons.File },
     { id: 'all-ai-flyer', label: 'All AI Flyer (Beta)', icon: Icons.Sparkles },
-    { id: 'image-modification', label: 'AI Image Modification', icon: Icons.Edit },
+    { id: 'image-modification', label: 'AI Offer Builder', icon: Icons.Edit },
     { id: 'image-to-video', label: 'AI Image to Video', icon: Icons.Video },    
     { id: 'eblast-automation', label: 'AI Multi-Asset Compositor', icon: Icons.Layers },
     { id: 'animation', label: 'Animation', icon: Icons.Play },    

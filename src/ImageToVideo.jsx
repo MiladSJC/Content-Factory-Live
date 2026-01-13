@@ -114,8 +114,17 @@ function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
             name: asset.name,
             file: null
         }));
-        // SWAP: Replace existing images with the next set from queue
+
+        // LOOP LOGIC: Prepare the current set to be moved to the back of the queue
+        const currentAsQueueItem = inputImages.map(img => ({
+            url: img.url,
+            name: img.name
+        }));
+
+        // SWAP & ROTATE: Replace workspace and push previous set to end of queue
         setInputImages(mappedNext);
+        setPendingQueue([...rest, currentAsQueueItem]);
+
         setIsGenerated(false);
         setLiveVideos({});
         setImageVersions(() => {
@@ -123,7 +132,6 @@ function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
             mappedNext.forEach(img => upd[img.id] = 0);
             return upd;
         });
-        setPendingQueue(rest);
         return;
     }
 
