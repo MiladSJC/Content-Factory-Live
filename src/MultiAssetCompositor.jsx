@@ -130,7 +130,7 @@ function EblastAutomation({ onPushToDAM }) {
           : [...selectedRatios, ...Array(4 - selectedRatios.length).fill(selectedRatios[0])].slice(0, 4);
 
         const responses = await Promise.all(targetRatios.map(ratio =>
-          fetch('/api/generate-eblast', {
+          fetch('http://localhost:5001/generate-eblast', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -166,7 +166,7 @@ function EblastAutomation({ onPushToDAM }) {
     if (isLiveMode) {
       try {
         const refinePromises = resultImages.map(async (imgUrl, idx) => {
-          const resp = await fetch('/api/generate-eblast', {
+          const resp = await fetch('http://localhost:5001/generate-eblast', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

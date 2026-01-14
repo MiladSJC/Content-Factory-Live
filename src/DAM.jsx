@@ -386,7 +386,7 @@ export default function DAM({ externalSharedAssets = [] }) {
         const livePrompt = `Keep everything intact, and do not touch and thing just apply the following changes \n${notesList}`;
 
         // Step 3: Send Correct Dimensions & Ratio
-        const response = await fetch("/api/generate-card", {
+        const response = await fetch("http://localhost:5001/generate-card", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

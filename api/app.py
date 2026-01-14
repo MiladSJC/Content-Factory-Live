@@ -375,8 +375,6 @@ class CampaignRequest(BaseModel):
 
 @app.post("/save-campaign")
 async def save_campaign(campaign: CampaignRequest):
-    if os.getenv("WEBSITE_SITE_NAME"):
-        return {"message": "Cloud Storage not configured. Saving disabled in cloud environment.", "path": ""}
     try:
         os.makedirs(CAMPAIGN_SAVE_DIR, exist_ok=True)
         safe_name = "".join(x for x in campaign.name if x.isalnum() or x in " -_")
@@ -461,8 +459,6 @@ async def get_local_image(path: str = Query(..., description="Absolute path to t
 
 @app.post("/save-project")
 async def save_project(project: ProjectSaveRequest):
-    if os.getenv("WEBSITE_SITE_NAME"):
-        return {"message": "Cloud Storage not configured. Saving disabled in cloud environment.", "path": ""}
     try:
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         folder_name = f"{project.designModel}_{project.serverVersion}_{timestamp}"

@@ -76,7 +76,7 @@ export const FineTuneModal = ({ isOpen, onClose, onSaveModel }) => {
     setError(null);
 
     try {
-      const response = await fetch('/api/analyze-style', {
+      const response = await fetch('http://localhost:5001/analyze-style', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ images: samples, model_name: modelName })

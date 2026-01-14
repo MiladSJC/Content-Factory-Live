@@ -357,7 +357,7 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
     const generatedPrompt = getPrompt('v2', promptModelKey, itemData, externalCustomModels);
 
     try {
-      const response = await fetch('/api/generate-card', {
+      const response = await fetch('http://localhost:5001/generate-card', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -495,7 +495,7 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
     };
 
     try {
-      const response = await fetch('/api/save-project', {
+      const response = await fetch('http://localhost:5001/save-project', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dataToSave)
@@ -543,7 +543,7 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
             // We only proxy via get-local-image if it's still an absolute Windows path (Legacy support).
             if (cell.image && !cell.image.startsWith('data:')) {
               if (cell.image.includes(':') || cell.image.startsWith('\\\\')) {
-                cell.image = `/api/get-local-image?path=${encodeURIComponent(cell.image)}`;
+                cell.image = `http://localhost:5001/get-local-image?path=${encodeURIComponent(cell.image)}`;
               }
               // Otherwise, if it starts with "/", the browser will resolve it automatically.
             }
@@ -551,7 +551,7 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
             if (cell.variations && cell.variations.length > 0) {
               cell.variations = cell.variations.map(v => {
                 if (!v.startsWith('data:') && (v.includes(':') || v.startsWith('\\\\'))) {
-                  return `/api/get-local-image?path=${encodeURIComponent(v)}`;
+                  return `http://localhost:5001/get-local-image?path=${encodeURIComponent(v)}`;
                 }
                 return v;
               });

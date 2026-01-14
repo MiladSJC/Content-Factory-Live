@@ -227,7 +227,7 @@ function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
             });
           }
 
-          const response = await fetch('/api/generate-video', {
+          const response = await fetch('http://localhost:5001/generate-video', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

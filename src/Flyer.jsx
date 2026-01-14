@@ -77,8 +77,8 @@ const AssetGridItem = ({ row, onOpenFile, onOpenFolder, prodEnv }) => {
                 onClick={handleOpenClick}
                 disabled={prodEnv === "Figma"}
                 className={`w-full text-[10px] font-black uppercase py-2 rounded-lg transition-all shadow-lg border ${prodEnv === "Figma"
-                    ? "bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed opacity-50"
-                    : "bg-blue-1000 hover:bg-blue-900 text-white border-blue-400/20"
+                  ? "bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed opacity-50"
+                  : "bg-blue-1000 hover:bg-blue-900 text-white border-blue-400/20"
                   }`}
               >
                 {prodEnv === "Figma" ? "Locked" : prodEnv === "SJC Platform" ? "Open Platform" : "Open File"}
@@ -194,7 +194,7 @@ const Flyer = () => {
   const openFile = async (path) => {
     if (!path || prodEnv !== "InDesign") return;
     try {
-      const res = await fetch('/api/open-file', {
+      const res = await fetch('http://localhost:5001/open-file', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path })
@@ -206,7 +206,7 @@ const Flyer = () => {
   const openFolder = async (path) => {
     if (!path || prodEnv !== "InDesign") return;
     try {
-      const res = await fetch('/api/open-folder', {
+      const res = await fetch('http://localhost:5001/open-folder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path })
@@ -367,8 +367,8 @@ const Flyer = () => {
                                 }
                               }}
                               className={`px-3 py-1 border rounded-md text-[9px] font-black uppercase transition-all ${prodEnv === "Figma"
-                                  ? "bg-gray-800/50 text-gray-600 border-gray-700 cursor-not-allowed"
-                                  : "bg-blue-600/20 text-blue-400 border-blue-500/30 hover:bg-blue-600 hover:text-white"
+                                ? "bg-gray-800/50 text-gray-600 border-gray-700 cursor-not-allowed"
+                                : "bg-blue-600/20 text-blue-400 border-blue-500/30 hover:bg-blue-600 hover:text-white"
                                 }`}
                             >
                               {prodEnv === "Figma" ? "Locked" : "Open"}
@@ -377,8 +377,8 @@ const Flyer = () => {
                               disabled={prodEnv !== "InDesign"}
                               onClick={() => openFolder(row['Folder Path'])}
                               className={`px-3 py-1 border rounded-md text-[9px] font-black uppercase transition-all ${prodEnv !== "InDesign"
-                                  ? "bg-gray-800/50 text-gray-600 border-gray-700 cursor-not-allowed"
-                                  : "bg-gray-800 text-gray-400 border-gray-700 hover:bg-gray-700 hover:text-white"
+                                ? "bg-gray-800/50 text-gray-600 border-gray-700 cursor-not-allowed"
+                                : "bg-gray-800 text-gray-400 border-gray-700 hover:bg-gray-700 hover:text-white"
                                 }`}
                             >
                               Folder
