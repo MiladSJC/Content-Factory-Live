@@ -221,8 +221,8 @@ function ImageModification({ onPushToDAM, incomingAssets, onClearIncoming }) {
     // Resolve the correct source path or base64 data
     let targetPath = customPath || img.localPath || img.name;
 
-    // If we have a blob URL (from local upload) and no override path, convert to Base64
-    if (!customPath && img.url && img.url.startsWith('blob:')) {
+    // Force Base64 conversion for ALL images (local blob or remote/static URL) to bypass backend disk access
+    if (!customPath && img.url) {
       try {
         const blob = await fetch(img.url).then(r => r.blob());
         targetPath = await new Promise((resolve) => {
@@ -231,11 +231,9 @@ function ImageModification({ onPushToDAM, incomingAssets, onClearIncoming }) {
           reader.readAsDataURL(blob);
         });
       } catch (e) {
-        console.error("Failed to convert blob to base64", e);
+        console.error("Failed to convert image to base64", e);
+        // Fallback to original URL if fetch fails, though this will likely fail on backend too if not static
       }
-    } else if (!customPath) {
-      // Fallback to URL for non-blob scenarios
-      targetPath = img.url || targetPath;
     }
 
     const payload = {

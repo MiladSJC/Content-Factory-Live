@@ -252,8 +252,8 @@ const TreeNode = ({ node, level = 0, selectedCategory, onSelect, defaultCollapse
           onSelect(node.name);
         }}
         className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${selectedCategory === node.name
-            ? 'bg-red-600/20 text-red-500 border border-red-600/30'
-            : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+          ? 'bg-red-600/20 text-red-500 border border-red-600/30'
+          : 'text-gray-400 hover:bg-gray-800 hover:text-white'
           }`}
         style={{ paddingLeft: `${level * 12 + 12}px` }}
       >
@@ -1026,8 +1026,8 @@ export default function DAM({ externalSharedAssets = [] }) {
                   key={type.value}
                   onClick={() => setTypeFilter(type.value)}
                   className={`px-3 py-2 rounded-lg text-[10px] font-bold transition-all border flex items-center justify-center gap-1 ${typeFilter === type.value
-                      ? 'bg-red-600/10 border-red-600/50 text-red-400'
-                      : 'bg-gray-800/50 border-gray-700 text-gray-400 hover:border-gray-600 hover:text-white'
+                    ? 'bg-red-600/10 border-red-600/50 text-red-400'
+                    : 'bg-gray-800/50 border-gray-700 text-gray-400 hover:border-gray-600 hover:text-white'
                     }`}
                 >
                   <span>{type.icon}</span>
@@ -1253,8 +1253,8 @@ export default function DAM({ externalSharedAssets = [] }) {
                         key={p}
                         onClick={() => setPage(p)}
                         className={`w-10 h-10 rounded-lg font-bold text-sm transition-all ${page === p
-                            ? 'bg-red-600 text-white'
-                            : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                          ? 'bg-red-600 text-white'
+                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                           }`}
                       >
                         {p}
@@ -1724,8 +1724,8 @@ export default function DAM({ externalSharedAssets = [] }) {
                                     onClick={handleAIProcess}
                                     disabled={selectedNotes.size === 0}
                                     className={`flex-[2] py-3 disabled:opacity-50 text-white rounded-xl font-black text-xs shadow-lg transition-all flex items-center justify-center gap-2 ${isLiveMode
-                                        ? 'bg-blue-600 hover:bg-blue-500 shadow-blue-900/40'
-                                        : 'bg-red-600 hover:bg-red-500 shadow-red-900/40'
+                                      ? 'bg-blue-600 hover:bg-blue-500 shadow-blue-900/40'
+                                      : 'bg-red-600 hover:bg-red-500 shadow-red-900/40'
                                       }`}
                                   >
                                     <Zap size={14} /> {isLiveMode ? 'GENERATE LIVE (GEMINI)' : 'GENERATE MODIFICATION'}
