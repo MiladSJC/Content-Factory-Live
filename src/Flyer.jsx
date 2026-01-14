@@ -53,10 +53,10 @@ const AssetGridItem = ({ row, onOpenFile, onOpenFolder, prodEnv }) => {
           {row.Thumbnail ? (
             <img src={row.Thumbnail} alt={row.Campaign} className="w-full h-full object-cover" />
           ) : (
-            <img 
-              src={getLogo()} 
-              alt={prodEnv} 
-              className="w-24 h-24 object-contain opacity-40 group-hover:scale-110 transition-transform" 
+            <img
+              src={getLogo()}
+              alt={prodEnv}
+              className="w-24 h-24 object-contain opacity-40 group-hover:scale-110 transition-transform"
             />
           )}
           <div className="absolute top-3 left-3 bg-black/70 text-white text-[9px] font-black px-2 py-1 rounded-md backdrop-blur-md border border-white/10 uppercase">
@@ -73,14 +73,13 @@ const AssetGridItem = ({ row, onOpenFile, onOpenFolder, prodEnv }) => {
               <p className="text-[9px] text-gray-400 font-medium truncate">{row['File Name']}</p>
             </div>
             <div className="w-1/2">
-              <button 
-                onClick={handleOpenClick} 
+              <button
+                onClick={handleOpenClick}
                 disabled={prodEnv === "Figma"}
-                className={`w-full text-[10px] font-black uppercase py-2 rounded-lg transition-all shadow-lg border ${
-                  prodEnv === "Figma" 
-                  ? "bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed opacity-50" 
-                  : "bg-blue-1000 hover:bg-blue-900 text-white border-blue-400/20"
-                }`}
+                className={`w-full text-[10px] font-black uppercase py-2 rounded-lg transition-all shadow-lg border ${prodEnv === "Figma"
+                    ? "bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed opacity-50"
+                    : "bg-blue-1000 hover:bg-blue-900 text-white border-blue-400/20"
+                  }`}
               >
                 {prodEnv === "Figma" ? "Locked" : prodEnv === "SJC Platform" ? "Open Platform" : "Open File"}
               </button>
@@ -126,7 +125,7 @@ const Flyer = () => {
       Channel: String(ci(row, 'Channel')).trim(),
       'Asset Type': String(ci(row, 'Asset Type')).trim(),
       'Folder Path': String(ci(row, 'Folder Path')).trim(),
-      'File Name': String(ci(row, 'File Name') || ci(row,'File name')).trim(),
+      'File Name': String(ci(row, 'File Name') || ci(row, 'File name')).trim(),
       'File Path': String(ci(row, 'File Path')).trim(),
       'SJC URL': String(ci(row, 'SJC URL')).trim(),
       Thumbnail: String(ci(row, 'Thumbnail')).trim(),
@@ -158,10 +157,10 @@ const Flyer = () => {
   const filteredData = useMemo(() => {
     return csvData.filter(item => {
       return (!filters.Banner || item.Banner === filters.Banner) &&
-             (!filters.year || item.Year === filters.year) &&
-             (!filters.campaign || item.Campaign === filters.campaign) &&
-             (!filters.channel || item.Channel === filters.channel) &&
-             (!filters.assetType || item['Asset Type'] === filters.assetType);
+        (!filters.year || item.Year === filters.year) &&
+        (!filters.campaign || item.Campaign === filters.campaign) &&
+        (!filters.channel || item.Channel === filters.channel) &&
+        (!filters.assetType || item['Asset Type'] === filters.assetType);
     });
   }, [csvData, filters]);
 
@@ -195,7 +194,7 @@ const Flyer = () => {
   const openFile = async (path) => {
     if (!path || prodEnv !== "InDesign") return;
     try {
-      const res = await fetch('http://localhost:5001/open-file', {
+      const res = await fetch('/api/open-file', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path })
@@ -207,7 +206,7 @@ const Flyer = () => {
   const openFolder = async (path) => {
     if (!path || prodEnv !== "InDesign") return;
     try {
-      const res = await fetch('http://localhost:5001/open-folder', {
+      const res = await fetch('/api/open-folder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path })
@@ -218,77 +217,77 @@ const Flyer = () => {
 
   return (
     <div className="flex h-[calc(100vh-140px)] gap-6 text-white animate-fadeIn font-sans">
-      
+
       {/* --- Left Column: Controls --- */}
       <div className="w-[21.5%] min-w-[250px] bg-gray-800 rounded-2xl p-4 overflow-y-auto space-y-6 border border-gray-700 shadow-xl custom-scrollbar">
         <div className="flex justify-between items-center border-b border-gray-700 pb-4">
-             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <span className="p-1.5 bg-red-600 rounded-lg"><FlyerIcons.Folder /></span> 
-                Flyer Manager
-             </h2>
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <span className="p-1.5 bg-red-600 rounded-lg"><FlyerIcons.Folder /></span>
+            Flyer Manager
+          </h2>
         </div>
 
         <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">System Status</label>
-            <button onClick={handleReloadClick} className={`w-full py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all border ${isDbConnected ? 'bg-green-600/10 border-green-500/50 text-green-500' : 'bg-blue-600/10 border-blue-500/50 text-blue-500'}`}>
-                {isDbConnected ? '● Database Active' : '○ Loading...'}
-            </button>
+          <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">System Status</label>
+          <button onClick={handleReloadClick} className={`w-full py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all border ${isDbConnected ? 'bg-green-600/10 border-green-500/50 text-green-500' : 'bg-blue-600/10 border-blue-500/50 text-blue-500'}`}>
+            {isDbConnected ? '● Database Active' : '○ Loading...'}
+          </button>
         </div>
 
         <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Banner</label>
-            <select value={filters.Banner} onChange={e => setFilters(prev => ({ ...prev, Banner: e.target.value, year:'', campaign:'', channel:'', assetType:'' }))} className="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-sm font-bold text-white focus:border-red-500 outline-none appearance-none">
-              <option value="">All Banners</option>
-              {BannerOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
+          <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Banner</label>
+          <select value={filters.Banner} onChange={e => setFilters(prev => ({ ...prev, Banner: e.target.value, year: '', campaign: '', channel: '', assetType: '' }))} className="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-sm font-bold text-white focus:border-red-500 outline-none appearance-none">
+            <option value="">All Banners</option>
+            {BannerOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+          </select>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Year</label>
-              <select value={filters.year} onChange={e => setFilters(prev => ({ ...prev, year: e.target.value, campaign:'', channel:'', assetType:'' }))} className="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-xs font-bold text-white focus:border-red-500 outline-none appearance-none disabled:opacity-50" disabled={!filters.Banner && !yearOptions.length}>
-                <option value="">Year</option>
-                {yearOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
+            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Year</label>
+            <select value={filters.year} onChange={e => setFilters(prev => ({ ...prev, year: e.target.value, campaign: '', channel: '', assetType: '' }))} className="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-xs font-bold text-white focus:border-red-500 outline-none appearance-none disabled:opacity-50" disabled={!filters.Banner && !yearOptions.length}>
+              <option value="">Year</option>
+              {yearOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
           </div>
           <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Type</label>
-              <select value={filters.assetType} onChange={e => setFilters(prev => ({ ...prev, assetType: e.target.value }))} className="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-xs font-bold text-white focus:border-red-500 outline-none appearance-none disabled:opacity-50" disabled={!filters.channel && !assetOptions.length}>
-                <option value="">Type</option>
-                {assetOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
+            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Type</label>
+            <select value={filters.assetType} onChange={e => setFilters(prev => ({ ...prev, assetType: e.target.value }))} className="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-xs font-bold text-white focus:border-red-500 outline-none appearance-none disabled:opacity-50" disabled={!filters.channel && !assetOptions.length}>
+              <option value="">Type</option>
+              {assetOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
           </div>
         </div>
 
         <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Campaign</label>
-            <select value={filters.campaign} onChange={e => setFilters(prev => ({ ...prev, campaign: e.target.value, channel:'', assetType:'' }))} className="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-sm font-bold text-white focus:border-red-500 outline-none appearance-none disabled:opacity-50" disabled={!filters.year && !campaignOptions.length}>
-              <option value="">All Campaigns</option>
-              {campaignOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
+          <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Campaign</label>
+          <select value={filters.campaign} onChange={e => setFilters(prev => ({ ...prev, campaign: e.target.value, channel: '', assetType: '' }))} className="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-sm font-bold text-white focus:border-red-500 outline-none appearance-none disabled:opacity-50" disabled={!filters.year && !campaignOptions.length}>
+            <option value="">All Campaigns</option>
+            {campaignOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+          </select>
         </div>
 
         <div className="space-y-3">
-            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Channel</label>
-            <div className="flex flex-col gap-2">
-                {channelOptions.length > 0 ? channelOptions.map(ch => (
-                    <button key={ch} onClick={() => setFilters(prev => ({ ...prev, channel: ch, assetType:'' }))} className={`flex items-center justify-between px-4 py-3 rounded-xl border font-bold text-xs uppercase tracking-wider transition-all ${filters.channel === ch ? 'bg-red-600 border-red-500 text-white shadow-lg' : 'bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-500'}`}>
-                        {ch}
-                        <div className={`w-2 h-2 rounded-full ${filters.channel === ch ? 'bg-white animate-pulse' : 'bg-gray-700'}`} />
-                    </button>
-                )) : <div className="text-[10px] text-gray-600 italic p-4 bg-gray-900/50 rounded-xl border border-dashed border-gray-700 text-center">Select campaign to view channels</div>}
-            </div>
+          <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Channel</label>
+          <div className="flex flex-col gap-2">
+            {channelOptions.length > 0 ? channelOptions.map(ch => (
+              <button key={ch} onClick={() => setFilters(prev => ({ ...prev, channel: ch, assetType: '' }))} className={`flex items-center justify-between px-4 py-3 rounded-xl border font-bold text-xs uppercase tracking-wider transition-all ${filters.channel === ch ? 'bg-red-600 border-red-500 text-white shadow-lg' : 'bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-500'}`}>
+                {ch}
+                <div className={`w-2 h-2 rounded-full ${filters.channel === ch ? 'bg-white animate-pulse' : 'bg-gray-700'}`} />
+              </button>
+            )) : <div className="text-[10px] text-gray-600 italic p-4 bg-gray-900/50 rounded-xl border border-dashed border-gray-700 text-center">Select campaign to view channels</div>}
+          </div>
         </div>
 
         <div className="pt-4 border-t border-gray-700">
-            <button onClick={() => setFilters({ Banner: '', year: '', campaign: '', channel: '', assetType: '' })} className="w-full py-3 rounded-xl font-black uppercase text-[10px] tracking-[0.2em] bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-white transition-all">Clear All Filters</button>
+          <button onClick={() => setFilters({ Banner: '', year: '', campaign: '', channel: '', assetType: '' })} className="w-full py-3 rounded-xl font-black uppercase text-[10px] tracking-[0.2em] bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-white transition-all">Clear All Filters</button>
         </div>
       </div>
 
       {/* --- Right Column: Main Display --- */}
       <div className="flex-1 bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden relative flex flex-col shadow-2xl">
         <div className="absolute inset-0 flex flex-col p-6 min-h-0 gap-4">
-          
+
           {/* --- Production Environment Selector --- */}
           <div className="flex-none flex items-center justify-between bg-gray-800 p-2 rounded-2xl border border-gray-700">
             <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-3">Production Environment</span>
@@ -297,9 +296,8 @@ const Flyer = () => {
                 <button
                   key={env}
                   onClick={() => setProdEnv(env)}
-                  className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
-                    prodEnv === env ? "bg-red-600 text-white shadow-lg" : "text-gray-400 hover:text-white"
-                  }`}
+                  className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${prodEnv === env ? "bg-red-600 text-white shadow-lg" : "text-gray-400 hover:text-white"
+                    }`}
                 >
                   {env}
                 </button>
@@ -332,66 +330,64 @@ const Flyer = () => {
                 </div>
               ) : (
                 <div className="p-4 overflow-x-auto">
-                   <table className="w-full text-left text-xs border-collapse">
-                      <thead>
-                        <tr className="bg-gray-900 text-gray-500 uppercase tracking-widest font-black text-[10px] border-b border-gray-800">
-                          <th className="p-4">Asset</th><th className="p-4">Details</th><th className="p-4">File Name</th><th className="p-4 text-right">Actions</th>
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-gray-900 text-gray-500 uppercase tracking-widest font-black text-[10px] border-b border-gray-800">
+                        <th className="p-4">Asset</th><th className="p-4">Details</th><th className="p-4">File Name</th><th className="p-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredData.map(row => (
+                        <tr key={row.id} className="border-b border-gray-800/50 hover:bg-red-600/5 transition-colors group">
+                          <td className="p-4 w-16">
+                            <img
+                              src={row.Thumbnail || (prodEnv === "Figma" ? "/Figma.png" : prodEnv === "SJC Platform" ? "/SJC_logo.jpg" : "/InDesign.png")}
+                              className="w-10 h-10 rounded border border-gray-700 object-contain bg-white/5"
+                              alt=""
+                            />
+                          </td>
+                          <td className="p-4">
+                            <p className="font-bold text-white uppercase">{row.Campaign}</p>
+                            <p className="text-[10px] text-gray-500">{row['Asset Type']} • {row.Channel}</p>
+                          </td>
+                          <td className="p-4 font-mono text-sm font-bold text-gray-100 truncate max-w-[450px]">{row['File Name']}</td>
+                          <td className="p-4 text-right space-x-2">
+                            <button
+                              disabled={prodEnv === "Figma"}
+                              onClick={() => {
+                                if (prodEnv === "SJC Platform") {
+                                  const targetUrl = row['SJC URL'];
+                                  if (targetUrl && targetUrl !== "undefined") {
+                                    window.open(targetUrl, "_blank");
+                                  } else {
+                                    alert("No SJC URL found for this asset.");
+                                  }
+                                } else {
+                                  openFile(row['File Path']);
+                                }
+                              }}
+                              className={`px-3 py-1 border rounded-md text-[9px] font-black uppercase transition-all ${prodEnv === "Figma"
+                                  ? "bg-gray-800/50 text-gray-600 border-gray-700 cursor-not-allowed"
+                                  : "bg-blue-600/20 text-blue-400 border-blue-500/30 hover:bg-blue-600 hover:text-white"
+                                }`}
+                            >
+                              {prodEnv === "Figma" ? "Locked" : "Open"}
+                            </button>
+                            <button
+                              disabled={prodEnv !== "InDesign"}
+                              onClick={() => openFolder(row['Folder Path'])}
+                              className={`px-3 py-1 border rounded-md text-[9px] font-black uppercase transition-all ${prodEnv !== "InDesign"
+                                  ? "bg-gray-800/50 text-gray-600 border-gray-700 cursor-not-allowed"
+                                  : "bg-gray-800 text-gray-400 border-gray-700 hover:bg-gray-700 hover:text-white"
+                                }`}
+                            >
+                              Folder
+                            </button>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {filteredData.map(row => (
-                          <tr key={row.id} className="border-b border-gray-800/50 hover:bg-red-600/5 transition-colors group">
-                            <td className="p-4 w-16">
-                                <img 
-                                  src={row.Thumbnail || (prodEnv === "Figma" ? "/Figma.png" : prodEnv === "SJC Platform" ? "/SJC_logo.jpg" : "/InDesign.png")} 
-                                  className="w-10 h-10 rounded border border-gray-700 object-contain bg-white/5" 
-                                  alt="" 
-                                />
-                            </td>
-                            <td className="p-4">
-                              <p className="font-bold text-white uppercase">{row.Campaign}</p>
-                              <p className="text-[10px] text-gray-500">{row['Asset Type']} • {row.Channel}</p>
-                            </td>
-                            <td className="p-4 font-mono text-sm font-bold text-gray-100 truncate max-w-[450px]">{row['File Name']}</td>
-                            <td className="p-4 text-right space-x-2">
-                               <button 
-                                 disabled={prodEnv === "Figma"} 
-                                 onClick={() => {
-                                   if (prodEnv === "SJC Platform") {
-                                     const targetUrl = row['SJC URL'];
-                                     if (targetUrl && targetUrl !== "undefined") {
-                                       window.open(targetUrl, "_blank");
-                                     } else {
-                                       alert("No SJC URL found for this asset.");
-                                     }
-                                   } else {
-                                     openFile(row['File Path']);
-                                   }
-                                 }} 
-                                 className={`px-3 py-1 border rounded-md text-[9px] font-black uppercase transition-all ${
-                                    prodEnv === "Figma" 
-                                    ? "bg-gray-800/50 text-gray-600 border-gray-700 cursor-not-allowed" 
-                                    : "bg-blue-600/20 text-blue-400 border-blue-500/30 hover:bg-blue-600 hover:text-white"
-                                 }`}
-                                >
-                                  {prodEnv === "Figma" ? "Locked" : "Open"}
-                                </button>
-                               <button 
-                                 disabled={prodEnv !== "InDesign"} 
-                                 onClick={() => openFolder(row['Folder Path'])} 
-                                 className={`px-3 py-1 border rounded-md text-[9px] font-black uppercase transition-all ${
-                                    prodEnv !== "InDesign" 
-                                    ? "bg-gray-800/50 text-gray-600 border-gray-700 cursor-not-allowed" 
-                                    : "bg-gray-800 text-gray-400 border-gray-700 hover:bg-gray-700 hover:text-white"
-                                 }`}
-                               >
-                                  Folder
-                               </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                   </table>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>

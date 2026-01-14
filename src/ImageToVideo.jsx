@@ -22,10 +22,10 @@ const UploadIcon = () => (
 
 function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
   // --- State ---
-  const [inputImages, setInputImages] = useState([]); 
+  const [inputImages, setInputImages] = useState([]);
   const [prompt, setPrompt] = useState('');
   const [pendingQueue, setPendingQueue] = useState([]);
-  
+
   // NEW: Live Mode State
   const [isLiveMode, setIsLiveMode] = useState(false);
 
@@ -40,12 +40,12 @@ function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
     seed: -1
   });
   const [liveVideos, setLiveVideos] = useState({}); // Stores { imgId_version: videoUrl }
-  
-  const [videoPool, setVideoPool] = useState([]); 
+
+  const [videoPool, setVideoPool] = useState([]);
   const [isGenerated, setIsGenerated] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false); 
-  const [refiningIds, setRefiningIds] = useState(new Set()); 
-  const [imageVersions, setImageVersions] = useState({}); 
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [refiningIds, setRefiningIds] = useState(new Set());
+  const [imageVersions, setImageVersions] = useState({});
   const [showReviewModal, setShowReviewModal] = useState(false);
 
   const [refineModal, setRefineModal] = useState({
@@ -63,25 +63,25 @@ function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
   // --- External Transfer Logic (Sequential Set Loading) ---
   useEffect(() => {
     if (incomingAssets && incomingAssets.length > 0) {
-        const [firstSet, ...remainingSets] = incomingAssets;
+      const [firstSet, ...remainingSets] = incomingAssets;
 
-        const firstSetMapped = firstSet.map(asset => ({
-            id: Date.now() + Math.random(),
-            url: asset.url,
-            name: asset.name,
-            file: null
-        }));
+      const firstSetMapped = firstSet.map(asset => ({
+        id: Date.now() + Math.random(),
+        url: asset.url,
+        name: asset.name,
+        file: null
+      }));
 
-        setInputImages(firstSetMapped);
-        setPendingQueue(remainingSets);
-        
-        // Reset state for new set to prevent data leakage
-        setIsGenerated(false);
-        setLiveVideos({});
-        const newVersions = {};
-        firstSetMapped.forEach(img => newVersions[img.id] = 0);
-        setImageVersions(newVersions);
-        onClearIncoming();
+      setInputImages(firstSetMapped);
+      setPendingQueue(remainingSets);
+
+      // Reset state for new set to prevent data leakage
+      setIsGenerated(false);
+      setLiveVideos({});
+      const newVersions = {};
+      firstSetMapped.forEach(img => newVersions[img.id] = 0);
+      setImageVersions(newVersions);
+      onClearIncoming();
     }
   }, [incomingAssets]);
 
@@ -97,9 +97,9 @@ function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
 
     // 2. Fallback to static pool
     const baseName = getBaseName(imageName);
-    const targetName = versionIndex === 0 
-        ? baseName 
-        : `${baseName}_${versionIndex}`;
+    const targetName = versionIndex === 0
+      ? baseName
+      : `${baseName}_${versionIndex}`;
 
     return videoPool.find(v => getBaseName(v.name) === targetName);
   };
@@ -107,73 +107,73 @@ function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
   // --- Handlers ---
   const handleAutoLoadAndUpload = async () => {
     if (pendingQueue.length > 0) {
-        const [nextSet, ...rest] = pendingQueue;
-        const mappedNext = nextSet.map(asset => ({
-            id: Date.now() + Math.random(),
-            url: asset.url,
-            name: asset.name,
-            file: null
-        }));
+      const [nextSet, ...rest] = pendingQueue;
+      const mappedNext = nextSet.map(asset => ({
+        id: Date.now() + Math.random(),
+        url: asset.url,
+        name: asset.name,
+        file: null
+      }));
 
-        // LOOP LOGIC: Prepare the current set to be moved to the back of the queue
-        const currentAsQueueItem = inputImages.map(img => ({
-            url: img.url,
-            name: img.name
-        }));
+      // LOOP LOGIC: Prepare the current set to be moved to the back of the queue
+      const currentAsQueueItem = inputImages.map(img => ({
+        url: img.url,
+        name: img.name
+      }));
 
-        // SWAP & ROTATE: Replace workspace and push previous set to end of queue
-        setInputImages(mappedNext);
-        setPendingQueue([...rest, currentAsQueueItem]);
+      // SWAP & ROTATE: Replace workspace and push previous set to end of queue
+      setInputImages(mappedNext);
+      setPendingQueue([...rest, currentAsQueueItem]);
 
-        setIsGenerated(false);
-        setLiveVideos({});
-        setImageVersions(() => {
-            const upd = {};
-            mappedNext.forEach(img => upd[img.id] = 0);
-            return upd;
-        });
-        return;
+      setIsGenerated(false);
+      setLiveVideos({});
+      setImageVersions(() => {
+        const upd = {};
+        mappedNext.forEach(img => upd[img.id] = 0);
+        return upd;
+      });
+      return;
     }
 
     if (videoPool.length < KNOWN_VIDEO_FILES.length) {
-        const autoLoadedVideos = KNOWN_VIDEO_FILES.map(filename => ({
-            id: Date.now() + Math.random(),
-            name: filename,
-            url: `/Video/${filename}`
-        }));
+      const autoLoadedVideos = KNOWN_VIDEO_FILES.map(filename => ({
+        id: Date.now() + Math.random(),
+        name: filename,
+        url: `/Video/${filename}`
+      }));
 
-        setVideoPool(prev => {
-            const existingNames = new Set(prev.map(v => v.name));
-            const uniqueNew = autoLoadedVideos.filter(v => !existingNames.has(v.name));
-            return [...prev, ...uniqueNew];
-        });
+      setVideoPool(prev => {
+        const existingNames = new Set(prev.map(v => v.name));
+        const uniqueNew = autoLoadedVideos.filter(v => !existingNames.has(v.name));
+        return [...prev, ...uniqueNew];
+      });
     }
 
     if (inputImages.length === 0) {
-        try {
-            const loadedImages = await Promise.all(KNOWN_IMAGE_FILES.map(async (fileName) => {
-                const response = await fetch(`/Video/${fileName}`);
-                if (!response.ok) throw new Error(`File not found: ${fileName}`);
-                const blob = await response.blob();
-                const file = new File([blob], fileName, { type: 'image/jpeg' });
-                
-                return {
-                    id: Date.now() + Math.random(),
-                    url: URL.createObjectURL(blob),
-                    name: fileName,
-                    file: file
-                };
-            }));
+      try {
+        const loadedImages = await Promise.all(KNOWN_IMAGE_FILES.map(async (fileName) => {
+          const response = await fetch(`/Video/${fileName}`);
+          if (!response.ok) throw new Error(`File not found: ${fileName}`);
+          const blob = await response.blob();
+          const file = new File([blob], fileName, { type: 'image/jpeg' });
 
-            setInputImages(prev => [...prev, ...loadedImages]);
-            const newVersions = {};
-            loadedImages.forEach(img => newVersions[img.id] = 0);
-            setImageVersions(prev => ({ ...prev, ...newVersions }));
-        } catch (error) {
-            console.error("Error auto-loading:", error);
-        }
+          return {
+            id: Date.now() + Math.random(),
+            url: URL.createObjectURL(blob),
+            name: fileName,
+            file: file
+          };
+        }));
+
+        setInputImages(prev => [...prev, ...loadedImages]);
+        const newVersions = {};
+        loadedImages.forEach(img => newVersions[img.id] = 0);
+        setImageVersions(prev => ({ ...prev, ...newVersions }));
+      } catch (error) {
+        console.error("Error auto-loading:", error);
+      }
     } else {
-        imageInputRef.current?.click();
+      imageInputRef.current?.click();
     }
   };
 
@@ -227,7 +227,7 @@ function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
             });
           }
 
-          const response = await fetch('http://localhost:5001/generate-video', {
+          const response = await fetch('/api/generate-video', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -255,9 +255,9 @@ function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
 
     const delay = isLiveMode ? 5000 : 3500;
     setTimeout(() => {
-        setIsProcessing(false); 
-        setIsGenerated(true);
-    }, delay); 
+      setIsProcessing(false);
+      setIsGenerated(true);
+    }, delay);
   };
 
   const openRefineModal = (imageId, imageName) => {
@@ -266,8 +266,8 @@ function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
 
   const openGlobalRefineModal = () => {
     if (inputImages.length === 0 || !isGenerated) {
-        alert("Please generate videos first before refining.");
-        return;
+      alert("Please generate videos first before refining.");
+      return;
     }
     setRefineModal({ isOpen: true, isGlobal: true, targetImageId: null, targetImageName: 'All Images', refineInput: '' });
   };
@@ -289,36 +289,36 @@ function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
       return imgUrl;
     };
     if (isGlobal) {
-        const allIds = inputImages.map(img => img.id);
-        setRefiningIds(prev => {
-            const next = new Set(prev);
-            allIds.forEach(id => next.add(id));
-            return next;
-        });
+      const allIds = inputImages.map(img => img.id);
+      setRefiningIds(prev => {
+        const next = new Set(prev);
+        allIds.forEach(id => next.add(id));
+        return next;
+      });
 
-        setTimeout(() => {
-            setImageVersions(prev => {
-                const nextVersions = { ...prev };
-                allIds.forEach(id => { nextVersions[id] = (nextVersions[id] || 0) + 1; });
-                return nextVersions;
-            });
-            setRefiningIds(prev => {
-                const next = new Set(prev);
-                allIds.forEach(id => next.delete(id));
-                return next;
-            });
-        }, 4000);
+      setTimeout(() => {
+        setImageVersions(prev => {
+          const nextVersions = { ...prev };
+          allIds.forEach(id => { nextVersions[id] = (nextVersions[id] || 0) + 1; });
+          return nextVersions;
+        });
+        setRefiningIds(prev => {
+          const next = new Set(prev);
+          allIds.forEach(id => next.delete(id));
+          return next;
+        });
+      }, 4000);
     } else {
-        if (!targetImageId) return;
-        setRefiningIds(prev => new Set(prev).add(targetImageId));
-        setTimeout(() => {
-            setImageVersions(prev => ({ ...prev, [targetImageId]: (prev[targetImageId] || 0) + 1 }));
-            setRefiningIds(prev => {
-                const next = new Set(prev);
-                next.delete(targetImageId);
-                return next;
-            });
-        }, 4000); 
+      if (!targetImageId) return;
+      setRefiningIds(prev => new Set(prev).add(targetImageId));
+      setTimeout(() => {
+        setImageVersions(prev => ({ ...prev, [targetImageId]: (prev[targetImageId] || 0) + 1 }));
+        setRefiningIds(prev => {
+          const next = new Set(prev);
+          next.delete(targetImageId);
+          return next;
+        });
+      }, 4000);
     }
   };
 
@@ -328,295 +328,294 @@ function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
 
       {/* --- Left Column: Controls --- */}
       <div className="lg:col-span-1 bg-gray-800 rounded-lg p-5 overflow-y-auto space-y-5 custom-scrollbar border border-gray-700 shadow-xl">
-        
+
         <div className="flex justify-between items-center border-b border-gray-700 pb-4">
-             <h2 className="text-xl font-bold flex items-center gap-2">
-                <span>🪄</span> Video Studio
-             </h2>
-             <div className="flex items-center gap-3 bg-gray-900 px-2 py-1 rounded border border-gray-700">
-                <span className={`text-[10px] font-bold uppercase ${isLiveMode ? 'text-green-500' : 'text-gray-500'}`}>
-                    {isLiveMode ? 'Live' : 'Present'}
-                </span>
-                <button 
-                    onClick={() => setIsLiveMode(!isLiveMode)} 
-                    className={`w-8 h-4 rounded-full relative transition-colors ${isLiveMode ? 'bg-green-600' : 'bg-gray-700'}`}
-                >
-                    <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isLiveMode ? 'translate-x-4' : 'translate-x-0.5'}`} />
-                </button>
-             </div>
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <span>🪄</span> Video Studio
+          </h2>
+          <div className="flex items-center gap-3 bg-gray-900 px-2 py-1 rounded border border-gray-700">
+            <span className={`text-[10px] font-bold uppercase ${isLiveMode ? 'text-green-500' : 'text-gray-500'}`}>
+              {isLiveMode ? 'Live' : 'Present'}
+            </span>
+            <button
+              onClick={() => setIsLiveMode(!isLiveMode)}
+              className={`w-8 h-4 rounded-full relative transition-colors ${isLiveMode ? 'bg-green-600' : 'bg-gray-700'}`}
+            >
+              <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isLiveMode ? 'translate-x-4' : 'translate-x-0.5'}`} />
+            </button>
+          </div>
         </div>
-        
+
         <div className="space-y-2">
-            <div className="flex justify-between items-end">
-                <label className="text-sm font-semibold text-gray-400">Input Images</label>
-                <div className="flex gap-1">
-                    <button onClick={handleAutoLoadAndUpload} className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded text-white transition-colors">+ Add Images</button>
-                    <button 
-                        onClick={() => imageInputRef.current?.click()} 
-                        className="bg-gray-700 hover:bg-gray-600 p-1 rounded text-white flex items-center justify-center transition-colors"
-                        title="Upload from computer"
-                    >
-                        <UploadIcon />
-                    </button>
-                </div>
+          <div className="flex justify-between items-end">
+            <label className="text-sm font-semibold text-gray-400">Input Images</label>
+            <div className="flex gap-1">
+              <button onClick={handleAutoLoadAndUpload} className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded text-white transition-colors">+ Add Images</button>
+              <button
+                onClick={() => imageInputRef.current?.click()}
+                className="bg-gray-700 hover:bg-gray-600 p-1 rounded text-white flex items-center justify-center transition-colors"
+                title="Upload from computer"
+              >
+                <UploadIcon />
+              </button>
             </div>
-            <div className="grid grid-cols-3 gap-2 min-h-[80px] bg-gray-900 rounded-lg p-2 border border-gray-700">
-                {inputImages.length === 0 && <div className="col-span-3 flex items-center justify-center text-gray-600 text-xs italic h-20">Upload images...</div>}
-                {inputImages.map(img => (
-                    <div key={img.id} className="relative group aspect-square bg-black rounded overflow-hidden border border-gray-700">
-                        <img src={img.url} alt="Input" className="w-full h-full object-cover" />
-                        <div className="absolute bottom-0 inset-x-0 bg-black/60 text-[8px] text-white p-1 truncate">{img.name}</div>
-                        <button onClick={() => removeImage(img.id)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">×</button>
-                    </div>
-                ))}
-            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2 min-h-[80px] bg-gray-900 rounded-lg p-2 border border-gray-700">
+            {inputImages.length === 0 && <div className="col-span-3 flex items-center justify-center text-gray-600 text-xs italic h-20">Upload images...</div>}
+            {inputImages.map(img => (
+              <div key={img.id} className="relative group aspect-square bg-black rounded overflow-hidden border border-gray-700">
+                <img src={img.url} alt="Input" className="w-full h-full object-cover" />
+                <div className="absolute bottom-0 inset-x-0 bg-black/60 text-[8px] text-white p-1 truncate">{img.name}</div>
+                <button onClick={() => removeImage(img.id)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="space-y-3">
-            <div>
-                <label className="block text-sm font-semibold text-gray-400 mb-1">Prompt</label>
-                <textarea 
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    placeholder="Describe the motion..."
-                    className="w-full bg-gray-900 border border-gray-700 rounded p-3 text-sm focus:border-red-500 outline-none resize-none h-24 text-gray-200"
-                />
-            </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-400 mb-1">Prompt</label>
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Describe the motion..."
+              className="w-full bg-gray-900 border border-gray-700 rounded p-3 text-sm focus:border-red-500 outline-none resize-none h-24 text-gray-200"
+            />
+          </div>
         </div>
 
         <hr className="border-gray-700" />
 
         <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm font-semibold text-gray-400 mb-2">Task</label>
-                    <select 
-                        value={settings.task}
-                        onChange={(e) => setSettings({...settings, task: e.target.value})}
-                        className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white focus:border-red-500 outline-none"
-                    >
-                        <option>Text-to-video</option>
-                        <option>Image-to-video</option>
-                        <option>Reference-to-video</option>
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-sm font-semibold text-gray-400 mb-2">Generative Model</label>
-                    <select 
-                        value={settings.model}
-                        onChange={(e) => setSettings({...settings, model: e.target.value})}
-                        className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white focus:border-red-500 outline-none"
-                    >
-                        <option>Google Veo 3.1</option>
-                        <option>GPT Sora</option>
-                    </select>
-                </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-400 mb-2">Task</label>
+              <select
+                value={settings.task}
+                onChange={(e) => setSettings({ ...settings, task: e.target.value })}
+                className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white focus:border-red-500 outline-none"
+              >
+                <option>Text-to-video</option>
+                <option>Image-to-video</option>
+                <option>Reference-to-video</option>
+              </select>
             </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-400 mb-2">Generative Model</label>
+              <select
+                value={settings.model}
+                onChange={(e) => setSettings({ ...settings, model: e.target.value })}
+                className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white focus:border-red-500 outline-none"
+              >
+                <option>Google Veo 3.1</option>
+                <option>GPT Sora</option>
+              </select>
+            </div>
+          </div>
 
-            <div className="grid grid-cols-4 gap-2">
-                <div>
-                    <label className="block text-[10px] font-semibold text-gray-500 mb-1 uppercase truncate">Video length</label>
-                    <select 
-                        value={settings.videoLength}
-                        onChange={(e) => setSettings({...settings, videoLength: e.target.value})}
-                        className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white outline-none"
-                    >
-                        <option>4 seconds</option>
-                        <option>6 seconds</option>
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-[10px] font-semibold text-gray-500 mb-1 uppercase truncate">Resolution</label>
-                    <select 
-                        value={settings.resolution}
-                        onChange={(e) => setSettings({...settings, resolution: e.target.value})}
-                        className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white outline-none"
-                    >
-                        <option>1080p</option>
-                        <option>720p</option>
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-[10px] font-semibold text-gray-500 mb-1 uppercase truncate">Aspect ratio</label>
-                    <select 
-                        value={settings.aspectRatio}
-                        onChange={(e) => setSettings({...settings, aspectRatio: e.target.value})}
-                        className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white outline-none"
-                    >
-                        <option value="16:9">▭ 16:9</option>
-                        <option value="9:16">▯ 9:16</option>
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-[10px] font-semibold text-gray-500 mb-1 uppercase truncate">Variations</label>
-                    <select 
-                        value={settings.variations}
-                        onChange={(e) => setSettings({...settings, variations: e.target.value})}
-                        className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white outline-none"
-                    >
-                        <option>1</option>
-                        <option>2</option>
-                    </select>
-                </div>
+          <div className="grid grid-cols-4 gap-2">
+            <div>
+              <label className="block text-[10px] font-semibold text-gray-500 mb-1 uppercase truncate">Video length</label>
+              <select
+                value={settings.videoLength}
+                onChange={(e) => setSettings({ ...settings, videoLength: e.target.value })}
+                className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white outline-none"
+              >
+                <option>4 seconds</option>
+                <option>6 seconds</option>
+              </select>
             </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-gray-500 mb-1 uppercase truncate">Resolution</label>
+              <select
+                value={settings.resolution}
+                onChange={(e) => setSettings({ ...settings, resolution: e.target.value })}
+                className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white outline-none"
+              >
+                <option>1080p</option>
+                <option>720p</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-gray-500 mb-1 uppercase truncate">Aspect ratio</label>
+              <select
+                value={settings.aspectRatio}
+                onChange={(e) => setSettings({ ...settings, aspectRatio: e.target.value })}
+                className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white outline-none"
+              >
+                <option value="16:9">▭ 16:9</option>
+                <option value="9:16">▯ 9:16</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-gray-500 mb-1 uppercase truncate">Variations</label>
+              <select
+                value={settings.variations}
+                onChange={(e) => setSettings({ ...settings, variations: e.target.value })}
+                className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white outline-none"
+              >
+                <option>1</option>
+                <option>2</option>
+              </select>
+            </div>
+          </div>
 
-            <div className="flex items-center justify-between p-3 bg-gray-900 rounded-lg border border-gray-700">
-                <span className="text-sm font-semibold text-gray-400">Generate Audio</span>
-                <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                        type="checkbox" 
-                        className="sr-only peer" 
-                        checked={settings.generateAudio}
-                        onChange={(e) => setSettings({...settings, generateAudio: e.target.checked})}
-                    />
-                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600 transition-colors"></div>
-                </label>
-            </div>
+          <div className="flex items-center justify-between p-3 bg-gray-900 rounded-lg border border-gray-700">
+            <span className="text-sm font-semibold text-gray-400">Generate Audio</span>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={settings.generateAudio}
+                onChange={(e) => setSettings({ ...settings, generateAudio: e.target.checked })}
+              />
+              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600 transition-colors"></div>
+            </label>
+          </div>
         </div>
 
         <div className="pt-2 space-y-4">
-            <button 
-                onClick={handleGenerate}
-                disabled={isProcessing}
-                className={`w-full py-4 rounded-lg font-bold text-base transition-all flex justify-center items-center gap-2 transform active:scale-95 ${
-                    isProcessing ? 'bg-gray-700 cursor-wait text-gray-300' : 'bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white shadow-lg shadow-red-900/40'
-                }`}
-            >
-                {isProcessing ? (<><span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>Generating...</>) : ('✨ Generate Videos')}
-            </button>
+          <button
+            onClick={handleGenerate}
+            disabled={isProcessing}
+            className={`w-full py-4 rounded-lg font-bold text-base transition-all flex justify-center items-center gap-2 transform active:scale-95 ${isProcessing ? 'bg-gray-700 cursor-wait text-gray-300' : 'bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white shadow-lg shadow-red-900/40'
+              }`}
+          >
+            {isProcessing ? (<><span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>Generating...</>) : ('✨ Generate Videos')}
+          </button>
         </div>
       </div>
 
       {/* --- Right Column: Preview --- */}
       <div className="lg:col-span-2 flex flex-col h-full bg-gray-800 rounded-lg p-4 shadow-2xl overflow-hidden">
         <div className="flex justify-between items-center mb-3">
-             <h3 className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Results</h3>
-             {isGenerated && (
-                <div className="flex gap-2">
-                    <button 
-                        onClick={() => setShowReviewModal(true)} 
-                        className="bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold py-2 px-4 rounded shadow-lg flex items-center gap-2 transition-all transform active:scale-95 border border-gray-600"
-                    >
-                        📚 Review all version
-                    </button>
-                    <button onClick={openGlobalRefineModal} className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 px-4 rounded shadow-lg flex items-center gap-2 transition-all transform active:scale-95">✨ Refine / Edit All</button>
-                </div>
-             )}
+          <h3 className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Results</h3>
+          {isGenerated && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowReviewModal(true)}
+                className="bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold py-2 px-4 rounded shadow-lg flex items-center gap-2 transition-all transform active:scale-95 border border-gray-600"
+              >
+                📚 Review all version
+              </button>
+              <button onClick={openGlobalRefineModal} className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 px-4 rounded shadow-lg flex items-center gap-2 transition-all transform active:scale-95">✨ Refine / Edit All</button>
+            </div>
+          )}
         </div>
 
         <div className="flex-1 bg-black rounded-lg relative overflow-y-auto custom-scrollbar border border-gray-700">
-            {!isGenerated && !isProcessing && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center opacity-30 select-none pointer-events-none">
-                    <div className="text-8xl mb-6">🎬</div>
-                    <p className="text-2xl font-bold tracking-wider">Ready to Generate</p>
-                    <p className="text-sm mt-2 font-mono">Add Images & Prompt | Select Quality | Generate</p>
-                </div>
-            )}
+          {!isGenerated && !isProcessing && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center opacity-30 select-none pointer-events-none">
+              <div className="text-8xl mb-6">🎬</div>
+              <p className="text-2xl font-bold tracking-wider">Ready to Generate</p>
+              <p className="text-sm mt-2 font-mono">Add Images & Prompt | Select Quality | Generate</p>
+            </div>
+          )}
 
-            {/* --- INDIVIDUAL VIDEO AI MOTION LOADER --- */}
-            {isProcessing && !isGenerated && (
-              <div className="p-4 space-y-4 animate-fadeIn">
-                {inputImages.map((img) => (
-                  <div key={img.id} className="bg-gray-900/80 rounded-lg p-4 border border-red-500/30 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-red-600/5 to-transparent animate-pulse" />
-                    <div className="grid grid-cols-3 gap-4 h-64 relative z-10">
-                      <div className="col-span-1 bg-gray-800/50 rounded border border-gray-700 overflow-hidden">
-                        <img src={img.url} className="w-full h-full object-contain" alt="" />
-                      </div>
-                      <div className="col-span-2 bg-black/40 rounded border border-gray-700 flex items-center justify-center relative overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/5 to-transparent skeleton-shimmer" />
-                        <div className="relative flex items-center justify-center">
-                            <div className="absolute w-24 h-24 border border-red-500/20 rounded-full animate-ping" />
-                            <div className="absolute w-20 h-20 border-t-2 border-red-500 rounded-full animate-spin" />
-                            <div className="flex flex-col items-center gap-3">
-                               <div className="text-3xl animate-bounce">🎬</div>
-                               <div className="text-center">
-                                    <p className="text-[10px] font-black text-red-400 uppercase tracking-[0.3em] animate-pulse">Synthesizing Motion</p>
-                                    <p className="text-[8px] text-gray-500 font-mono mt-1">Applying Model {settings.model.toUpperCase()}</p>
-                               </div>
-                            </div>
+          {/* --- INDIVIDUAL VIDEO AI MOTION LOADER --- */}
+          {isProcessing && !isGenerated && (
+            <div className="p-4 space-y-4 animate-fadeIn">
+              {inputImages.map((img) => (
+                <div key={img.id} className="bg-gray-900/80 rounded-lg p-4 border border-red-500/30 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-red-600/5 to-transparent animate-pulse" />
+                  <div className="grid grid-cols-3 gap-4 h-64 relative z-10">
+                    <div className="col-span-1 bg-gray-800/50 rounded border border-gray-700 overflow-hidden">
+                      <img src={img.url} className="w-full h-full object-contain" alt="" />
+                    </div>
+                    <div className="col-span-2 bg-black/40 rounded border border-gray-700 flex items-center justify-center relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/5 to-transparent skeleton-shimmer" />
+                      <div className="relative flex items-center justify-center">
+                        <div className="absolute w-24 h-24 border border-red-500/20 rounded-full animate-ping" />
+                        <div className="absolute w-20 h-20 border-t-2 border-red-500 rounded-full animate-spin" />
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="text-3xl animate-bounce">🎬</div>
+                          <div className="text-center">
+                            <p className="text-[10px] font-black text-red-400 uppercase tracking-[0.3em] animate-pulse">Synthesizing Motion</p>
+                            <p className="text-[8px] text-gray-500 font-mono mt-1">Applying Model {settings.model.toUpperCase()}</p>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-
-            {isGenerated && (
-                <div className="p-4 space-y-4">
-                    {inputImages.map((img, index) => {
-                        const version = imageVersions[img.id] || 0;
-                        const matchedVideo = findMatchingVideo(img.id, img.name, version);
-                        const isRefining = refiningIds.has(img.id); 
-
-                        return (
-                            <div key={img.id} className="bg-gray-900 rounded-lg p-4 border border-gray-700 shadow-md animate-fadeIn relative overflow-hidden" style={{ animationDelay: `${index * 0.1}s` }}>
-                                {isRefining && (
-                                    <div className="absolute inset-0 bg-black/80 z-30 flex flex-col items-center justify-center backdrop-blur-sm">
-                                        <div className="w-12 h-12 bg-blue-600/20 border border-blue-500 rounded flex items-center justify-center animate-spin">
-                                            <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                                        </div>
-                                        <span className="text-[10px] text-blue-400 font-mono mt-4 uppercase tracking-widest animate-pulse">Refining Matrix...</span>
-                                    </div>
-                                )}
-                                <div className="flex items-center justify-between mb-3">
-                                    <h3 className="text-sm font-bold text-gray-300">📄 {img.name} <span className={`text-xs font-normal px-2 py-0.5 rounded ${version > 0 ? 'bg-blue-900 text-blue-200' : 'text-gray-500'}`}>Version: {version === 0 ? 'Original' : `V${version}`}</span></h3>
-                                </div>
-                                <div className="grid grid-cols-3 gap-4 h-64">
-                                    <div className="col-span-1 bg-black rounded border border-gray-700 overflow-hidden relative"><img src={img.url} alt="Source" className="w-full h-full object-contain" /></div>
-                                    <div className="col-span-2 bg-black rounded border border-gray-700 overflow-hidden relative flex items-center justify-center">
-                                        {matchedVideo ? <video key={matchedVideo.url} src={matchedVideo.url} controls autoPlay loop muted className="w-full h-full object-contain" /> : <div className="text-center p-4"><div className="text-3xl mb-2">❓</div><p className="text-xs text-gray-500">Video {getBaseName(img.name)}{version > 0 ? `_${version}` : ''}.mp4 not found</p></div>}
-                                    </div>
-                                </div>
-                                <div className="mt-3 flex justify-end gap-2">
-                                    <button 
-                                    onClick={() => {
-                                        if (!matchedVideo) return alert("No video found to push.");
-                                        onPushToDAM({
-                                        path: matchedVideo.url,
-                                        name: `AI_Video_${img.name.split('.')[0]}_V${version}.mp4`,
-                                        type: "video/mp4",
-                                        size: "AI Generated",
-                                        thumbnail: img.url,
-                                        tags: ["AI Video", "Motion"],
-                                        created_at: new Date(),
-                                        sharedBy: "Video AI Studio",
-                                        sharedDate: new Date()
-                                        });
-                                    }}
-                                    className="bg-red-600 hover:bg-red-500 text-white text-xs font-bold py-2 px-4 rounded transition-all shadow-lg hover:shadow-red-500/20"
-                                    >
-                                    🚀 Push to DAM
-                                    </button>
-                                    <button onClick={() => openRefineModal(img.id, img.name)} className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-4 rounded transition-colors">✨ Refine Result</button>
-                                </div>
-                            </div>
-                        );
-                    })}
                 </div>
-            )}
+              ))}
+            </div>
+          )}
+
+          {isGenerated && (
+            <div className="p-4 space-y-4">
+              {inputImages.map((img, index) => {
+                const version = imageVersions[img.id] || 0;
+                const matchedVideo = findMatchingVideo(img.id, img.name, version);
+                const isRefining = refiningIds.has(img.id);
+
+                return (
+                  <div key={img.id} className="bg-gray-900 rounded-lg p-4 border border-gray-700 shadow-md animate-fadeIn relative overflow-hidden" style={{ animationDelay: `${index * 0.1}s` }}>
+                    {isRefining && (
+                      <div className="absolute inset-0 bg-black/80 z-30 flex flex-col items-center justify-center backdrop-blur-sm">
+                        <div className="w-12 h-12 bg-blue-600/20 border border-blue-500 rounded flex items-center justify-center animate-spin">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                        </div>
+                        <span className="text-[10px] text-blue-400 font-mono mt-4 uppercase tracking-widest animate-pulse">Refining Matrix...</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-bold text-gray-300">📄 {img.name} <span className={`text-xs font-normal px-2 py-0.5 rounded ${version > 0 ? 'bg-blue-900 text-blue-200' : 'text-gray-500'}`}>Version: {version === 0 ? 'Original' : `V${version}`}</span></h3>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4 h-64">
+                      <div className="col-span-1 bg-black rounded border border-gray-700 overflow-hidden relative"><img src={img.url} alt="Source" className="w-full h-full object-contain" /></div>
+                      <div className="col-span-2 bg-black rounded border border-gray-700 overflow-hidden relative flex items-center justify-center">
+                        {matchedVideo ? <video key={matchedVideo.url} src={matchedVideo.url} controls autoPlay loop muted className="w-full h-full object-contain" /> : <div className="text-center p-4"><div className="text-3xl mb-2">❓</div><p className="text-xs text-gray-500">Video {getBaseName(img.name)}{version > 0 ? `_${version}` : ''}.mp4 not found</p></div>}
+                      </div>
+                    </div>
+                    <div className="mt-3 flex justify-end gap-2">
+                      <button
+                        onClick={() => {
+                          if (!matchedVideo) return alert("No video found to push.");
+                          onPushToDAM({
+                            path: matchedVideo.url,
+                            name: `AI_Video_${img.name.split('.')[0]}_V${version}.mp4`,
+                            type: "video/mp4",
+                            size: "AI Generated",
+                            thumbnail: img.url,
+                            tags: ["AI Video", "Motion"],
+                            created_at: new Date(),
+                            sharedBy: "Video AI Studio",
+                            sharedDate: new Date()
+                          });
+                        }}
+                        className="bg-red-600 hover:bg-red-500 text-white text-xs font-bold py-2 px-4 rounded transition-all shadow-lg hover:shadow-red-500/20"
+                      >
+                        🚀 Push to DAM
+                      </button>
+                      <button onClick={() => openRefineModal(img.id, img.name)} className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-4 rounded transition-colors">✨ Refine Result</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
       {refineModal.isOpen && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-            <div className="bg-gray-800 rounded-lg border border-gray-600 shadow-2xl p-6 w-full max-w-md">
-                <h3 className="text-lg font-bold mb-4 flex justify-between items-center text-white">{refineModal.isGlobal ? '✨ Refine All' : 'Refine Video Result'}<button onClick={() => setRefineModal(prev => ({...prev, isOpen: false}))} className="text-gray-400 hover:text-white">✕</button></h3>
-                <p className="text-sm text-gray-400 mb-4 font-mono">{refineModal.targetImageName}</p>
-                <div className="mb-4">
-                    <textarea 
-                        value={refineModal.refineInput}
-                        onChange={(e) => setRefineModal(prev => ({...prev, refineInput: e.target.value}))}
-                        placeholder="e.g. Add cinematic lighting..."
-                        className="w-full bg-gray-900 border border-gray-700 rounded p-3 text-sm text-gray-200 h-32 outline-none focus:border-blue-500 transition-colors"
-                    />
-                </div>
-                <div className="flex justify-end gap-2">
-                    <button onClick={() => setRefineModal(prev => ({...prev, isOpen: false}))} className="px-4 py-2 rounded text-sm text-gray-400 hover:bg-gray-700">Cancel</button>
-                    <button onClick={handleSendRefinement} className="px-4 py-2 rounded text-sm bg-blue-600 hover:bg-blue-500 text-white font-bold transition-colors">Apply</button>
-                </div>
+          <div className="bg-gray-800 rounded-lg border border-gray-600 shadow-2xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-bold mb-4 flex justify-between items-center text-white">{refineModal.isGlobal ? '✨ Refine All' : 'Refine Video Result'}<button onClick={() => setRefineModal(prev => ({ ...prev, isOpen: false }))} className="text-gray-400 hover:text-white">✕</button></h3>
+            <p className="text-sm text-gray-400 mb-4 font-mono">{refineModal.targetImageName}</p>
+            <div className="mb-4">
+              <textarea
+                value={refineModal.refineInput}
+                onChange={(e) => setRefineModal(prev => ({ ...prev, refineInput: e.target.value }))}
+                placeholder="e.g. Add cinematic lighting..."
+                className="w-full bg-gray-900 border border-gray-700 rounded p-3 text-sm text-gray-200 h-32 outline-none focus:border-blue-500 transition-colors"
+              />
             </div>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setRefineModal(prev => ({ ...prev, isOpen: false }))} className="px-4 py-2 rounded text-sm text-gray-400 hover:bg-gray-700">Cancel</button>
+              <button onClick={handleSendRefinement} className="px-4 py-2 rounded text-sm bg-blue-600 hover:bg-blue-500 text-white font-bold transition-colors">Apply</button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -631,8 +630,8 @@ function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
                 </h3>
                 <p className="text-[10px] text-gray-500 uppercase tracking-widest font-black mt-1">Reviewing all video iterations for current workspace</p>
               </div>
-              <button 
-                onClick={() => setShowReviewModal(false)} 
+              <button
+                onClick={() => setShowReviewModal(false)}
                 className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-700 rounded-full"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -640,69 +639,69 @@ function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
                 </svg>
               </button>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto p-6 space-y-12 custom-scrollbar bg-gray-900/30">
               {inputImages.map(img => {
-                  const versions = [];
-                  const maxV = imageVersions[img.id] || 0;
-                  // Collect all videos generated in the current session
-                  for(let i=0; i <= maxV; i++) {
-                      const res = findMatchingVideo(img.id, img.name, i);
-                      if(res) versions.push({ v: i, url: res.url });
-                  }
+                const versions = [];
+                const maxV = imageVersions[img.id] || 0;
+                // Collect all videos generated in the current session
+                for (let i = 0; i <= maxV; i++) {
+                  const res = findMatchingVideo(img.id, img.name, i);
+                  if (res) versions.push({ v: i, url: res.url });
+                }
 
-                  return (
-                      <div key={img.id} className="space-y-4">
-                          <div className="flex items-center gap-3 border-l-2 border-red-500 pl-4">
-                              <span className="text-sm font-bold text-white">{img.name}</span>
-                              <span className="text-[10px] font-black uppercase text-gray-500 bg-gray-800 px-2 py-0.5 rounded border border-gray-700">
-                                {versions.length} Motion Clips
-                              </span>
-                          </div>
-                          
-                          <div className="flex gap-4 overflow-x-auto pb-6 pt-2 custom-scrollbar-horizontal">
-                              {/* Show Original first for context */}
-                              <div className="flex-shrink-0 w-80 space-y-2">
-                                  <div className="aspect-video bg-black rounded-lg border border-gray-700 overflow-hidden relative group">
-                                      <div className="absolute top-2 left-2 z-10 bg-gray-900/90 px-2 py-1 rounded text-[10px] font-black text-gray-400 border border-gray-700">
-                                          STATIC SOURCE
-                                      </div>
-                                      <img src={img.url} className="w-full h-full object-contain" alt="Original" />
-                                  </div>
-                              </div>
+                return (
+                  <div key={img.id} className="space-y-4">
+                    <div className="flex items-center gap-3 border-l-2 border-red-500 pl-4">
+                      <span className="text-sm font-bold text-white">{img.name}</span>
+                      <span className="text-[10px] font-black uppercase text-gray-500 bg-gray-800 px-2 py-0.5 rounded border border-gray-700">
+                        {versions.length} Motion Clips
+                      </span>
+                    </div>
 
-                              {/* Map through all generated video versions */}
-                              {versions.map(ver => (
-                                  <div key={ver.v} className="flex-shrink-0 w-80 space-y-2">
-                                      <div className="aspect-video bg-black rounded-lg border border-red-900/50 overflow-hidden relative group shadow-xl">
-                                          <div className="absolute top-2 left-2 z-10 bg-red-600 px-2 py-1 rounded text-[10px] font-black text-white shadow-lg">
-                                              VERSION {ver.v}
-                                          </div>
-                                          <video 
-                                            src={ver.url} 
-                                            className="w-full h-full object-contain" 
-                                            autoPlay 
-                                            loop 
-                                            muted 
-                                            playsInline
-                                          />
-                                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                      </div>
-                                  </div>
-                              ))}
+                    <div className="flex gap-4 overflow-x-auto pb-6 pt-2 custom-scrollbar-horizontal">
+                      {/* Show Original first for context */}
+                      <div className="flex-shrink-0 w-80 space-y-2">
+                        <div className="aspect-video bg-black rounded-lg border border-gray-700 overflow-hidden relative group">
+                          <div className="absolute top-2 left-2 z-10 bg-gray-900/90 px-2 py-1 rounded text-[10px] font-black text-gray-400 border border-gray-700">
+                            STATIC SOURCE
                           </div>
+                          <img src={img.url} className="w-full h-full object-contain" alt="Original" />
+                        </div>
                       </div>
-                  );
+
+                      {/* Map through all generated video versions */}
+                      {versions.map(ver => (
+                        <div key={ver.v} className="flex-shrink-0 w-80 space-y-2">
+                          <div className="aspect-video bg-black rounded-lg border border-red-900/50 overflow-hidden relative group shadow-xl">
+                            <div className="absolute top-2 left-2 z-10 bg-red-600 px-2 py-1 rounded text-[10px] font-black text-white shadow-lg">
+                              VERSION {ver.v}
+                            </div>
+                            <video
+                              src={ver.url}
+                              className="w-full h-full object-contain"
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
               })}
             </div>
-            
+
             <div className="p-4 bg-gray-900 border-t border-gray-700 flex justify-end">
-                <button 
-                  onClick={() => setShowReviewModal(false)}
-                  className="px-8 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded font-bold text-sm transition-colors border border-gray-600"
-                >
-                    Close Review
-                </button>
+              <button
+                onClick={() => setShowReviewModal(false)}
+                className="px-8 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded font-bold text-sm transition-colors border border-gray-600"
+              >
+                Close Review
+              </button>
             </div>
           </div>
         </div>

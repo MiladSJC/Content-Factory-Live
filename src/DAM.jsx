@@ -29,8 +29,8 @@ const AssetCard = ({ asset, checked, onToggle, onOpen, onEdit, onDelete, onShare
           <h3 className="text-lg font-black text-white flex items-center gap-2">
             <RefreshCw size={20} className="text-blue-500" /> Version History: {asset.name}
           </h3>
-          <button 
-            onClick={() => setShowHistory(false)} 
+          <button
+            onClick={() => setShowHistory(false)}
             className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl text-xs font-bold transition-all"
           >
             Back to Library
@@ -61,7 +61,7 @@ const AssetCard = ({ asset, checked, onToggle, onOpen, onEdit, onDelete, onShare
       </div>
     );
   }
-  
+
   if (viewMode === 'list') {
     return (
       <div className="group bg-gradient-to-br from-gray-900/80 to-gray-800/50 backdrop-blur-xl border border-gray-700/50 rounded-xl p-4 hover:border-red-500/50 transition-all duration-300 flex items-center gap-4">
@@ -101,7 +101,7 @@ const AssetCard = ({ asset, checked, onToggle, onOpen, onEdit, onDelete, onShare
           </button>
           <button onClick={() => onShare(asset)} className="p-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg text-blue-400 transition-all">
             <Share2 size={16} />
-          </button>          
+          </button>
           <button onClick={() => onComment(asset)} className="p-2 bg-purple-500/20 hover:bg-purple-500/30 rounded-lg text-purple-400 transition-all">
             <MessageSquare size={16} />
           </button>
@@ -124,7 +124,7 @@ const AssetCard = ({ asset, checked, onToggle, onOpen, onEdit, onDelete, onShare
         ) : (
           <div className="w-full h-full flex items-center justify-center text-6xl opacity-30">📄</div>
         )}
-        
+
         <div className="absolute top-3 left-3 flex gap-2">
           <input
             type="checkbox"
@@ -137,12 +137,12 @@ const AssetCard = ({ asset, checked, onToggle, onOpen, onEdit, onDelete, onShare
               <Users size={12} className="text-white" />
               <span className="text-[10px] font-bold text-white">SHARED</span>
               {annotationCount > 0 && (
-            <div className="px-2 py-1 bg-red-600/90 backdrop-blur-md rounded-md flex items-center gap-1 border border-white/10">
-              <MapPin size={12} className="text-white" />
-              <span className="text-[10px] font-bold text-white">{annotationCount}</span>
+                <div className="px-2 py-1 bg-red-600/90 backdrop-blur-md rounded-md flex items-center gap-1 border border-white/10">
+                  <MapPin size={12} className="text-white" />
+                  <span className="text-[10px] font-bold text-white">{annotationCount}</span>
+                </div>
+              )}
             </div>
-          )}
-        </div>
           )}
           {annotationCount > 0 && (
             <div className="px-2 py-1 bg-red-600/90 backdrop-blur-md rounded-md flex items-center gap-1 border border-white/10">
@@ -219,7 +219,7 @@ const AssetCard = ({ asset, checked, onToggle, onOpen, onEdit, onDelete, onShare
           </span>
           <div className="flex items-center gap-3">
             {asset.history?.length > 0 && (
-              <button 
+              <button
                 onClick={() => setShowHistory(true)}
                 className="text-[10px] text-blue-400 hover:text-blue-300 flex items-center gap-1 font-black transition-colors"
                 title="View previous versions"
@@ -251,11 +251,10 @@ const TreeNode = ({ node, level = 0, selectedCategory, onSelect, defaultCollapse
           if (hasChildren) setCollapsed(!collapsed);
           onSelect(node.name);
         }}
-        className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-          selectedCategory === node.name
+        className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${selectedCategory === node.name
             ? 'bg-red-600/20 text-red-500 border border-red-600/30'
             : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-        }`}
+          }`}
         style={{ paddingLeft: `${level * 12 + 12}px` }}
       >
         {hasChildren && (
@@ -286,7 +285,7 @@ const TreeNode = ({ node, level = 0, selectedCategory, onSelect, defaultCollapse
   );
 };
 
-export default function DAM({ externalSharedAssets = [] }) {  
+export default function DAM({ externalSharedAssets = [] }) {
   const [assets, setAssets] = useState([]);
   const [sharedAssets, setSharedAssets] = useState(externalSharedAssets);
   const [loading, setLoading] = useState(false);
@@ -350,7 +349,7 @@ export default function DAM({ externalSharedAssets = [] }) {
     };
 
     const targetRatio = naturalWidth / naturalHeight;
-    const closestRatio = Object.keys(supportedRatios).reduce((prev, curr) => 
+    const closestRatio = Object.keys(supportedRatios).reduce((prev, curr) =>
       Math.abs(supportedRatios[curr] - targetRatio) < Math.abs(supportedRatios[prev] - targetRatio) ? curr : prev
     );
 
@@ -368,7 +367,7 @@ export default function DAM({ externalSharedAssets = [] }) {
 
     setIsAIProcessing(true);
     setIsModifying(false);
-    setSelectedAnnotationId(null); 
+    setSelectedAnnotationId(null);
 
     if (isLiveMode) {
       try {
@@ -387,7 +386,7 @@ export default function DAM({ externalSharedAssets = [] }) {
         const livePrompt = `Keep everything intact, and do not touch and thing just apply the following changes \n${notesList}`;
 
         // Step 3: Send Correct Dimensions & Ratio
-        const response = await fetch("http://localhost:5001/generate-card", {
+        const response = await fetch("/api/generate-card", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -489,7 +488,7 @@ export default function DAM({ externalSharedAssets = [] }) {
       const originalAsset = prev.find(a => a.path === originalPath);
       // Remove the original from the top-level list to prevent side-by-side duplicates
       const filtered = prev.filter(a => a.path !== originalPath);
-      
+
       return [
         {
           ...draft,
@@ -510,30 +509,30 @@ export default function DAM({ externalSharedAssets = [] }) {
   };
 
   const draftRefinedAsset = currentAsset ? draftByOriginalPath[currentAsset.path] : null;
-  
+
   const metroHierarchy = [
-    { 
-      name: "Grocery", 
+    {
+      name: "Grocery",
       children: ["Dry Goods", "Dairy", "Frozen", "Beverages"],
       count: 142
     },
-    { 
-      name: "Fresh", 
+    {
+      name: "Fresh",
       children: ["Produce", "Meat", "Bakery", "Deli", "Seafood"],
       count: 98
     },
-    { 
-      name: "Private Label", 
+    {
+      name: "Private Label",
       children: ["Selection", "Irresistibles", "Life Smart"],
       count: 76
     },
-    { 
-      name: "Seasonal", 
+    {
+      name: "Seasonal",
       children: ["Holidays", "Summer BBQ", "Back to School", "Valentine's"],
       count: 54
     },
-    { 
-      name: "Marketing", 
+    {
+      name: "Marketing",
       children: ["Flyer Assets", "In-Store Signage", "Social Media", "Email Campaigns"],
       count: 89
     },
@@ -550,7 +549,7 @@ export default function DAM({ externalSharedAssets = [] }) {
 
   const loadDemoData = () => {
     setLoading(true);
-    
+
     // Simulate demo assets
     const demoAssets = [
       {
@@ -634,7 +633,7 @@ export default function DAM({ externalSharedAssets = [] }) {
   const handleUpload = async (e) => {
     const files = Array.from(e.target.files || []);
     setLoading(true);
-    
+
     // Simulate upload
     setTimeout(() => {
       const newAssets = files.map((f, idx) => ({
@@ -667,11 +666,11 @@ export default function DAM({ externalSharedAssets = [] }) {
     }
   };
   const handleOpen = (asset) => {
-      setCurrentAsset(asset);
-      setActivePreviewVariant("original");
-      setPromoteDraftOnComplete(false);
-      setShowPreview(true);
-    };
+    setCurrentAsset(asset);
+    setActivePreviewVariant("original");
+    setPromoteDraftOnComplete(false);
+    setShowPreview(true);
+  };
 
   const handleDelete = (asset) => {
     if (!window.confirm(`Delete ${asset.name}?`)) return;
@@ -753,7 +752,7 @@ export default function DAM({ externalSharedAssets = [] }) {
   };
 
   const handlePreviewMouseDown = (e) => {
-    if (e.button !== 0) return; 
+    if (e.button !== 0) return;
     if (!isAnnotating || !currentAsset?.type?.includes("image")) return;
 
     const pt = toNormPoint(e);
@@ -895,8 +894,8 @@ export default function DAM({ externalSharedAssets = [] }) {
 
   const allAssets =
     activeTab === 'shared' ? sharedAssets.filter(a => getActiveAnnotationCount(a.path) === 0) :
-    activeTab === 'pending' ? pendingAssets :
-    assets;
+      activeTab === 'pending' ? pendingAssets :
+        assets;
 
   const filtered = useMemo(() => {
     return allAssets.filter((a) => {
@@ -904,9 +903,9 @@ export default function DAM({ externalSharedAssets = [] }) {
       const matchesSearch = !q || (a.name || "").toLowerCase().includes(q);
       const matchesTag = !tagFilter || (a.tags || []).includes(tagFilter);
       const matchesType = typeFilter === "all" || (a.type || "").toLowerCase().includes(typeFilter);
-      const matchesCategory = selectedCategory === "All Assets" || 
-                            (a.category === selectedCategory) || 
-                            (a.tags && a.tags.includes(selectedCategory));
+      const matchesCategory = selectedCategory === "All Assets" ||
+        (a.category === selectedCategory) ||
+        (a.tags && a.tags.includes(selectedCategory));
       return matchesSearch && matchesTag && matchesType && matchesCategory;
     }).sort((x, y) => new Date(y.created_at || 0) - new Date(x.created_at || 0));
   }, [allAssets, search, tagFilter, typeFilter, selectedCategory]);
@@ -952,9 +951,8 @@ export default function DAM({ externalSharedAssets = [] }) {
             <div className="space-y-1">
               <button
                 onClick={() => { setActiveTab('my-assets'); setSelectedCategory("All Assets"); }}
-                className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center gap-3 ${
-                  activeTab === 'my-assets' ? 'bg-red-600/20 text-red-500 border border-red-600/30' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                }`}
+                className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center gap-3 ${activeTab === 'my-assets' ? 'bg-red-600/20 text-red-500 border border-red-600/30' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                  }`}
               >
                 <Folder size={16} />
                 <span className="flex-1">My Assets</span>
@@ -962,9 +960,8 @@ export default function DAM({ externalSharedAssets = [] }) {
               </button>
               <button
                 onClick={() => { setActiveTab('shared'); setSelectedCategory("All Assets"); }}
-                className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center gap-3 ${
-                  activeTab === 'shared' ? 'bg-blue-600/20 text-blue-500 border border-blue-600/30' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                }`}
+                className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center gap-3 ${activeTab === 'shared' ? 'bg-blue-600/20 text-blue-500 border border-blue-600/30' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                  }`}
               >
                 <Share2 size={16} />
                 <span className="flex-1">Shared With Me</span>
@@ -972,9 +969,8 @@ export default function DAM({ externalSharedAssets = [] }) {
               </button>
               <button
                 onClick={() => { setActiveTab('pending'); setSelectedCategory("All Assets"); }}
-                className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center gap-3 ${
-                  activeTab === 'pending' ? 'bg-red-600/20 text-red-500 border border-red-600/30' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                }`}
+                className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center gap-3 ${activeTab === 'pending' ? 'bg-red-600/20 text-red-500 border border-red-600/30' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                  }`}
               >
                 <Clock size={16} />
                 <span className="flex-1">Pending Assets</span>
@@ -992,9 +988,8 @@ export default function DAM({ externalSharedAssets = [] }) {
               </h3>
               <button
                 onClick={() => { setSelectedCategory("All Assets"); setPage(1); }}
-                className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-bold transition-all mb-2 flex items-center gap-2 ${
-                  selectedCategory === "All Assets" ? 'bg-red-600/20 text-red-500 border border-red-600/30' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                }`}
+                className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-bold transition-all mb-2 flex items-center gap-2 ${selectedCategory === "All Assets" ? 'bg-red-600/20 text-red-500 border border-red-600/30' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                  }`}
               >
                 <Globe size={14} />
                 All Assets
@@ -1030,11 +1025,10 @@ export default function DAM({ externalSharedAssets = [] }) {
                 <button
                   key={type.value}
                   onClick={() => setTypeFilter(type.value)}
-                  className={`px-3 py-2 rounded-lg text-[10px] font-bold transition-all border flex items-center justify-center gap-1 ${
-                    typeFilter === type.value
+                  className={`px-3 py-2 rounded-lg text-[10px] font-bold transition-all border flex items-center justify-center gap-1 ${typeFilter === type.value
                       ? 'bg-red-600/10 border-red-600/50 text-red-400'
                       : 'bg-gray-800/50 border-gray-700 text-gray-400 hover:border-gray-600 hover:text-white'
-                  }`}
+                    }`}
                 >
                   <span>{type.icon}</span>
                   {type.label}
@@ -1222,7 +1216,7 @@ export default function DAM({ externalSharedAssets = [] }) {
                 </button>
               </div>
 
-              <div className={viewMode === 'grid' 
+              <div className={viewMode === 'grid'
                 ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
                 : "space-y-3"
               }>
@@ -1258,11 +1252,10 @@ export default function DAM({ externalSharedAssets = [] }) {
                       <button
                         key={p}
                         onClick={() => setPage(p)}
-                        className={`w-10 h-10 rounded-lg font-bold text-sm transition-all ${
-                          page === p
+                        className={`w-10 h-10 rounded-lg font-bold text-sm transition-all ${page === p
                             ? 'bg-red-600 text-white'
                             : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                        }`}
+                          }`}
                       >
                         {p}
                       </button>
@@ -1470,16 +1463,16 @@ export default function DAM({ externalSharedAssets = [] }) {
           </div>
         </div>
       )}
-{/* ASSET PREVIEW MODAL (DAM Style) */}
+      {/* ASSET PREVIEW MODAL (DAM Style) */}
       {showPreview && currentAsset && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[9999] p-2 lg:p-6 animate-fadeIn">  
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[9999] p-2 lg:p-6 animate-fadeIn">
           {/* Constrained to 820px max height to prevent clipping at 75% zoom on 14" screens */}
-          <div className="bg-gray-900 border border-gray-700 w-full max-w-[1440px] h-[92%] max-h-[820px] rounded-3xl overflow-hidden flex flex-col lg:flex-row shadow-2xl relative">  
+          <div className="bg-gray-900 border border-gray-700 w-full max-w-[1440px] h-[92%] max-h-[820px] rounded-3xl overflow-hidden flex flex-col lg:flex-row shadow-2xl relative">
             {/* LEFT SIDE: Media Player/Viewer (70%) */}
             <div className="flex-1 bg-black flex flex-col border-r border-gray-800">
               {/* Modal Control Toolbar */}
               <div className="p-4 border-b border-gray-800 flex items-center justify-between bg-gray-900/50">
-                <button 
+                <button
                   onClick={closePreview}
                   className="p-2 hover:bg-red-600 rounded-lg text-white transition-all border border-white/5"
                 >
@@ -1488,7 +1481,7 @@ export default function DAM({ externalSharedAssets = [] }) {
 
                 <div className="flex gap-3">
                   {activeTab === 'pending' ? (
-                    <button 
+                    <button
                       onClick={() => {
                         const originalPath = currentAsset.path;
                         resolveAllAnnotations(originalPath);
@@ -1505,14 +1498,14 @@ export default function DAM({ externalSharedAssets = [] }) {
                   ) : (
                     <>
                       {!isAnnotating ? (
-                        <button 
+                        <button
                           onClick={() => setIsAnnotating(true)}
                           className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-xl font-black text-[11px] flex items-center gap-2 transition-all shadow-lg border border-red-500/50"
                         >
                           <Plus size={16} /> ADD ANNOTATION
                         </button>
                       ) : (
-                        <button 
+                        <button
                           onClick={() => {
                             setIsAnnotating(false);
                             if (getActiveAnnotationCount(currentAsset.path) > 0) {
@@ -1532,341 +1525,340 @@ export default function DAM({ externalSharedAssets = [] }) {
               {/* Asset Container Box - Added overflow-hidden to prevent container expansion */}
               <div className="flex-1 relative p-4 flex items-center justify-center overflow-hidden">
                 <div className="relative max-w-full max-h-full bg-gray-800/20 rounded-2xl p-2 border border-white/5 shadow-inner flex items-center justify-center">
-                {currentAsset.type?.includes('video') ? (
-                  <video 
-                    src={currentAsset.path} 
-                    controls 
-                    autoPlay 
-                    className="max-w-full max-h-full rounded-lg shadow-2xl"
-                  />
-                ) : (
-                  <div className={draftRefinedAsset && activeTab === 'pending' ? "grid grid-cols-1 lg:grid-cols-2 gap-6 items-start" : ""}>
-                    <div className="relative z-10 overflow-visible">
-                      <div
-                        ref={previewMediaRef}
-                        className="relative inline-block max-w-full max-h-full overflow-visible"
-                        onMouseDown={handlePreviewMouseDown}
-                        onMouseMove={handlePreviewMouseMove}
-                        onMouseUp={handlePreviewMouseUp}
-                        title="Hold left mouse button and drag to draw a note box"
-                      >
-                    <img 
-                      src={
-                        activePreviewVariant === "refined" && draftRefinedAsset
-                          ? (draftRefinedAsset.thumbnail || draftRefinedAsset.path)
-                          : (currentAsset.thumbnail || currentAsset.path)
-                      } 
-                      alt={
-                        activePreviewVariant === "refined" && draftRefinedAsset
-                          ? draftRefinedAsset.name
-                          : currentAsset.name
-                      } 
-                      className="max-w-full rounded-lg shadow-2xl select-none"
-                      style={{ maxHeight: 'calc(820px - 220px)' }}
-                      draggable={false}
+                  {currentAsset.type?.includes('video') ? (
+                    <video
+                      src={currentAsset.path}
+                      controls
+                      autoPlay
+                      className="max-w-full max-h-full rounded-lg shadow-2xl"
                     />
-
-                    {/* Drawing rectangle (live) */}
-                    {drawRect && drawRect.assetPath === currentAsset.path && (
-                      (() => {
-                        const x1 = Math.min(drawRect.x1, drawRect.x2);
-                        const y1 = Math.min(drawRect.y1, drawRect.y2);
-                        const x2 = Math.max(drawRect.x1, drawRect.x2);
-                        const y2 = Math.max(drawRect.y1, drawRect.y2);
-                        return (
-                          <div
-                            className="absolute border-2 border-red-500/90 bg-red-500/10 rounded-md pointer-events-none"
-                            style={{
-                              left: `${x1 * 100}%`,
-                              top: `${y1 * 100}%`,
-                              width: `${(x2 - x1) * 100}%`,
-                              height: `${(y2 - y1) * 100}%`,
-                            }}
-                          />
-                        );
-                      })()
-                    )}
-
-                    {/* Existing pins (numbered) */}
-                    {(annotationsByAsset[currentAsset.path] || []).map((note, idx) => {
-                      const isResolved = !!note.resolved;
-                      const isSelected = selectedAnnotationId === note.id;
-
-                      return (
+                  ) : (
+                    <div className={draftRefinedAsset && activeTab === 'pending' ? "grid grid-cols-1 lg:grid-cols-2 gap-6 items-start" : ""}>
+                      <div className="relative z-10 overflow-visible">
                         <div
-                          key={note.id}
-                          className={`absolute -translate-x-1/2 -translate-y-1/2 ${isSelected ? 'z-[100]' : 'z-[50]'}`}
-                          style={{ left: `${note.x * 100}%`, top: `${note.y * 100}%` }}
-                          onMouseDown={(ev) => ev.stopPropagation()}
-                          onMouseUp={(ev) => ev.stopPropagation()}
-                          onClick={(ev) => { ev.stopPropagation(); setSelectedAnnotationId(note.id); }}
+                          ref={previewMediaRef}
+                          className="relative inline-block max-w-full max-h-full overflow-visible"
+                          onMouseDown={handlePreviewMouseDown}
+                          onMouseMove={handlePreviewMouseMove}
+                          onMouseUp={handlePreviewMouseUp}
+                          title="Hold left mouse button and drag to draw a note box"
                         >
-                          <button
-                            className={`w-8 h-8 rounded-full border flex items-center justify-center text-xs font-black shadow-lg transition-all relative
+                          <img
+                            src={
+                              activePreviewVariant === "refined" && draftRefinedAsset
+                                ? (draftRefinedAsset.thumbnail || draftRefinedAsset.path)
+                                : (currentAsset.thumbnail || currentAsset.path)
+                            }
+                            alt={
+                              activePreviewVariant === "refined" && draftRefinedAsset
+                                ? draftRefinedAsset.name
+                                : currentAsset.name
+                            }
+                            className="max-w-full rounded-lg shadow-2xl select-none"
+                            style={{ maxHeight: 'calc(820px - 220px)' }}
+                            draggable={false}
+                          />
+
+                          {/* Drawing rectangle (live) */}
+                          {drawRect && drawRect.assetPath === currentAsset.path && (
+                            (() => {
+                              const x1 = Math.min(drawRect.x1, drawRect.x2);
+                              const y1 = Math.min(drawRect.y1, drawRect.y2);
+                              const x2 = Math.max(drawRect.x1, drawRect.x2);
+                              const y2 = Math.max(drawRect.y1, drawRect.y2);
+                              return (
+                                <div
+                                  className="absolute border-2 border-red-500/90 bg-red-500/10 rounded-md pointer-events-none"
+                                  style={{
+                                    left: `${x1 * 100}%`,
+                                    top: `${y1 * 100}%`,
+                                    width: `${(x2 - x1) * 100}%`,
+                                    height: `${(y2 - y1) * 100}%`,
+                                  }}
+                                />
+                              );
+                            })()
+                          )}
+
+                          {/* Existing pins (numbered) */}
+                          {(annotationsByAsset[currentAsset.path] || []).map((note, idx) => {
+                            const isResolved = !!note.resolved;
+                            const isSelected = selectedAnnotationId === note.id;
+
+                            return (
+                              <div
+                                key={note.id}
+                                className={`absolute -translate-x-1/2 -translate-y-1/2 ${isSelected ? 'z-[100]' : 'z-[50]'}`}
+                                style={{ left: `${note.x * 100}%`, top: `${note.y * 100}%` }}
+                                onMouseDown={(ev) => ev.stopPropagation()}
+                                onMouseUp={(ev) => ev.stopPropagation()}
+                                onClick={(ev) => { ev.stopPropagation(); setSelectedAnnotationId(note.id); }}
+                              >
+                                <button
+                                  className={`w-8 h-8 rounded-full border flex items-center justify-center text-xs font-black shadow-lg transition-all relative
                               ${isResolved ? 'bg-gray-700/80 border-gray-500 text-gray-200' : 'bg-red-600 border-red-300 text-white'}
                               ${isSelected ? 'ring-2 ring-white/70 scale-105 z-10' : 'hover:scale-105 z-20'}
                             `}
-                            title={isResolved ? "Resolved note" : "Open note"}
-                          >
-                            {idx + 1}
-                          </button>
+                                  title={isResolved ? "Resolved note" : "Open note"}
+                                >
+                                  {idx + 1}
+                                </button>
 
-                          {/* Popover (in-place) */}
-                          {isSelected && (
-                            <div 
-                              className={`absolute w-80 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl z-[130] flex flex-col overflow-visible
+                                {/* Popover (in-place) */}
+                                {isSelected && (
+                                  <div
+                                    className={`absolute w-80 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl z-[130] flex flex-col overflow-visible
                                 ${note.y < 0.25 ? 'top-12' : 'bottom-12'} 
                                 ${note.x > 0.75 ? 'right-0' : note.x < 0.25 ? 'left-0' : 'left-1/2 -translate-x-1/2'}`}
-                            >
-                              {/* Header Meta */}
-                              <div className="px-4 py-3 bg-gray-800/50 border-b border-gray-700 flex items-center justify-between rounded-t-2xl">
-                                <div className="flex flex-col">
-                                  <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">
-                                    ANNOTATION #{idx + 1}
-                                  </span>
-                                  <span className="text-[10px] text-gray-400 font-bold">
-                                    {niceDate(new Date())} • Milad Moradi
-                                  </span>
-                                </div>
-                                <button 
-                                  onClick={(ev) => { ev.stopPropagation(); setSelectedAnnotationId(null); }}
-                                  className="text-gray-500 hover:text-white transition-colors"
-                                >
-                                  <X size={14} />
-                                </button>
-                              </div>
+                                  >
+                                    {/* Header Meta */}
+                                    <div className="px-4 py-3 bg-gray-800/50 border-b border-gray-700 flex items-center justify-between rounded-t-2xl">
+                                      <div className="flex flex-col">
+                                        <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">
+                                          ANNOTATION #{idx + 1}
+                                        </span>
+                                        <span className="text-[10px] text-gray-400 font-bold">
+                                          {niceDate(new Date())} • Milad Moradi
+                                        </span>
+                                      </div>
+                                      <button
+                                        onClick={(ev) => { ev.stopPropagation(); setSelectedAnnotationId(null); }}
+                                        className="text-gray-500 hover:text-white transition-colors"
+                                      >
+                                        <X size={14} />
+                                      </button>
+                                    </div>
 
-                              {/* Content */}
-                              <div className="p-4">
-                                <p className={`text-sm leading-relaxed ${isResolved ? 'text-gray-500 line-through' : 'text-gray-200'} break-words font-medium`}>
-                                  {note.text}
-                                </p>
-                              </div>
+                                    {/* Content */}
+                                    <div className="p-4">
+                                      <p className={`text-sm leading-relaxed ${isResolved ? 'text-gray-500 line-through' : 'text-gray-200'} break-words font-medium`}>
+                                        {note.text}
+                                      </p>
+                                    </div>
 
-                              {/* Actions */}
-                              <div className="px-4 pb-4 flex gap-2">
-                                <button
-                                  onClick={(ev) => { ev.stopPropagation(); setSelectedAnnotationId(null); }}
-                                  className="px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl font-bold text-[10px] text-gray-300 transition-all border border-gray-700"
-                                >
-                                  CLOSE
-                                </button>
-                                {!isResolved && (
-                                  <>
-                                    <button
-                                      onClick={(ev) => { 
-                                        ev.stopPropagation(); 
-                                        setSelectedNotes(new Set([note.id]));
-                                        setIsModifying(true);
-                                      }}
-                                      className="flex-1 py-2 bg-red-600/10 hover:bg-red-600/20 text-red-400 rounded-xl font-black text-[10px] transition-all border border-red-500/20 flex items-center justify-center gap-2 shadow-sm"
-                                    >
-                                      <Zap size={12} /> AI MODIFICATION
-                                    </button>
-                                    <button
-                                      onClick={(ev) => { ev.stopPropagation(); resolveAnnotation(currentAsset.path, note.id); }}
-                                      className="w-10 flex items-center justify-center bg-green-600/10 hover:bg-green-600/20 text-green-500 rounded-xl transition-all border border-green-500/20"
-                                      title="Resolve"
-                                    >
-                                      <CheckSquare size={16} />
-                                    </button>
-                                  </>
+                                    {/* Actions */}
+                                    <div className="px-4 pb-4 flex gap-2">
+                                      <button
+                                        onClick={(ev) => { ev.stopPropagation(); setSelectedAnnotationId(null); }}
+                                        className="px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl font-bold text-[10px] text-gray-300 transition-all border border-gray-700"
+                                      >
+                                        CLOSE
+                                      </button>
+                                      {!isResolved && (
+                                        <>
+                                          <button
+                                            onClick={(ev) => {
+                                              ev.stopPropagation();
+                                              setSelectedNotes(new Set([note.id]));
+                                              setIsModifying(true);
+                                            }}
+                                            className="flex-1 py-2 bg-red-600/10 hover:bg-red-600/20 text-red-400 rounded-xl font-black text-[10px] transition-all border border-red-500/20 flex items-center justify-center gap-2 shadow-sm"
+                                          >
+                                            <Zap size={12} /> AI MODIFICATION
+                                          </button>
+                                          <button
+                                            onClick={(ev) => { ev.stopPropagation(); resolveAnnotation(currentAsset.path, note.id); }}
+                                            className="w-10 flex items-center justify-center bg-green-600/10 hover:bg-green-600/20 text-green-500 rounded-xl transition-all border border-green-500/20"
+                                            title="Resolve"
+                                          >
+                                            <CheckSquare size={16} />
+                                          </button>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
                                 )}
+                              </div>
+                            );
+                          })}
+
+
+                          {/* AI Modification Selection Box */}
+                          {isModifying && (
+                            <div className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+                              <div className="bg-gray-900 border border-red-500/50 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                                <div className="p-4 border-b border-gray-800 bg-red-600/10 flex justify-between items-center">
+                                  <h4 className="text-sm font-black text-white flex items-center gap-2">
+                                    <Zap size={16} className="text-red-500" /> APPLY AI MODIFICATIONS
+                                  </h4>
+                                  <button onClick={() => setIsModifying(false)}><X size={18} /></button>
+                                </div>
+                                <div className="p-4 space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar">
+                                  <div className="flex justify-between items-center">
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Select comments to include:</p>
+                                    <div className="flex items-center gap-3 bg-gray-950 px-3 py-1.5 rounded-xl border border-gray-800">
+                                      <span className={`text-[9px] font-black uppercase tracking-widest transition-colors ${isLiveMode ? 'text-blue-500' : 'text-gray-500'}`}>
+                                        {isLiveMode ? 'Live' : 'Present'}
+                                      </span>
+                                      <button
+                                        onClick={() => setIsLiveMode(!isLiveMode)}
+                                        className={`w-9 h-5 rounded-full relative transition-all duration-300 ${isLiveMode ? 'bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.4)]' : 'bg-gray-700'}`}
+                                      >
+                                        <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow-sm transition-all duration-300 ${isLiveMode ? 'translate-x-5' : 'translate-x-1'}`} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                  {(annotationsByAsset[currentAsset.path] || []).filter(n => !n.resolved).map((n, idx) => (
+                                    <div
+                                      key={n.id}
+                                      onClick={() => {
+                                        const next = new Set(selectedNotes);
+                                        if (next.has(n.id)) next.delete(n.id); else next.add(n.id);
+                                        setSelectedNotes(next);
+                                      }}
+                                      className={`p-3 rounded-xl border transition-all cursor-pointer flex gap-3 items-start ${selectedNotes.has(n.id) ? 'bg-red-600/10 border-red-500/50' : 'bg-gray-800/50 border-gray-700'}`}
+                                    >
+                                      <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center transition-colors ${selectedNotes.has(n.id) ? 'bg-red-600 border-red-500' : 'border-gray-500'}`}>
+                                        {selectedNotes.has(n.id) && <CheckSquare size={12} className="text-white" />}
+                                      </div>
+                                      <div>
+                                        <span className="text-[10px] font-black text-red-500">NOTE #{idx + 1}</span>
+                                        <p className="text-xs text-gray-200 mt-1 line-clamp-2">{n.text}</p>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                                <div className="p-4 bg-gray-950 border-t border-gray-800 flex gap-3">
+                                  <button onClick={() => setIsModifying(false)} className="flex-1 py-2 text-xs font-bold text-gray-400 hover:text-white transition-colors">Cancel</button>
+                                  <button
+                                    onClick={handleAIProcess}
+                                    disabled={selectedNotes.size === 0}
+                                    className={`flex-[2] py-3 disabled:opacity-50 text-white rounded-xl font-black text-xs shadow-lg transition-all flex items-center justify-center gap-2 ${isLiveMode
+                                        ? 'bg-blue-600 hover:bg-blue-500 shadow-blue-900/40'
+                                        : 'bg-red-600 hover:bg-red-500 shadow-red-900/40'
+                                      }`}
+                                  >
+                                    <Zap size={14} /> {isLiveMode ? 'GENERATE LIVE (GEMINI)' : 'GENERATE MODIFICATION'}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* AI Processing Overlay */}
+                          {isAIProcessing && (
+                            <div className="absolute inset-0 z-[110] bg-gray-900/90 backdrop-blur-md flex flex-col items-center justify-center">
+                              <div className="w-24 h-24 relative mb-6">
+                                <div className="absolute inset-0 border-4 border-red-500/20 rounded-full"></div>
+                                <div className="absolute inset-0 border-4 border-t-red-600 rounded-full animate-spin"></div>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <Zap size={32} className="text-red-500 animate-pulse" />
+                                </div>
+                              </div>
+                              <h3 className="text-xl font-black text-white tracking-widest uppercase">AI Processing</h3>
+                              <p className="text-sm text-gray-400 mt-2 font-medium">Re-rendering assets with requested modifications...</p>
+                              <div className="mt-8 flex gap-1">
+                                {[0, 1, 2].map(i => (
+                                  <div key={i} className="w-1.5 h-1.5 bg-red-600 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.2}s` }} />
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Draft comment box (after rectangle release) */}
+                          {draftAnnotation?.assetPath === currentAsset.path && (
+                            <div
+                              className="absolute w-[320px] max-w-[90vw] bg-gray-900 border border-gray-700 rounded-2xl p-4 shadow-2xl z-[120]"
+                              style={{
+                                left: `${draftAnnotation.cx * 100}%`,
+                                top: `${draftAnnotation.cy * 100}%`,
+                                transform: `translate(${draftAnnotation.cx > 0.7 ? '-100%' : draftAnnotation.cx < 0.3 ? '0%' : '-50%'}, ${draftAnnotation.cy > 0.7 ? '-100%' : draftAnnotation.cy < 0.3 ? '0%' : '-50%'})`
+                              }}
+                              onMouseDown={(ev) => ev.stopPropagation()}
+                              onMouseUp={(ev) => ev.stopPropagation()}
+                              onClick={(ev) => ev.stopPropagation()}
+                            >
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="px-2 py-1 bg-red-600/20 text-red-400 rounded-lg text-[10px] font-black uppercase tracking-widest">
+                                  New Annotation
+                                </span>
+                                <span className="text-[10px] text-gray-500 font-bold">OK will collapse to a pin</span>
+                              </div>
+
+                              <textarea
+                                rows={3}
+                                value={draftText}
+                                onChange={(ev) => setDraftText(ev.target.value)}
+                                placeholder="Write a comment..."
+                                className="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-red-500 resize-none transition-all"
+                              />
+
+                              <div className="flex gap-3 mt-3">
+                                <button
+                                  onClick={() => { setDraftAnnotation(null); setDraftText(''); }}
+                                  className="flex-1 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-xl font-bold text-sm transition-all"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  onClick={saveDraftAnnotation}
+                                  className="flex-1 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:shadow-lg hover:shadow-red-500/30 rounded-xl font-black text-sm transition-all"
+                                >
+                                  OK
+                                </button>
                               </div>
                             </div>
                           )}
                         </div>
-                      );
-                    })}
+                      </div>
 
-
-{/* AI Modification Selection Box */}
-                    {isModifying && (
-                      <div className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-                        <div className="bg-gray-900 border border-red-500/50 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-                          <div className="p-4 border-b border-gray-800 bg-red-600/10 flex justify-between items-center">
-                            <h4 className="text-sm font-black text-white flex items-center gap-2">
-                              <Zap size={16} className="text-red-500" /> APPLY AI MODIFICATIONS
-                            </h4>
-                            <button onClick={() => setIsModifying(false)}><X size={18} /></button>
-                          </div>
-                          <div className="p-4 space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar">
-                            <div className="flex justify-between items-center">
-                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Select comments to include:</p>
-                                <div className="flex items-center gap-3 bg-gray-950 px-3 py-1.5 rounded-xl border border-gray-800">
-                                    <span className={`text-[9px] font-black uppercase tracking-widest transition-colors ${isLiveMode ? 'text-blue-500' : 'text-gray-500'}`}>
-                                        {isLiveMode ? 'Live' : 'Present'}
-                                    </span>
-                                    <button 
-                                        onClick={() => setIsLiveMode(!isLiveMode)} 
-                                        className={`w-9 h-5 rounded-full relative transition-all duration-300 ${isLiveMode ? 'bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.4)]' : 'bg-gray-700'}`}
-                                    >
-                                        <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow-sm transition-all duration-300 ${isLiveMode ? 'translate-x-5' : 'translate-x-1'}`} />
-                                    </button>
-                                </div>
+                      {draftRefinedAsset && activeTab === 'pending' && (
+                        activePreviewVariant === "refined" ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActivePreviewVariant("original");
+                              setPromoteDraftOnComplete(false);
+                            }}
+                            className="relative w-full h-full bg-gray-800/20 rounded-2xl p-2 border border-white/5 shadow-inner flex items-center justify-center hover:border-white/20 transition-all"
+                            title="Click to switch back to Original preview"
+                          >
+                            <img
+                              src={currentAsset.thumbnail || currentAsset.path}
+                              alt={currentAsset.name}
+                              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl select-none"
+                              draggable={false}
+                            />
+                            <div className="absolute bottom-3 left-3 px-3 py-1.5 bg-black/60 rounded-xl text-[10px] font-black text-white border border-white/10">
+                              ORIGINAL • CLICK TO VIEW
                             </div>
-                            {(annotationsByAsset[currentAsset.path] || []).filter(n => !n.resolved).map((n, idx) => (
-                              <div 
-                                key={n.id} 
-                                onClick={() => {
-                                  const next = new Set(selectedNotes);
-                                  if (next.has(n.id)) next.delete(n.id); else next.add(n.id);
-                                  setSelectedNotes(next);
-                                }}
-                                className={`p-3 rounded-xl border transition-all cursor-pointer flex gap-3 items-start ${selectedNotes.has(n.id) ? 'bg-red-600/10 border-red-500/50' : 'bg-gray-800/50 border-gray-700'}`}
-                              >
-                                <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center transition-colors ${selectedNotes.has(n.id) ? 'bg-red-600 border-red-500' : 'border-gray-500'}`}>
-                                  {selectedNotes.has(n.id) && <CheckSquare size={12} className="text-white" />}
-                                </div>
-                                <div>
-                                  <span className="text-[10px] font-black text-red-500">NOTE #{idx + 1}</span>
-                                  <p className="text-xs text-gray-200 mt-1 line-clamp-2">{n.text}</p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="p-4 bg-gray-950 border-t border-gray-800 flex gap-3">
-                            <button onClick={() => setIsModifying(false)} className="flex-1 py-2 text-xs font-bold text-gray-400 hover:text-white transition-colors">Cancel</button>
-                            <button 
-                              onClick={handleAIProcess}
-                              disabled={selectedNotes.size === 0}
-                              className={`flex-[2] py-3 disabled:opacity-50 text-white rounded-xl font-black text-xs shadow-lg transition-all flex items-center justify-center gap-2 ${
-                                isLiveMode 
-                                  ? 'bg-blue-600 hover:bg-blue-500 shadow-blue-900/40' 
-                                  : 'bg-red-600 hover:bg-red-500 shadow-red-900/40'
-                              }`}
-                            >
-                              <Zap size={14} /> {isLiveMode ? 'GENERATE LIVE (GEMINI)' : 'GENERATE MODIFICATION'}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* AI Processing Overlay */}
-                    {isAIProcessing && (
-                      <div className="absolute inset-0 z-[110] bg-gray-900/90 backdrop-blur-md flex flex-col items-center justify-center">
-                        <div className="w-24 h-24 relative mb-6">
-                           <div className="absolute inset-0 border-4 border-red-500/20 rounded-full"></div>
-                           <div className="absolute inset-0 border-4 border-t-red-600 rounded-full animate-spin"></div>
-                           <div className="absolute inset-0 flex items-center justify-center">
-                              <Zap size={32} className="text-red-500 animate-pulse" />
-                           </div>
-                        </div>
-                        <h3 className="text-xl font-black text-white tracking-widest uppercase">AI Processing</h3>
-                        <p className="text-sm text-gray-400 mt-2 font-medium">Re-rendering assets with requested modifications...</p>
-                        <div className="mt-8 flex gap-1">
-                          {[0, 1, 2].map(i => (
-                            <div key={i} className="w-1.5 h-1.5 bg-red-600 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.2}s` }} />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Draft comment box (after rectangle release) */}
-                    {draftAnnotation?.assetPath === currentAsset.path && (
-                      <div
-                        className="absolute w-[320px] max-w-[90vw] bg-gray-900 border border-gray-700 rounded-2xl p-4 shadow-2xl z-[120]"
-                        style={{ 
-                          left: `${draftAnnotation.cx * 100}%`, 
-                          top: `${draftAnnotation.cy * 100}%`,
-                          transform: `translate(${draftAnnotation.cx > 0.7 ? '-100%' : draftAnnotation.cx < 0.3 ? '0%' : '-50%'}, ${draftAnnotation.cy > 0.7 ? '-100%' : draftAnnotation.cy < 0.3 ? '0%' : '-50%'})`
-                        }}
-                        onMouseDown={(ev) => ev.stopPropagation()}
-                        onMouseUp={(ev) => ev.stopPropagation()}
-                        onClick={(ev) => ev.stopPropagation()}
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="px-2 py-1 bg-red-600/20 text-red-400 rounded-lg text-[10px] font-black uppercase tracking-widest">
-                            New Annotation
-                          </span>
-                          <span className="text-[10px] text-gray-500 font-bold">OK will collapse to a pin</span>
-                        </div>
-
-                        <textarea
-                          rows={3}
-                          value={draftText}
-                          onChange={(ev) => setDraftText(ev.target.value)}
-                          placeholder="Write a comment..."
-                          className="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-red-500 resize-none transition-all"
-                        />
-
-                        <div className="flex gap-3 mt-3">
-                          <button
-                            onClick={() => { setDraftAnnotation(null); setDraftText(''); }}
-                            className="flex-1 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-xl font-bold text-sm transition-all"
-                          >
-                            Cancel
                           </button>
+                        ) : (
                           <button
-                            onClick={saveDraftAnnotation}
-                            className="flex-1 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:shadow-lg hover:shadow-red-500/30 rounded-xl font-black text-sm transition-all"
+                            type="button"
+                            onClick={() => {
+                              setActivePreviewVariant("refined");
+                              setPromoteDraftOnComplete(true);
+                            }}
+                            className="relative w-full h-full bg-gray-800/20 rounded-2xl p-2 border border-white/5 shadow-inner flex items-center justify-center hover:border-blue-500/40 transition-all"
+                            title="Click to preview refined (_R). It will be saved to Shared With Me when you complete."
                           >
-                            OK
+                            <img
+                              src={draftRefinedAsset.thumbnail || draftRefinedAsset.path}
+                              alt={draftRefinedAsset.name}
+                              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl select-none"
+                              draggable={false}
+                            />
+                            <div className="absolute bottom-3 left-3 px-3 py-1.5 bg-blue-600/70 rounded-xl text-[10px] font-black text-white border border-white/10">
+                              REFINED (_R) • CLICK TO PREVIEW
+                            </div>
                           </button>
-                        </div>
-                      </div>
-                    )}
-                      </div>
+                        )
+                      )}
                     </div>
-
-                    {draftRefinedAsset && activeTab === 'pending' && (
-                      activePreviewVariant === "refined" ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setActivePreviewVariant("original");
-                            setPromoteDraftOnComplete(false);
-                          }}
-                          className="relative w-full h-full bg-gray-800/20 rounded-2xl p-2 border border-white/5 shadow-inner flex items-center justify-center hover:border-white/20 transition-all"
-                          title="Click to switch back to Original preview"
-                        >
-                          <img
-                            src={currentAsset.thumbnail || currentAsset.path}
-                            alt={currentAsset.name}
-                            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl select-none"
-                            draggable={false}
-                          />
-                          <div className="absolute bottom-3 left-3 px-3 py-1.5 bg-black/60 rounded-xl text-[10px] font-black text-white border border-white/10">
-                            ORIGINAL • CLICK TO VIEW
-                          </div>
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setActivePreviewVariant("refined");
-                            setPromoteDraftOnComplete(true);
-                          }}
-                          className="relative w-full h-full bg-gray-800/20 rounded-2xl p-2 border border-white/5 shadow-inner flex items-center justify-center hover:border-blue-500/40 transition-all"
-                          title="Click to preview refined (_R). It will be saved to Shared With Me when you complete."
-                        >
-                          <img
-                            src={draftRefinedAsset.thumbnail || draftRefinedAsset.path}
-                            alt={draftRefinedAsset.name}
-                            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl select-none"
-                            draggable={false}
-                          />
-                          <div className="absolute bottom-3 left-3 px-3 py-1.5 bg-blue-600/70 rounded-xl text-[10px] font-black text-white border border-white/10">
-                            REFINED (_R) • CLICK TO PREVIEW
-                          </div>
-                        </button>
-                      )
-                    )}
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
-          </div>
             {/* RIGHT SIDE: Information & Metadata (30%) */}
             <div className="w-full lg:w-[380px] bg-gray-900 flex flex-col h-full border-l border-gray-800 shrink-0">
               <div className="p-8 border-b border-gray-800">
                 <h3 className="text-xl font-black text-white leading-tight mb-2">{currentAsset.name}</h3>
                 <div className="flex items-center gap-2">
-                   <span className="px-2 py-1 bg-red-600/20 text-red-500 rounded text-[10px] font-black uppercase tracking-widest">
-                     {currentAsset.type?.split('/')[1] || 'Asset'}
-                   </span>
-                   <span className="text-xs text-gray-500 font-bold">{currentAsset.size}</span>
+                  <span className="px-2 py-1 bg-red-600/20 text-red-500 rounded text-[10px] font-black uppercase tracking-widest">
+                    {currentAsset.type?.split('/')[1] || 'Asset'}
+                  </span>
+                  <span className="text-xs text-gray-500 font-bold">{currentAsset.size}</span>
                 </div>
               </div>
 
@@ -1918,13 +1910,13 @@ export default function DAM({ externalSharedAssets = [] }) {
 
               {/* Bottom Actions */}
               <div className="p-8 border-t border-gray-800 bg-gray-900/50 space-y-3">
-                <button 
+                <button
                   onClick={() => { closePreview(); handleShare(currentAsset); }}
                   className="w-full py-3 bg-gray-800 hover:bg-gray-700 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all"
                 >
                   <Share2 size={16} /> Share Asset
                 </button>
-                <button 
+                <button
                   onClick={() => { alert('Downloading high-res original...'); }}
                   className="w-full py-4 bg-gradient-to-r from-red-600 to-red-700 rounded-xl font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-red-500/20"
                 >

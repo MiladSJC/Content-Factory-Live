@@ -46,15 +46,15 @@ function EblastAutomation({ onPushToDAM }) {
   const [isLiveMode, setIsLiveMode] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [resultImages, setResultImages] = useState([]);
-  
+
   // Refinement State
   const [refineModal, setRefineModal] = useState({ isOpen: false, prompt: '' });
   const [boxesRefining, setBoxesRefining] = useState([false, false, false, false]);
-  
+
   const [nextSetToLoad, setNextSetToLoad] = useState(1);
   const [activeLoadedSet, setActiveLoadedSet] = useState(1);
 
-  const [dimensionMode, setDimensionMode] = useState('Uniform'); 
+  const [dimensionMode, setDimensionMode] = useState('Uniform');
   const [selectedRatios, setSelectedRatios] = useState(['9:16']);
 
   const [settings, setSettings] = useState({
@@ -75,35 +75,35 @@ function EblastAutomation({ onPushToDAM }) {
         const url = `/Eblast/Input Images/${name}`;
         return { id: Math.random(), url, name };
       }));
-      
+
       setInputImages(loaded);
       setActiveLoadedSet(nextSetToLoad);
       setNextSetToLoad(prev => (prev === 1 ? 2 : 1));
-    } catch (e) { 
-        console.error("Autoload failed", e); 
+    } catch (e) {
+      console.error("Autoload failed", e);
     }
   };
 
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
-    const newImgs = files.map(f => ({ 
-        id: Math.random(), 
-        url: URL.createObjectURL(f), 
-        name: f.name,
-        isLocalFile: true 
+    const newImgs = files.map(f => ({
+      id: Math.random(),
+      url: URL.createObjectURL(f),
+      name: f.name,
+      isLocalFile: true
     }));
     setInputImages(prev => [...prev, ...newImgs]);
   };
 
   const toggleRatio = (ratio) => {
     if (dimensionMode === 'Uniform') {
-        setSettings({ ...settings, aspectRatio: ratio });
+      setSettings({ ...settings, aspectRatio: ratio });
     } else {
-        setSelectedRatios(prev => {
-            if (prev.includes(ratio)) return prev.filter(r => r !== ratio);
-            if (prev.length >= 4) return prev;
-            return [...prev, ratio];
-        });
+      setSelectedRatios(prev => {
+        if (prev.includes(ratio)) return prev.filter(r => r !== ratio);
+        if (prev.length >= 4) return prev;
+        return [...prev, ratio];
+      });
     }
   };
 
@@ -125,25 +125,25 @@ function EblastAutomation({ onPushToDAM }) {
           });
         }));
 
-        const targetRatios = dimensionMode === 'Uniform' 
-            ? Array(4).fill(settings.aspectRatio) 
-            : [...selectedRatios, ...Array(4 - selectedRatios.length).fill(selectedRatios[0])].slice(0, 4);
+        const targetRatios = dimensionMode === 'Uniform'
+          ? Array(4).fill(settings.aspectRatio)
+          : [...selectedRatios, ...Array(4 - selectedRatios.length).fill(selectedRatios[0])].slice(0, 4);
 
-        const responses = await Promise.all(targetRatios.map(ratio => 
-            fetch('http://localhost:5001/generate-eblast', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    images: base64Images,
-                    prompt,
-                    settings: { ...settings, aspectRatio: ratio },
-                    is_live: true
-                })
-            }).then(res => res.json())
+        const responses = await Promise.all(targetRatios.map(ratio =>
+          fetch('/api/generate-eblast', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              images: base64Images,
+              prompt,
+              settings: { ...settings, aspectRatio: ratio },
+              is_live: true
+            })
+          }).then(res => res.json())
         ));
         setResultImages(responses.map(r => r.image));
-      } catch (e) { 
-          alert("Live Generation Failed"); 
+      } catch (e) {
+        alert("Live Generation Failed");
       }
     } else {
       setTimeout(() => {
@@ -151,7 +151,7 @@ function EblastAutomation({ onPushToDAM }) {
         setResultImages(dimensionMode === 'Diverse' ? currentSet.diverseResults : currentSet.results);
         setIsProcessing(false);
       }, 3500);
-      return; 
+      return;
     }
     setIsProcessing(false);
   };
@@ -159,14 +159,14 @@ function EblastAutomation({ onPushToDAM }) {
   const handleRefineAll = async () => {
     if (resultImages.length === 0) return;
     setRefineModal({ ...refineModal, isOpen: false });
-    
+
     // Set all boxes to refining state (Blur + AI Motion)
     setBoxesRefining([true, true, true, true]);
 
     if (isLiveMode) {
       try {
         const refinePromises = resultImages.map(async (imgUrl, idx) => {
-          const resp = await fetch('http://localhost:5001/generate-eblast', {
+          const resp = await fetch('/api/generate-eblast', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -177,10 +177,10 @@ function EblastAutomation({ onPushToDAM }) {
             })
           });
           const data = await resp.json();
-          
+
           // Random delay before reveal (1-3s)
           await new Promise(r => setTimeout(r, 1000 + Math.random() * 2000));
-          
+
           setResultImages(prev => {
             const next = [...prev];
             next[idx] = data.image;
@@ -201,12 +201,12 @@ function EblastAutomation({ onPushToDAM }) {
       // Present Mode: Map filenames to include "_X" suffix with staggered reveals
       resultImages.forEach((url, idx) => {
         const randomDelay = 1000 + Math.random() * 2000;
-        
+
         setTimeout(() => {
           const parts = url.split('.');
           const ext = parts.pop();
           const refinedUrl = `${parts.join('.')}_X.${ext}`;
-          
+
           setResultImages(prev => {
             const next = [...prev];
             next[idx] = refinedUrl;
@@ -229,13 +229,13 @@ function EblastAutomation({ onPushToDAM }) {
           <h2 className="text-xl font-bold flex items-center gap-2"><span>📧</span> Studio</h2>
           <div className="flex items-center gap-3 bg-gray-900 px-2 py-1 rounded border border-gray-700">
             <span className={`text-[10px] font-bold uppercase ${isLiveMode ? 'text-green-500' : 'text-gray-500'}`}>
-                {isLiveMode ? 'Live' : 'Present'}
+              {isLiveMode ? 'Live' : 'Present'}
             </span>
-            <button 
-                onClick={() => setIsLiveMode(!isLiveMode)} 
-                className={`w-8 h-4 rounded-full relative transition-colors ${isLiveMode ? 'bg-green-600' : 'bg-gray-700'}`}
+            <button
+              onClick={() => setIsLiveMode(!isLiveMode)}
+              className={`w-8 h-4 rounded-full relative transition-colors ${isLiveMode ? 'bg-green-600' : 'bg-gray-700'}`}
             >
-                <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isLiveMode ? 'translate-x-4' : 'translate-x-0.5'}`} />
+              <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isLiveMode ? 'translate-x-4' : 'translate-x-0.5'}`} />
             </button>
           </div>
         </div>
@@ -265,68 +265,68 @@ function EblastAutomation({ onPushToDAM }) {
         </div>
 
         <div className="grid grid-cols-3 gap-2">
-            <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Model</label>
-                <select value={settings.model} onChange={(e) => setSettings({...settings, model: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded py-1.5 px-2 text-[10px] font-bold text-white outline-none">
-                    <option value="v1">v1 (Azure)</option>
-                    <option value="v2">V2 (Nano Banana)</option>
-                </select>
-            </div>
-            <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Resolution</label>
-                <select value={settings.resolution} onChange={(e) => setSettings({...settings, resolution: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded py-1.5 px-2 text-[10px] font-bold text-white outline-none">
-                    <option value="1K">1K</option>
-                    <option value="2K">2K</option>
-                    <option value="4K">4K</option>
-                </select>
-            </div>
-            <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Person Gen</label>
-                <select value={settings.safety_level} onChange={(e) => setSettings({...settings, safety_level: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded py-1.5 px-2 text-[10px] font-bold text-white outline-none">
-                    <option value="allow_all">Allow All</option>
-                    <option value="allow_adults">Adults Only</option>
-                    <option value="block_all">Block All</option>
-                </select>
-            </div>
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Model</label>
+            <select value={settings.model} onChange={(e) => setSettings({ ...settings, model: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded py-1.5 px-2 text-[10px] font-bold text-white outline-none">
+              <option value="v1">v1 (Azure)</option>
+              <option value="v2">V2 (Nano Banana)</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Resolution</label>
+            <select value={settings.resolution} onChange={(e) => setSettings({ ...settings, resolution: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded py-1.5 px-2 text-[10px] font-bold text-white outline-none">
+              <option value="1K">1K</option>
+              <option value="2K">2K</option>
+              <option value="4K">4K</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Person Gen</label>
+            <select value={settings.safety_level} onChange={(e) => setSettings({ ...settings, safety_level: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded py-1.5 px-2 text-[10px] font-bold text-white outline-none">
+              <option value="allow_all">Allow All</option>
+              <option value="allow_adults">Adults Only</option>
+              <option value="block_all">Block All</option>
+            </select>
+          </div>
         </div>
 
         <div className="space-y-4 pt-2">
-            <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Dimensions</label>
-                    <div className="grid grid-cols-2 gap-2">
-                        {['Uniform', 'Diverse'].map(opt => (
-                            <button key={opt} onClick={() => setDimensionMode(opt)} className={`py-1.5 text-[10px] font-bold rounded border transition-all ${dimensionMode === opt ? 'bg-red-600 border-red-500 text-white' : 'bg-gray-900 border-gray-700 text-gray-400'}`}>{opt}</button>
-                        ))}
-                    </div>
-                </div>
-
-                <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">{dimensionMode === 'Uniform' ? 'Aspect Ratio' : `Ratios (${selectedRatios.length}/4)`}</label>
-                    <div className="relative group">
-                        <div className="w-full bg-gray-900 border border-gray-700 rounded py-1.5 px-2 text-[10px] font-bold text-white flex flex-wrap gap-1 min-h-[31px] cursor-pointer">
-                            {dimensionMode === 'Uniform' ? (<span>{settings.aspectRatio}</span>) : (selectedRatios.map(r => <span key={r} className="bg-red-600 px-3 rounded text-[9px]">{r}</span>))}
-                            {dimensionMode === 'Diverse' && selectedRatios.length === 0 && <span className="text-gray-600">Select...</span>}
-                        </div>
-                        <div className="absolute z-30 bottom-full left-0 w-full bg-gray-900 border border-gray-700 rounded mb-1 hidden group-hover:grid grid-cols-2 p-2 gap-1 shadow-2xl">
-                            {["1:1", "3:2", "2:3", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9"].map(r => (
-                                <button key={r} onClick={() => toggleRatio(r)} className={`text-[10px] p-1 rounded transition-colors ${(dimensionMode === 'Uniform' ? settings.aspectRatio === r : selectedRatios.includes(r)) ? 'bg-red-600 text-white' : 'hover:bg-gray-700 text-gray-400'}`}>{r}</button>
-                            ))}
-                        </div>
-                    </div>
-                </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Dimensions</label>
+              <div className="grid grid-cols-2 gap-2">
+                {['Uniform', 'Diverse'].map(opt => (
+                  <button key={opt} onClick={() => setDimensionMode(opt)} className={`py-1.5 text-[10px] font-bold rounded border transition-all ${dimensionMode === opt ? 'bg-red-600 border-red-500 text-white' : 'bg-gray-900 border-gray-700 text-gray-400'}`}>{opt}</button>
+                ))}
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                    <div className="flex justify-between items-center"><label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Temperature</label><span className="text-[10px] font-mono text-red-400">{settings.temperature}</span></div>
-                    <input type="range" min="0" max="2" step="0.1" value={settings.temperature} onChange={(e) => setSettings({...settings, temperature: parseFloat(e.target.value)})} className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-red-500" />
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">{dimensionMode === 'Uniform' ? 'Aspect Ratio' : `Ratios (${selectedRatios.length}/4)`}</label>
+              <div className="relative group">
+                <div className="w-full bg-gray-900 border border-gray-700 rounded py-1.5 px-2 text-[10px] font-bold text-white flex flex-wrap gap-1 min-h-[31px] cursor-pointer">
+                  {dimensionMode === 'Uniform' ? (<span>{settings.aspectRatio}</span>) : (selectedRatios.map(r => <span key={r} className="bg-red-600 px-3 rounded text-[9px]">{r}</span>))}
+                  {dimensionMode === 'Diverse' && selectedRatios.length === 0 && <span className="text-gray-600">Select...</span>}
                 </div>
-                <div className="space-y-1">
-                    <div className="flex justify-between items-center"><label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Top-P</label><span className="text-[10px] font-mono text-red-400">{settings.top_p}</span></div>
-                    <input type="range" min="0.01" max="1" step="0.01" value={settings.top_p} onChange={(e) => setSettings({...settings, top_p: parseFloat(e.target.value)})} className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-red-500" />
+                <div className="absolute z-30 bottom-full left-0 w-full bg-gray-900 border border-gray-700 rounded mb-1 hidden group-hover:grid grid-cols-2 p-2 gap-1 shadow-2xl">
+                  {["1:1", "3:2", "2:3", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9"].map(r => (
+                    <button key={r} onClick={() => toggleRatio(r)} className={`text-[10px] p-1 rounded transition-colors ${(dimensionMode === 'Uniform' ? settings.aspectRatio === r : selectedRatios.includes(r)) ? 'bg-red-600 text-white' : 'hover:bg-gray-700 text-gray-400'}`}>{r}</button>
+                  ))}
                 </div>
+              </div>
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <div className="flex justify-between items-center"><label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Temperature</label><span className="text-[10px] font-mono text-red-400">{settings.temperature}</span></div>
+              <input type="range" min="0" max="2" step="0.1" value={settings.temperature} onChange={(e) => setSettings({ ...settings, temperature: parseFloat(e.target.value) })} className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-red-500" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex justify-between items-center"><label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Top-P</label><span className="text-[10px] font-mono text-red-400">{settings.top_p}</span></div>
+              <input type="range" min="0.01" max="1" step="0.01" value={settings.top_p} onChange={(e) => setSettings({ ...settings, top_p: parseFloat(e.target.value) })} className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-red-500" />
+            </div>
+          </div>
         </div>
 
         <button onClick={handleGenerate} disabled={isProcessing} className={`w-full py-4 rounded-lg font-bold text-white transition-all transform active:scale-95 ${isProcessing ? 'bg-gray-700' : 'bg-gradient-to-r from-red-700 to-red-600 shadow-lg shadow-red-900/40'}`}>
@@ -348,7 +348,7 @@ function EblastAutomation({ onPushToDAM }) {
               <p className="text-2xl font-bold tracking-wider uppercase">Ready for Layout</p>
             </div>
           )}
-          
+
           {isProcessing && (
             <div className="grid grid-cols-2 gap-4 w-full h-full animate-fadeIn">
               {[...Array(4)].map((_, i) => (
@@ -356,8 +356,8 @@ function EblastAutomation({ onPushToDAM }) {
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/5 to-transparent skeleton-shimmer" />
                   <div className="relative flex flex-col items-center gap-2">
                     <div className="w-12 h-12 border-t-2 border-red-500 rounded-full animate-spin mb-2" />
-                    <p className="text-[10px] font-black text-red-400 uppercase tracking-widest animate-pulse">Computing V{i+1}</p>
-                    <p className="text-[8px] text-gray-500 font-mono">Neural Layout {i+1}</p>
+                    <p className="text-[10px] font-black text-red-400 uppercase tracking-widest animate-pulse">Computing V{i + 1}</p>
+                    <p className="text-[8px] text-gray-500 font-mono">Neural Layout {i + 1}</p>
                   </div>
                 </div>
               ))}
@@ -371,15 +371,15 @@ function EblastAutomation({ onPushToDAM }) {
                   <div className={`flex-1 flex items-center justify-center overflow-hidden bg-black relative transition-all duration-500 ${boxesRefining[index] ? 'blur-md grayscale' : ''}`}>
                     <img src={imgUrl} className="max-w-full max-h-full object-contain" alt={`Eblast Variant ${index + 1}`} />
                   </div>
-                  
+
                   {/* AI Motion Overlay during individual box refinement */}
                   {boxesRefining[index] && (
                     <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40">
-                        <div className="relative flex items-center justify-center">
-                            <div className="absolute w-12 h-12 border border-red-500/20 rounded-full animate-ping" />
-                            <div className="w-10 h-10 border-t-2 border-red-500 rounded-full animate-spin" />
-                        </div>
-                        <p className="text-[9px] font-black text-white uppercase tracking-[0.2em] mt-3 animate-pulse">AI Synthesis</p>
+                      <div className="relative flex items-center justify-center">
+                        <div className="absolute w-12 h-12 border border-red-500/20 rounded-full animate-ping" />
+                        <div className="w-10 h-10 border-t-2 border-red-500 rounded-full animate-spin" />
+                      </div>
+                      <p className="text-[9px] font-black text-white uppercase tracking-[0.2em] mt-3 animate-pulse">AI Synthesis</p>
                     </div>
                   )}
 
@@ -399,7 +399,7 @@ function EblastAutomation({ onPushToDAM }) {
             <h3 className="text-lg font-bold mb-4 flex justify-between items-center text-white">✨ Refine All Images<button onClick={() => setRefineModal({ ...refineModal, isOpen: false })} className="text-gray-400 hover:text-white">✕</button></h3>
             <div className="mb-4">
               <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Refinement Model</label>
-              <select value={settings.model} onChange={(e) => setSettings({...settings, model: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded py-2 px-3 text-sm text-white outline-none mb-4">
+              <select value={settings.model} onChange={(e) => setSettings({ ...settings, model: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded py-2 px-3 text-sm text-white outline-none mb-4">
                 <option value="v1">v1 (Azure)</option>
                 <option value="v2">V2 (Nano Banana)</option>
               </select>
@@ -415,7 +415,7 @@ function EblastAutomation({ onPushToDAM }) {
       )}
 
       <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileUpload} />
-      
+
       <style>{`
         .skeleton-shimmer { animation: shimmer 1.5s infinite; }
         @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
