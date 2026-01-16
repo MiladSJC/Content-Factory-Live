@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Minus, Wand2, Monitor, LayoutGrid } from 'lucide-react';
+import { Plus, Minus, Wand2, Monitor, LayoutGrid, Target } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getPrompt } from './prompts';
@@ -139,15 +139,22 @@ const DEFAULTS = {
   gap: 2,
 };
 
-const INITIAL_ROW = { cols: 3, auto: true, scale: 1, height: 133, type: 'offer' };
+const INITIAL_ROW = { cols: 3, auto: true, height: 133, type: 'offer' };
 const IMPORT_DELAY_MS = 100;
 const MAX_CONCURRENT_REQUESTS = 4;
+
+const stripScale = (row) => {
+  if (!row) return row;
+  const { scale, ...rest } = row;
+  return rest;
+};
 
 function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = []) {
   const [config, setConfig] = useState(initialDefaults);
   const [rows, setRows] = useState([]);
   const [designModel, setDesignModel] = useState('metro');
   const [serverVersion, setServerVersion] = useState('v2');
+  const [dualMode, setDualMode] = useState(false);
   const [merges, setMerges] = useState({});
   const [hiddenCells, setHiddenCells] = useState(new Set());
   const [cellData, setCellData] = useState({});
@@ -161,6 +168,7 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [currentReviewCell, setCurrentReviewCell] = useState(null);
   const [fineTuneModalOpen, setFineTuneModalOpen] = useState(false);
+  const [targetMarket, setTargetMarket] = useState('General');
 
   const fileInputRef = useRef(null);
   const activeUploadCellId = useRef(null);
@@ -396,6 +404,58 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
     }
   };
 
+  const generateMarketVersion = () => {
+    const dimensionGroups = {};
+    const keys = Object.keys(cellData);
+
+    keys.forEach(cellId => {
+      const [rIdx] = cellId.split('_').map(Number);
+      const row = rows[rIdx];
+
+      // Filter for Offer types
+      if (row.type !== 'offer') return;
+
+      const mergeData = merges[cellId];
+      const colSpan = mergeData?.colSpan || 1;
+      const rowSpan = mergeData?.rowSpan || 1;
+      const totalCols = row.cols;
+
+      const w = Math.round((config.pageWidth / totalCols) * colSpan);
+      let h = row.height;
+      if (rowSpan > 1) {
+        for (let i = 1; i < rowSpan; i++) {
+          h += (rows[rIdx + i]?.height || 0) + config.gap;
+        }
+      }
+      h = Math.round(h);
+
+      const dimKey = `${w}x${h}`;
+      if (!dimensionGroups[dimKey]) dimensionGroups[dimKey] = [];
+      dimensionGroups[dimKey].push({ id: cellId, data: cellData[cellId] });
+    });
+
+    const newCellData = { ...cellData };
+
+    Object.values(dimensionGroups).forEach(group => {
+      if (group.length < 2) return;
+
+      const ids = group.map(item => item.id);
+      const contents = group.map(item => item.data);
+
+      // Shuffle contents
+      for (let i = contents.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [contents[i], contents[j]] = [contents[j], contents[i]];
+      }
+
+      ids.forEach((id, idx) => {
+        newCellData[id] = contents[idx];
+      });
+    });
+
+    setCellData(newCellData);
+  };
+
   const processQueue = async (items, availableSlots, model) => {
     let currentIndex = 0;
     let activeRequests = 0;
@@ -525,7 +585,7 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
       try {
         const data = JSON.parse(evt.target.result);
         if (data.config) setConfig(data.config);
-        if (data.rows) setRows(data.rows);
+        if (data.rows) setRows(data.rows.map(stripScale));
         if (data.merges) setMerges(data.merges);
         if (data.hiddenCells) setHiddenCells(new Set(data.hiddenCells));
         if (data.designModel) setDesignModel(data.designModel);
@@ -572,11 +632,26 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
     e.target.value = null;
   };
 
+  // Drag and Drop Swapping Logic
+  const swapCells = (id1, id2) => {
+    setCellData(prev => {
+      const next = { ...prev };
+      const data1 = next[id1];
+      const data2 = next[id2];
+      
+      if (data1) next[id2] = data1; else delete next[id2];
+      if (data2) next[id1] = data2; else delete next[id1];
+      
+      return next;
+    });
+  };
+
   return {
     config, setConfig,
     rows, setRows, updateRow,
     designModel, setDesignModel,
     serverVersion, setServerVersion,
+    dualMode, setDualMode,
     merges, hiddenCells, cellData, setCellData,
     isSelecting, isMultiSelect, setIsMultiSelect, selectedCells, setSelectedCells,
     selection, setSelection,
@@ -584,6 +659,9 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
     regenModalOpen, setRegenModalOpen, regenConfig, setRegenConfig,
     reviewModalOpen, setReviewModalOpen, currentReviewCell, setCurrentReviewCell,
     fineTuneModalOpen, setFineTuneModalOpen,
+    targetMarket, setTargetMarket,
+    generateMarketVersion,
+    swapCells,
     handleMouseDown, handleMouseEnter, handleMouseUp, handleContextMenu,
     handleCellClick: (cellId) => {
       const data = cellData[cellId];
@@ -610,9 +688,9 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
 }
 
 const Sidebar = ({ manager }) => {
-  const { config, setConfig, rows, updateRow, setFineTuneModalOpen } = manager;
+  const { config, setConfig, rows, updateRow, setFineTuneModalOpen, targetMarket, setTargetMarket, generateMarketVersion } = manager;
   return (
-    <div className="lg:col-span-1 bg-gray-800 rounded-lg p-5 overflow-y-auto space-y-5 border border-gray-700 shadow-xl custom-scrollbar flex flex-col h-full">
+    <div className="bg-gray-800 rounded-lg p-5 overflow-y-auto space-y-5 border border-gray-700 shadow-xl custom-scrollbar flex flex-col h-full">
       <div className="flex justify-between items-center border-b border-gray-700 pb-4">
         <h2 className="text-xl font-bold text-white flex items-center gap-2"><span>🧬</span> Studio</h2>
         <div className="px-2 py-1 rounded border border-gray-700 bg-gray-900">
@@ -629,6 +707,29 @@ const Sidebar = ({ manager }) => {
           <Button onClick={() => setFineTuneModalOpen(true)} className="w-full bg-gradient-to-r from-red-700 to-red-600 hover:to-red-500 text-white shadow-md border-0">
             Fine tune a Model
           </Button>
+        </section>
+
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="p-1 bg-gray-700 rounded text-blue-400"><Target className="h-4 w-4" /></div>
+            <h3 className="text-sm font-semibold text-gray-400">Market Personalization</h3>
+          </div>
+          <div className="space-y-2">
+            <Label>Target Market</Label>
+            <select 
+              value={targetMarket}
+              onChange={(e) => setTargetMarket(e.target.value)}
+              className="w-full h-8 rounded-md border border-gray-600 bg-gray-900 px-2 py-1 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-red-500"
+            >
+              <option value="General">General</option>
+              <option value="Luxury">Luxury</option>
+              <option value="Value">Value</option>
+              <option value="Family">Family</option>
+            </select>
+            <Button onClick={generateMarketVersion} className="w-full bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-600">
+              Generate Market Version
+            </Button>
+          </div>
         </section>
 
         <div className="border-t border-gray-700" />
@@ -671,7 +772,6 @@ const Sidebar = ({ manager }) => {
             <span className="flex-1 basis-0 min-w-[28px]">Banner</span>
             <span className="flex-1 basis-0 min-w-[34px]">Column #</span>
             <span className="flex-1 basis-0 min-w-[28px]">Fit</span>
-            <span className="flex-1 basis-0 min-w-[34px]">Scale</span>
             <span className="flex-1 basis-0 min-w-[50px]">Height</span>
           </div>
           <div className="space-y-1.5">
@@ -681,7 +781,6 @@ const Sidebar = ({ manager }) => {
                 <div className="flex-1 basis-0 min-w-[28px] flex justify-center"><Switch checked={row.type === 'banner'} onCheckedChange={(v) => updateRow(idx, 'type', v)} /></div>
                 <div className="flex-1 basis-0 min-w-[34px]"><StepperInput value={row.cols} disabled={row.type === 'banner'} onChange={v => updateRow(idx, 'cols', Math.max(1, Math.min(12, v)))} /></div>
                 <div className="flex-1 basis-0 min-w-[28px] flex justify-center"><Switch checked={row.auto} onCheckedChange={v => updateRow(idx, 'auto', v)} /></div>
-                <div className="flex-1 basis-0 min-w-[34px]"><StepperInput value={row.scale} onChange={v => updateRow(idx, 'scale', v)} /></div>
                 <div className="flex-1 basis-0 min-w-[50px]"><Input className="h-8 text-center tabular-nums bg-gray-800 border-gray-700" value={row.height} onChange={e => updateRow(idx, 'height', parseInt(e.target.value))} /></div>
               </div>
             ))}
@@ -698,9 +797,11 @@ export default function All_AI() {
   const manager = useLayoutManager(DEFAULTS, globalCustomModels);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-140px)] animate-fadeIn relative text-white">
-      <Sidebar manager={manager} />
-      <div className="lg:col-span-2 flex flex-col h-full bg-gray-800 rounded-lg p-4 shadow-2xl overflow-hidden border border-gray-700">
+    <div className="flex gap-6 h-[calc(100vh-140px)] animate-fadeIn relative text-white">
+      <div className="w-[24.2%] h-full shrink-0">
+        <Sidebar manager={manager} />
+      </div>
+      <div className="flex-1 flex flex-col h-full bg-gray-800 rounded-lg p-0 shadow-2xl overflow-hidden border border-gray-700 relative">
         <Grid manager={manager} customModels={globalCustomModels} onGlobalSave={handleGlobalSaveCustomModel} />
       </div>
 

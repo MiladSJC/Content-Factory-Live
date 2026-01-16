@@ -1,5 +1,5 @@
-import React from 'react';
-import { LayoutGrid, CheckSquare, RefreshCw, FileJson, Download, Upload, Save, Loader2, Layers, Check, Trash2, X, Image as ImageIcon, BoxSelect } from 'lucide-react';
+import React, { useRef, useEffect } from 'react';
+import { LayoutGrid, CheckSquare, RefreshCw, FileJson, Download, Upload, Save, Loader2, Layers, Check, Trash2, X, Image as ImageIcon, BoxSelect, GripVertical } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { FineTuneModal } from './Fine-tuning';
@@ -42,6 +42,35 @@ const Button = ({ className, variant = "default", size = "default", ...props }) 
   );
 };
 
+const Switch = ({ checked, onCheckedChange, className, disabled }) => {
+  const isChecked = !!checked;
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={isChecked}
+      disabled={disabled}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (disabled) return;
+        onCheckedChange?.(!isChecked);
+      }}
+      className={cn(
+        "relative inline-flex h-5 w-9 items-center rounded-full border border-gray-600 bg-gray-900 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500 disabled:opacity-50",
+        isChecked && "bg-red-700 border-red-700",
+        className
+      )}
+    >
+      <span
+        className={cn(
+          "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+          isChecked ? "translate-x-4" : "translate-x-1"
+        )}
+      />
+    </button>
+  );
+};
+
 // --- Main Grid Component ---
 
 const Grid = ({ manager, customModels, onGlobalSave }) => {
@@ -55,10 +84,51 @@ const Grid = ({ manager, customModels, onGlobalSave }) => {
       regenModalOpen, setRegenModalOpen, regenConfig, setRegenConfig, confirmRegeneration,
       reviewModalOpen, setReviewModalOpen, currentReviewCell, selectVariation,
       fileInputRef, contextMenu, setContextMenu, getCellId,
-      isSelected, setFineTuneModalOpen, fineTuneModalOpen, selection, setSelection
+      isSelected, setFineTuneModalOpen, fineTuneModalOpen, selection, setSelection,
+      dualMode, setDualMode, swapCells
   } = manager;
 
   const bounds = getBounds();
+  const scrollRefs = useRef([]);
+
+  // Sync scroll implementation
+  const handleScroll = (e, index) => {
+    if (!dualMode) return;
+    const target = e.currentTarget;
+    scrollRefs.current.forEach((ref, idx) => {
+      if (idx !== index && ref) {
+        ref.scrollTop = target.scrollTop;
+        ref.scrollLeft = target.scrollLeft;
+      }
+    });
+  };
+
+  // Drag and Drop Handlers
+  const onDragStart = (e, cellId, pageIndex) => {
+    e.dataTransfer.setData('sourceCellId', cellId);
+    e.dataTransfer.setData('sourcePageIndex', pageIndex.toString());
+    e.currentTarget.classList.add('opacity-50');
+  };
+
+  const onDragEnd = (e) => {
+    e.currentTarget.classList.remove('opacity-50');
+  };
+
+  const onDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const onDrop = (e, targetCellId, targetPageIndex) => {
+    e.preventDefault();
+    const sourceCellId = e.dataTransfer.getData('sourceCellId');
+    const sourcePageIndex = parseInt(e.dataTransfer.getData('sourcePageIndex'));
+    
+    // Enforcement: Across pages not allowed
+    if (sourcePageIndex === targetPageIndex && sourceCellId !== targetCellId) {
+      swapCells(sourceCellId, targetCellId);
+    }
+  };
 
   const hiddenOwners = React.useMemo(() => {
     const owners = {};
@@ -77,85 +147,22 @@ const Grid = ({ manager, customModels, onGlobalSave }) => {
     return owners;
   }, [merges]);
 
-  return (
+  const renderCanvas = (pageIndex) => (
     <div 
-        className="flex-1 flex flex-col min-w-0 min-h-0 bg-gray-900 text-white" 
-        onMouseUp={handleMouseUp}
-    >
-      <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleDirectFileUpload} />
-
-      {/* Toolbar */}
-      <div className="h-14 border-b border-gray-700 flex items-center justify-between px-6 bg-gray-800 shadow-sm z-20">
-          <div className="flex items-center gap-4">
-             <h2 className="text-sm font-bold text-gray-100 flex items-center gap-2">
-                 <LayoutGrid className="h-4 w-4 text-gray-400" />
-                 Edit Canvas
-             </h2>
-             <div className="h-5 w-px bg-gray-600"></div>
-             
-             <div className="flex items-center gap-2">
-                <select value={designModel} onChange={(e) => setDesignModel(e.target.value)} className="h-8 rounded-md border border-gray-600 bg-gray-900 px-3 text-xs font-medium text-gray-200 focus:ring-1 focus:ring-red-500 focus:outline-none min-w-[140px]">
-                    <optgroup label="Default Models" className="bg-gray-800">
-                      {/*  <option value="walmart">Walmart</option>*/}
-                        <option value="metro">Metro Retail</option>
-                      {/*  <option value="staples">Staples</option>*/}
-                      {/*  <option value="sobeys">Sobeys</option>*/}
-                        <option value="foodbasics">Food Basics</option>
-                    </optgroup>
-                    {customModels && customModels.length > 0 && (
-                        <optgroup label="My Custom Models" className="bg-gray-800">
-                            {customModels.map((m, i) => (<option key={i} value={m.name}>{m.name}</option>))}
-                        </optgroup>
-                    )}
-                </select>
-             </div>
-
-             <div className="flex items-center gap-2">
-                 <select value={serverVersion} onChange={(e) => setServerVersion(e.target.value)} className="h-8 rounded-md border border-gray-600 bg-gray-900 px-3 text-xs font-medium text-gray-200 focus:ring-1 focus:ring-red-500 focus:outline-none">
-                    <option value="v1">V1 &gt; GPT Image1</option>
-                    <option value="v2">V2 &gt; Nano Banana</option>
-                 </select>
-             </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-             <Button variant={isMultiSelect ? "secondary" : "ghost"} size="sm" onClick={(e) => { e.stopPropagation(); setIsMultiSelect(!isMultiSelect); setSelectedCells(new Set()); setSelection(null); }} className={cn(isMultiSelect && "bg-blue-900/50 text-blue-200 ring-1 ring-blue-700")} title="Multi-Select">
-                <CheckSquare className="h-4 w-4" />
-             </Button>
-             <Button variant="ghost" size="sm" disabled={!isMultiSelect || selectedCells.size === 0} onClick={handleRegenerateClick} title="Regenerate">
-                <RefreshCw className="h-4 w-4" />
-             </Button>
-             <div className="h-5 w-px bg-gray-600 mx-1"></div>
-             
-             <label className="cursor-pointer inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-gray-700 text-gray-400 hover:text-white transition-colors" title="Import JSON">
-                <FileJson className="h-4 w-4" />
-                <input type="file" accept=".json" className="hidden" onChange={handleImportJson} />
-             </label>
-             <Button variant="ghost" size="sm" className="w-8 px-0" onClick={handleExportJson} title="Export JSON">
-                <Download className="h-4 w-4" />
-             </Button>
-             
-             <div className="h-5 w-px bg-gray-600 mx-1"></div>
-             
-             <label className="cursor-pointer inline-flex items-center justify-center h-8 px-4 rounded-md text-xs font-medium bg-blue-600 text-white hover:bg-blue-500 shadow gap-2 transition-colors">
-                <Upload className="h-3 w-3" /> Fill CSV
-                <input type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
-             </label>
-             <Button size="sm" className="h-8 px-4 gap-2 bg-red-700 hover:bg-red-600" onClick={handleExportJson}><Save className="h-3 w-3" /> Save</Button>
-          </div>
-      </div>
-
-      {/* Main Canvas Area */}
-      <div 
-        className="flex-1 overflow-auto p-8 flex justify-center items-start bg-gray-900 relative custom-scrollbar" 
+        ref={el => scrollRefs.current[pageIndex] = el}
+        onScroll={(e) => handleScroll(e, pageIndex)}
+        className={cn(
+            "flex-1 overflow-auto p-8 flex justify-center items-start bg-gray-900 relative custom-scrollbar",
+            dualMode && pageIndex === 0 && "border-r border-gray-700"
+        )} 
         onMouseDown={(e) => {
             if (e.target === e.currentTarget) {
                 setContextMenu(null); 
                 setSelection(null);
             }
         }}
-      >
-         <div className="relative shadow-2xl transition-all duration-300 origin-top flex flex-col" style={{ width: config.pageWidth, height: config.pageHeight, backgroundColor: config.borderColor, padding: `${config.cellPadding}px`, boxSizing: 'border-box', overflow: 'hidden' }}>
+    >
+         <div className="relative shadow-2xl transition-all duration-300 origin-top flex flex-col shrink-0" style={{ width: config.pageWidth, height: config.pageHeight, backgroundColor: config.borderColor, padding: `${config.cellPadding}px`, boxSizing: 'border-box', overflow: 'hidden' }}>
              
              {!isSelecting && bounds && (bounds.minR !== bounds.maxR || bounds.minC !== bounds.maxC) && (
                 <div className="absolute inset-0 z-[50] pointer-events-none flex items-center justify-center">
@@ -218,6 +225,11 @@ const Grid = ({ manager, customModels, onGlobalSave }) => {
 
                         return (
                             <div key={cellId} 
+                                draggable={!isSelecting && !isMultiSelect}
+                                onDragStart={(e) => onDragStart(e, cellId, pageIndex)}
+                                onDragEnd={onDragEnd}
+                                onDragOver={onDragOver}
+                                onDrop={(e) => onDrop(e, cellId, pageIndex)}
                                 onMouseDown={(e) => { e.stopPropagation(); handleMouseDown(rIndex, cIndex, e); }} 
                                 onMouseEnter={(e) => { e.stopPropagation(); handleMouseEnter(rIndex, cIndex); }} 
                                 onContextMenu={(e) => { e.stopPropagation(); handleContextMenu(e, cellId); }} 
@@ -228,12 +240,17 @@ const Grid = ({ manager, customModels, onGlobalSave }) => {
                                     paddingRight: (cIndex < (row.type === 'banner' ? 0 : row.cols - 1)) ? `${config.gap}px` : 0,
                                     zIndex: activeRowSpan > 1 ? 10 : 1
                                 }}
-                                className="relative select-none group">
+                                className="relative select-none group cursor-grab active:cursor-grabbing">
                                 
-                                {/* REFINED CELL CONTAINER: Ensures NO bleeding edges */}
                                 <div className="w-full h-full relative overflow-hidden" style={{ backgroundColor: config.borderColor, padding: `${config.cellPadding}px` }}>
                                     
-                                    {/* INNER WRAPPER: Matches cell bounds exactly */}
+                                    {/* Drag Handle Indicator */}
+                                    {!isSelecting && !isMultiSelect && content.image && (
+                                      <div className="absolute bottom-1 left-1 z-30 opacity-0 group-hover:opacity-40 transition-opacity">
+                                        <GripVertical className="h-3 w-3 text-gray-900" />
+                                      </div>
+                                    )}
+
                                     <div className="w-full h-full relative overflow-hidden bg-gray-900" style={{ backgroundColor: config.backgroundColor }}>
                                                                             
                                         {content.image ? (
@@ -276,7 +293,6 @@ const Grid = ({ manager, customModels, onGlobalSave }) => {
                                         {content.loading && (<div className="absolute inset-0 flex items-center justify-center z-20 bg-black/20 backdrop-blur-sm"><Loader2 className="h-8 w-8 animate-spin text-white" /></div>)}
                                     </div>
 
-                                    {/* Overlay UI Elements */}
                                     {hasVariations && !content.loading && !isMultiSelect && (
                                     <div className="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-1 rounded-full bg-amber-500 text-white shadow-lg cursor-pointer hover:bg-amber-400 z-30 transition-transform hover:scale-105" onClick={(e) => { e.stopPropagation(); handleCellClick(cellId); }}>
                                         <Layers className="h-3 w-3" />
@@ -293,9 +309,86 @@ const Grid = ({ manager, customModels, onGlobalSave }) => {
                 </div>
              ))}
          </div>
+    </div>
+  );
+
+  return (
+    <div 
+        className="flex-1 flex flex-col min-w-0 min-h-0 bg-gray-900 text-white" 
+        onMouseUp={handleMouseUp}
+    >
+      <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleDirectFileUpload} />
+
+      {/* Global Toolbar - Never Duplicated */}
+      <div className="h-14 border-b border-gray-700 flex items-center justify-between px-6 bg-gray-800 shadow-sm z-20">
+          <div className="flex items-center gap-4">
+             <h2 className="text-sm font-bold text-gray-100 flex items-center gap-2">
+                 <LayoutGrid className="h-4 w-4 text-gray-400" />
+                 Edit Canvas
+             </h2>
+             <div className="h-5 w-px bg-gray-600"></div>
+             
+             <div className="flex items-center gap-2">
+                <select value={designModel} onChange={(e) => setDesignModel(e.target.value)} className="h-8 rounded-md border border-gray-600 bg-gray-900 px-3 text-xs font-medium text-gray-200 focus:ring-1 focus:ring-red-500 focus:outline-none min-w-[140px]">
+                    <optgroup label="Default Models" className="bg-gray-800">
+                        <option value="metro">Metro Retail</option>
+                        <option value="foodbasics">Food Basics</option>
+                    </optgroup>
+                    {customModels && customModels.length > 0 && (
+                        <optgroup label="My Custom Models" className="bg-gray-800">
+                            {customModels.map((m, i) => (<option key={i} value={m.name}>{m.name}</option>))}
+                        </optgroup>
+                    )}
+                </select>
+             </div>
+
+             <div className="flex items-center gap-2">
+                 <select value={serverVersion} onChange={(e) => setServerVersion(e.target.value)} className="h-8 rounded-md border border-gray-600 bg-gray-900 px-3 text-xs font-medium text-gray-200 focus:ring-1 focus:ring-red-500 focus:outline-none">
+                    <option value="v1">V1 &gt; GPT Image1</option>
+                    <option value="v2">V2 &gt; Nano Banana</option>
+                 </select>
+             </div>
+
+             <div className="flex items-center gap-2">
+                <Label className="!text-[10px]">Dual View</Label>
+                <Switch checked={dualMode} onCheckedChange={setDualMode} />
+             </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+             <Button variant={isMultiSelect ? "secondary" : "ghost"} size="sm" onClick={(e) => { e.stopPropagation(); setIsMultiSelect(!isMultiSelect); setSelectedCells(new Set()); setSelection(null); }} className={cn(isMultiSelect && "bg-blue-900/50 text-blue-200 ring-1 ring-blue-700")} title="Multi-Select">
+                <CheckSquare className="h-4 w-4" />
+             </Button>
+             <Button variant="ghost" size="sm" disabled={!isMultiSelect || selectedCells.size === 0} onClick={handleRegenerateClick} title="Regenerate">
+                <RefreshCw className="h-4 w-4" />
+             </Button>
+             <div className="h-5 w-px bg-gray-600 mx-1"></div>
+             
+             <label className="cursor-pointer inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-gray-700 text-gray-400 hover:text-white transition-colors" title="Import JSON">
+                <FileJson className="h-4 w-4" />
+                <input type="file" accept=".json" className="hidden" onChange={handleImportJson} />
+             </label>
+             <Button variant="ghost" size="sm" className="w-8 px-0" onClick={handleExportJson} title="Export JSON">
+                <Download className="h-4 w-4" />
+             </Button>
+             
+             <div className="h-5 w-px bg-gray-600 mx-1"></div>
+             
+             <label className="cursor-pointer inline-flex items-center justify-center h-8 px-4 rounded-md text-xs font-medium bg-blue-600 text-white hover:bg-blue-500 shadow gap-2 transition-colors">
+                <Upload className="h-3 w-3" /> Fill CSV
+                <input type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
+             </label>
+             <Button size="sm" className="h-8 px-4 gap-2 bg-red-700 hover:bg-red-600" onClick={handleExportJson}><Save className="h-3 w-3" /> Save</Button>
+          </div>
+      </div>
+
+      {/* Main Canvas Area - Handles Dual Side-by-Side Logic */}
+      <div className={cn("flex-1 flex min-h-0", dualMode ? "flex-row" : "flex-col")}>
+         {renderCanvas(0)}
+         {dualMode && renderCanvas(1)}
       </div>
       
-      {/* Modals and Context Menus remain unchanged... */}
+      {/* Modals and Context Menus */}
       {contextMenu && (
           <div className="fixed z-[9999] bg-gray-800 border border-gray-700 shadow-xl rounded-md w-44 py-1 overflow-hidden" style={{ top: contextMenu.y, left: contextMenu.x }} onClick={(e) => e.stopPropagation()}>
               <button onClick={() => triggerCellUpload(contextMenu.cellId)} className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 hover:text-white flex items-center gap-2"><Upload className="h-3 w-3" /> Upload Image</button>
@@ -320,19 +413,8 @@ const Grid = ({ manager, customModels, onGlobalSave }) => {
                       value={regenConfig.model}
                       onChange={e => setRegenConfig({ ...regenConfig, model: e.target.value })}
                     >
-                      {/* <option value="walmart">Walmart</option> */}
                       <option value="metro">Metro</option>
-                      {/* <option value="staples">Staples</option> */}
-                      {/* <option value="sobeys">Sobeys</option> */}
                       <option value="foodbasics">Food Basics</option>
-                      {/*
-                      {customModels &&
-                        customModels.map((m, i) => (
-                          <option key={i} value={m.name}>
-                            {m.name}
-                          </option>
-                        ))}
-                      */}
                     </select>
                   </div>
                 </div>
