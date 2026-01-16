@@ -85,7 +85,8 @@ const Grid = ({ manager, customModels, onGlobalSave }) => {
       reviewModalOpen, setReviewModalOpen, currentReviewCell, selectVariation,
       fileInputRef, contextMenu, setContextMenu, getCellId,
       isSelected, setFineTuneModalOpen, fineTuneModalOpen, selection, setSelection,
-      dualMode, setDualMode, swapCells
+      dualMode, setDualMode, swapCells,
+      marketVersions, activeComparison, setActiveComparison, MARKET_OPTIONS
   } = manager;
 
   const bounds = getBounds();
@@ -105,6 +106,7 @@ const Grid = ({ manager, customModels, onGlobalSave }) => {
 
   // Drag and Drop Handlers
   const onDragStart = (e, cellId, pageIndex) => {
+    if (dualMode) return; 
     e.dataTransfer.setData('sourceCellId', cellId);
     e.dataTransfer.setData('sourcePageIndex', pageIndex.toString());
     e.currentTarget.classList.add('opacity-50');
@@ -124,7 +126,6 @@ const Grid = ({ manager, customModels, onGlobalSave }) => {
     const sourceCellId = e.dataTransfer.getData('sourceCellId');
     const sourcePageIndex = parseInt(e.dataTransfer.getData('sourcePageIndex'));
     
-    // Enforcement: Across pages not allowed
     if (sourcePageIndex === targetPageIndex && sourceCellId !== targetCellId) {
       swapCells(sourceCellId, targetCellId);
     }
@@ -147,170 +148,201 @@ const Grid = ({ manager, customModels, onGlobalSave }) => {
     return owners;
   }, [merges]);
 
-  const renderCanvas = (pageIndex) => (
-    <div 
-        ref={el => scrollRefs.current[pageIndex] = el}
-        onScroll={(e) => handleScroll(e, pageIndex)}
-        className={cn(
-            "flex-1 overflow-auto p-8 flex justify-center items-start bg-gray-900 relative custom-scrollbar",
-            dualMode && pageIndex === 0 && "border-r border-gray-700"
-        )} 
-        onMouseDown={(e) => {
-            if (e.target === e.currentTarget) {
-                setContextMenu(null); 
-                setSelection(null);
-            }
-        }}
-    >
-         <div className="relative shadow-2xl transition-all duration-300 origin-top flex flex-col shrink-0" style={{ width: config.pageWidth, height: config.pageHeight, backgroundColor: config.borderColor, padding: `${config.cellPadding}px`, boxSizing: 'border-box', overflow: 'hidden' }}>
-             
-             {!isSelecting && bounds && (bounds.minR !== bounds.maxR || bounds.minC !== bounds.maxC) && (
-                <div className="absolute inset-0 z-[50] pointer-events-none flex items-center justify-center">
-                    <div className="flex items-center gap-1 bg-gray-800 border border-blue-500 p-1 rounded-lg shadow-2xl pointer-events-auto animate-in fade-in zoom-in duration-200">
-                        <Button size="sm" className="h-7 bg-blue-600 hover:bg-blue-500 text-[10px] gap-1 px-2" onClick={(e) => { e.stopPropagation(); mergeCells(); }}>
-                            <BoxSelect className="h-3 w-3" /> Merge Selection
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-gray-400 hover:text-white" onClick={(e) => { e.stopPropagation(); setSelection(null); }}>
-                            <X className="h-3 w-3" />
-                        </Button>
+  const renderCanvas = (pageIndex) => {
+    const activeMarket = dualMode ? activeComparison[pageIndex] : null;
+    const currentData = (dualMode && activeMarket) ? (marketVersions[activeMarket] || {}) : cellData;
+
+    return (
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
+        {dualMode && (
+          <div className="h-10 bg-gray-800 border-b border-gray-700 flex items-center px-4 justify-between shrink-0">
+            <div className="flex items-center gap-2">
+               <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">View {pageIndex + 1}</span>
+               {marketVersions[activeMarket] && <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />}
+            </div>
+            <select 
+              value={activeComparison[pageIndex]} 
+              onChange={(e) => {
+                const newComp = [...activeComparison];
+                newComp[pageIndex] = e.target.value;
+                setActiveComparison(newComp);
+              }}
+              className="h-7 bg-gray-900 border border-gray-600 rounded px-2 text-[11px] text-gray-200 outline-none focus:ring-1 focus:ring-red-500 min-w-[120px]"
+            >
+              {MARKET_OPTIONS.map(opt => (
+                <option key={opt} value={opt}>
+                  {opt} Market {marketVersions[opt] ? '•' : '(Empty)'}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        <div 
+            ref={el => scrollRefs.current[pageIndex] = el}
+            onScroll={(e) => handleScroll(e, pageIndex)}
+            className={cn(
+                "flex-1 overflow-auto p-8 flex justify-center items-start bg-gray-900 relative custom-scrollbar",
+                dualMode && pageIndex === 0 && "border-r border-gray-700"
+            )} 
+            onMouseDown={(e) => {
+                if (e.target === e.currentTarget) {
+                    setContextMenu(null); 
+                    setSelection(null);
+                }
+            }}
+        >
+             <div className="relative shadow-2xl transition-all duration-300 origin-top flex flex-col shrink-0" style={{ width: config.pageWidth, height: config.pageHeight, backgroundColor: config.borderColor, padding: `${config.cellPadding}px`, boxSizing: 'border-box', overflow: 'hidden' }}>
+                 
+                 {!isSelecting && !dualMode && bounds && (bounds.minR !== bounds.maxR || bounds.minC !== bounds.maxC) && (
+                    <div className="absolute inset-0 z-[50] pointer-events-none flex items-center justify-center">
+                        <div className="flex items-center gap-1 bg-gray-800 border border-blue-500 p-1 rounded-lg shadow-2xl pointer-events-auto animate-in fade-in zoom-in duration-200">
+                            <Button size="sm" className="h-7 bg-blue-600 hover:bg-blue-500 text-[10px] gap-1 px-2" onClick={(e) => { e.stopPropagation(); mergeCells(); }}>
+                                <BoxSelect className="h-3 w-3" /> Merge Selection
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-gray-400 hover:text-white" onClick={(e) => { e.stopPropagation(); setSelection(null); }}>
+                                <X className="h-3 w-3" />
+                            </Button>
+                        </div>
                     </div>
-                </div>
-             )}
+                 )}
 
-             {rows.map((row, rIndex) => (
-                <div key={rIndex} className="flex w-full" style={{ height: row.height, marginBottom: (rIndex < rows.length - 1) ? `${config.gap}px` : 0 }}>
-                    {Array.from({ length: row.type === 'banner' ? 1 : row.cols }).map((_, cIndex) => {
-                        const cellId = getCellId(rIndex, cIndex);
+                 {rows.map((row, rIndex) => (
+                    <div key={rIndex} className="flex w-full" style={{ height: row.height, marginBottom: (rIndex < rows.length - 1) ? `${config.gap}px` : 0 }}>
+                        {Array.from({ length: row.type === 'banner' ? 1 : row.cols }).map((_, cIndex) => {
+                            const cellId = getCellId(rIndex, cIndex);
 
-                        if (row.type !== 'banner' && hiddenCells.has(cellId)) {
-                          const owner = hiddenOwners[cellId];
-                          if (owner) {
-                            const [ownerR] = owner.split('_').map(Number);
-                            if (ownerR < rIndex) {
-                              const totalColsInRow = row.cols;
-                              const slotWidthPercent = (1 / totalColsInRow) * 100;
-                              return (
-                                <div
-                                  key={cellId}
-                                  style={{
-                                    width: `${slotWidthPercent}%`,
-                                    height: `${row.height}px`,
-                                    paddingRight: (cIndex < row.cols - 1) ? `${config.gap}px` : 0,
-                                    pointerEvents: 'none'
-                                  }}
-                                />
-                              );
+                            if (row.type !== 'banner' && hiddenCells.has(cellId)) {
+                              const owner = hiddenOwners[cellId];
+                              if (owner) {
+                                const [ownerR] = owner.split('_').map(Number);
+                                if (ownerR < rIndex) {
+                                  const totalColsInRow = row.cols;
+                                  const slotWidthPercent = (1 / totalColsInRow) * 100;
+                                  return (
+                                    <div
+                                      key={cellId}
+                                      style={{
+                                        width: `${slotWidthPercent}%`,
+                                        height: `${row.height}px`,
+                                        paddingRight: (cIndex < row.cols - 1) ? `${config.gap}px` : 0,
+                                        pointerEvents: 'none'
+                                      }}
+                                    />
+                                  );
+                                }
+                              }
+                              return null;
                             }
-                          }
-                          return null;
-                        }
-                        
-                        const mergeData = merges[cellId];
-                        const activeColSpan = row.type === 'banner' ? 1 : (mergeData?.colSpan || 1);
-                        const activeRowSpan = row.type === 'banner' ? 1 : (mergeData?.rowSpan || 1);
-                        
-                        let totalHeight = row.height;
-                        if (activeRowSpan > 1) {
-                            for(let i=1; i<activeRowSpan; i++) {
-                                totalHeight += (rows[rIndex + i]?.height || 0) + config.gap;
+                            
+                            const mergeData = merges[cellId];
+                            const activeColSpan = row.type === 'banner' ? 1 : (mergeData?.colSpan || 1);
+                            const activeRowSpan = row.type === 'banner' ? 1 : (mergeData?.rowSpan || 1);
+                            
+                            let totalHeight = row.height;
+                            if (activeRowSpan > 1) {
+                                for(let i=1; i<activeRowSpan; i++) {
+                                    totalHeight += (rows[rIndex + i]?.height || 0) + config.gap;
+                                }
                             }
-                        }
 
-                        const totalColsInRow = row.type === 'banner' ? 1 : row.cols;
-                        const cellWidthPercent = (activeColSpan / totalColsInRow) * 100;
-                        const content = cellData[cellId] || {};
-                        const isMultiSelected = selectedCells.has(cellId);
-                        const hasVariations = content.variations && content.variations.length > 0;
-                        const isBanner = row.type === 'banner';
+                            const totalColsInRow = row.type === 'banner' ? 1 : row.cols;
+                            const cellWidthPercent = (activeColSpan / totalColsInRow) * 100;
+                            const content = currentData[cellId] || {};
+                            const isMultiSelected = selectedCells.has(cellId);
+                            const hasVariations = content.variations && content.variations.length > 0;
+                            const isBanner = row.type === 'banner';
 
-                        return (
-                            <div key={cellId} 
-                                draggable={!isSelecting && !isMultiSelect}
-                                onDragStart={(e) => onDragStart(e, cellId, pageIndex)}
-                                onDragEnd={onDragEnd}
-                                onDragOver={onDragOver}
-                                onDrop={(e) => onDrop(e, cellId, pageIndex)}
-                                onMouseDown={(e) => { e.stopPropagation(); handleMouseDown(rIndex, cIndex, e); }} 
-                                onMouseEnter={(e) => { e.stopPropagation(); handleMouseEnter(rIndex, cIndex); }} 
-                                onContextMenu={(e) => { e.stopPropagation(); handleContextMenu(e, cellId); }} 
-                                onClick={(e) => { e.stopPropagation(); handleCellClick(cellId); }}
-                                style={{ 
-                                    width: `${cellWidthPercent}%`, 
-                                    height: `${totalHeight}px`, 
-                                    paddingRight: (cIndex < (row.type === 'banner' ? 0 : row.cols - 1)) ? `${config.gap}px` : 0,
-                                    zIndex: activeRowSpan > 1 ? 10 : 1
-                                }}
-                                className="relative select-none group cursor-grab active:cursor-grabbing">
-                                
-                                <div className="w-full h-full relative overflow-hidden" style={{ backgroundColor: config.borderColor, padding: `${config.cellPadding}px` }}>
+                            return (
+                                <div key={cellId} 
+                                    draggable={!isSelecting && !isMultiSelect && !dualMode}
+                                    onDragStart={(e) => onDragStart(e, cellId, pageIndex)}
+                                    onDragEnd={onDragEnd}
+                                    onDragOver={onDragOver}
+                                    onDrop={(e) => onDrop(e, cellId, pageIndex)}
+                                    onMouseDown={(e) => { e.stopPropagation(); if(!dualMode) handleMouseDown(rIndex, cIndex, e); }} 
+                                    onMouseEnter={(e) => { e.stopPropagation(); if(!dualMode) handleMouseEnter(rIndex, cIndex); }} 
+                                    onContextMenu={(e) => { e.stopPropagation(); if(!dualMode) handleContextMenu(e, cellId); }} 
+                                    onClick={(e) => { e.stopPropagation(); if(!dualMode) handleCellClick(cellId); }}
+                                    style={{ 
+                                        width: `${cellWidthPercent}%`, 
+                                        height: `${totalHeight}px`, 
+                                        paddingRight: (cIndex < (row.type === 'banner' ? 0 : row.cols - 1)) ? `${config.gap}px` : 0,
+                                        zIndex: activeRowSpan > 1 ? 10 : 1
+                                    }}
+                                    className={cn("relative select-none group", !dualMode && "cursor-grab active:cursor-grabbing")}>
                                     
-                                    {/* Drag Handle Indicator */}
-                                    {!isSelecting && !isMultiSelect && content.image && (
-                                      <div className="absolute bottom-1 left-1 z-30 opacity-0 group-hover:opacity-40 transition-opacity">
-                                        <GripVertical className="h-3 w-3 text-gray-900" />
-                                      </div>
-                                    )}
-
-                                    <div className="w-full h-full relative overflow-hidden bg-gray-900" style={{ backgroundColor: config.backgroundColor }}>
-                                                                            
-                                        {content.image ? (
-                                          <img 
-                                            src={content.image} 
-                                            alt="Cell Content" 
-                                            className={cn(
-                                              "absolute inset-0 block w-full h-full object-contain object-center transition-all duration-500 bg-white",
-                                              content.loading && "blur-[2px]"
-                                            )} 
-                                          />
-                                        ) : (
-                                          <div className="absolute inset-0 flex flex-col items-center justify-center p-2 text-gray-500/50 text-center">
-                                            {isBanner ? (
-                                              <>
-                                                <ImageIcon className="h-6 w-6 mb-1 opacity-50" />
-                                                <span className="text-[10px] uppercase font-bold tracking-wider opacity-50">Banner</span>
-                                                <Button
-                                                  size="sm"
-                                                  variant="outline"
-                                                  className="mt-1 h-6 text-[10px] px-2 border-gray-400/30 text-gray-500 hover:text-gray-700"
-                                                  onClick={(e) => { e.stopPropagation(); triggerCellUpload(cellId); }}
-                                                >
-                                                  Upload
-                                                </Button>
-                                              </>
-                                            ) : (
-                                              <>
-                                                <span className="text-[10px] opacity-30 font-mono">Empty</span>
-                                                {mergeData && (
-                                                  <span className="text-[8px] opacity-30 font-bold block mt-1 uppercase">
-                                                    {mergeData.colSpan}x{mergeData.rowSpan} Merge
-                                                  </span>
-                                                )}
-                                              </>
-                                            )}
-                                            {content.error && <span className="text-red-500 block text-[10px] mt-1 font-bold">Error</span>}
+                                    <div className="w-full h-full relative overflow-hidden" style={{ backgroundColor: config.borderColor, padding: `${config.cellPadding}px` }}>
+                                        
+                                        {!dualMode && !isSelecting && !isMultiSelect && content.image && (
+                                          <div className="absolute bottom-1 left-1 z-30 opacity-0 group-hover:opacity-40 transition-opacity">
+                                            <GripVertical className="h-3 w-3 text-gray-900" />
                                           </div>
                                         )}
-                                        {content.loading && (<div className="absolute inset-0 flex items-center justify-center z-20 bg-black/20 backdrop-blur-sm"><Loader2 className="h-8 w-8 animate-spin text-white" /></div>)}
-                                    </div>
 
-                                    {hasVariations && !content.loading && !isMultiSelect && (
-                                    <div className="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-1 rounded-full bg-amber-500 text-white shadow-lg cursor-pointer hover:bg-amber-400 z-30 transition-transform hover:scale-105" onClick={(e) => { e.stopPropagation(); handleCellClick(cellId); }}>
-                                        <Layers className="h-3 w-3" />
-                                        <span className="text-[10px] font-bold">Vars</span>
+                                        <div className="w-full h-full relative overflow-hidden bg-gray-900" style={{ backgroundColor: config.backgroundColor }}>
+                                                                                
+                                            {content.image ? (
+                                              <img 
+                                                src={content.image} 
+                                                alt="Cell Content" 
+                                                className={cn(
+                                                  "absolute inset-0 block w-full h-full object-contain object-center transition-all duration-500 bg-white",
+                                                  content.loading && "blur-[2px]"
+                                                )} 
+                                              />
+                                            ) : (
+                                              <div className="absolute inset-0 flex flex-col items-center justify-center p-2 text-gray-500/50 text-center">
+                                                {isBanner ? (
+                                                  <>
+                                                    <ImageIcon className="h-6 w-6 mb-1 opacity-50" />
+                                                    <span className="text-[10px] uppercase font-bold tracking-wider opacity-50">Banner</span>
+                                                    {!dualMode && (
+                                                      <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="mt-1 h-6 text-[10px] px-2 border-gray-400/30 text-gray-500 hover:text-gray-700"
+                                                        onClick={(e) => { e.stopPropagation(); triggerCellUpload(cellId); }}
+                                                      >
+                                                        Upload
+                                                      </Button>
+                                                    )}
+                                                  </>
+                                                ) : (
+                                                  <>
+                                                    <span className="text-[10px] opacity-30 font-mono">Empty</span>
+                                                    {mergeData && (
+                                                      <span className="text-[8px] opacity-30 font-bold block mt-1 uppercase">
+                                                        {mergeData.colSpan}x{mergeData.rowSpan} Merge
+                                                      </span>
+                                                    )}
+                                                  </>
+                                                )}
+                                                {content.error && <span className="text-red-500 block text-[10px] mt-1 font-bold">Error</span>}
+                                              </div>
+                                            )}
+                                            {content.loading && (<div className="absolute inset-0 flex items-center justify-center z-20 bg-black/20 backdrop-blur-sm"><Loader2 className="h-8 w-8 animate-spin text-white" /></div>)}
+                                        </div>
+
+                                        {!dualMode && hasVariations && !content.loading && !isMultiSelect && (
+                                        <div className="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-1 rounded-full bg-amber-500 text-white shadow-lg cursor-pointer hover:bg-amber-400 z-30 transition-transform hover:scale-105" onClick={(e) => { e.stopPropagation(); handleCellClick(cellId); }}>
+                                            <Layers className="h-3 w-3" />
+                                            <span className="text-[10px] font-bold">Vars</span>
+                                        </div>
+                                        )}
+                                        {!dualMode && isMultiSelect && (<div className={cn("absolute inset-0 bg-black/10 flex items-start justify-end p-2 transition-opacity pointer-events-none", isMultiSelected ? "opacity-100 bg-blue-900/30" : "opacity-0 group-hover:opacity-100")}><div className={cn("h-5 w-5 rounded border flex items-center justify-center transition-colors shadow-sm", isMultiSelected ? "border-blue-500 bg-blue-600 text-white" : "border-gray-400 bg-gray-800 text-transparent")}><Check className="h-3 w-3" /></div></div>)}
+                                        {!dualMode && isSelected(rIndex, cIndex) && <div className="absolute inset-0 border-2 border-blue-500 z-30 pointer-events-none bg-blue-500/10" />}
+                                        {!dualMode && isMultiSelected && <div className="absolute inset-0 border-2 border-blue-500 z-10 pointer-events-none" />}
                                     </div>
-                                    )}
-                                    {isMultiSelect && (<div className={cn("absolute inset-0 bg-black/10 flex items-start justify-end p-2 transition-opacity pointer-events-none", isMultiSelected ? "opacity-100 bg-blue-900/30" : "opacity-0 group-hover:opacity-100")}><div className={cn("h-5 w-5 rounded border flex items-center justify-center transition-colors shadow-sm", isMultiSelected ? "border-blue-500 bg-blue-600 text-white" : "border-gray-400 bg-gray-800 text-transparent")}><Check className="h-3 w-3" /></div></div>)}
-                                    {isSelected(rIndex, cIndex) && <div className="absolute inset-0 border-2 border-blue-500 z-30 pointer-events-none bg-blue-500/10" />}
-                                    {isMultiSelected && <div className="absolute inset-0 border-2 border-blue-500 z-10 pointer-events-none" />}
                                 </div>
-                            </div>
-                        );
-                    })}
-                </div>
-             ))}
-         </div>
-    </div>
-  );
+                            );
+                        })}
+                    </div>
+                 ))}
+             </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div 

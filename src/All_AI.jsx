@@ -139,6 +139,8 @@ const DEFAULTS = {
   gap: 2,
 };
 
+const MARKET_OPTIONS = ['General', 'Luxury', 'Value', 'Family'];
+
 const INITIAL_ROW = { cols: 3, auto: true, height: 133, type: 'offer' };
 const IMPORT_DELAY_MS = 100;
 const MAX_CONCURRENT_REQUESTS = 4;
@@ -169,6 +171,10 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
   const [currentReviewCell, setCurrentReviewCell] = useState(null);
   const [fineTuneModalOpen, setFineTuneModalOpen] = useState(false);
   const [targetMarket, setTargetMarket] = useState('General');
+
+  // Market Snapshot Logic
+  const [marketVersions, setMarketVersions] = useState({});
+  const [activeComparison, setActiveComparison] = useState(['General', 'Luxury']);
 
   const fileInputRef = useRef(null);
   const activeUploadCellId = useRef(null);
@@ -340,19 +346,14 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
   };
 
   const generateAsset = async (cellId, itemData, model, n = 1) => {
-    // Determine target cell dimensions for aspect ratio calculation
     const [rIdx, cIdx] = cellId.split('_').map(Number);
     const row = rows[rIdx];
     const mergeData = merges[cellId];
-
     const colSpan = (row.type === 'banner' ? 1 : (mergeData?.colSpan || 1));
     const rowSpan = (row.type === 'banner' ? 1 : (mergeData?.rowSpan || 1));
-
-    // Calculate Width: (PageWidth / TotalCols) * ColSpan
     const totalCols = row.type === 'banner' ? 1 : row.cols;
     const targetWidth = (config.pageWidth / totalCols) * colSpan;
 
-    // Calculate Height: Sum of heights of all rows spanned + gaps
     let targetHeight = row.height;
     if (rowSpan > 1) {
       for (let i = 1; i < rowSpan; i++) {
@@ -379,7 +380,6 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
           n: n,
           server_version: serverVersion,
           custom_prompt: generatedPrompt,
-          // Pass dimensions for Nano Banana aspect ratio mapping
           width: Math.round(targetWidth),
           height: Math.round(targetHeight)
         })
@@ -411,8 +411,6 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
     keys.forEach(cellId => {
       const [rIdx] = cellId.split('_').map(Number);
       const row = rows[rIdx];
-
-      // Filter for Offer types
       if (row.type !== 'offer') return;
 
       const mergeData = merges[cellId];
@@ -438,11 +436,9 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
 
     Object.values(dimensionGroups).forEach(group => {
       if (group.length < 2) return;
-
       const ids = group.map(item => item.id);
       const contents = group.map(item => item.data);
 
-      // Shuffle contents
       for (let i = contents.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [contents[i], contents[j]] = [contents[j], contents[i]];
@@ -453,6 +449,12 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
       });
     });
 
+    // Capture the version for the entire session
+    setMarketVersions(prev => ({
+      ...prev,
+      [targetMarket]: newCellData
+    }));
+    
     setCellData(newCellData);
   };
 
@@ -551,7 +553,7 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
 
   const handleExportJson = async () => {
     const dataToSave = {
-      config, rows, merges, hiddenCells: Array.from(hiddenCells), cellData, designModel, serverVersion, customModels: externalCustomModels
+      config, rows, merges, hiddenCells: Array.from(hiddenCells), cellData, designModel, serverVersion, customModels: externalCustomModels, marketVersions
     };
 
     try {
@@ -590,6 +592,7 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
         if (data.hiddenCells) setHiddenCells(new Set(data.hiddenCells));
         if (data.designModel) setDesignModel(data.designModel);
         if (data.serverVersion) setServerVersion(data.serverVersion);
+        if (data.marketVersions) setMarketVersions(data.marketVersions);
 
         setCellData({});
         if (data.cellData) {
@@ -598,16 +601,11 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
 
           keys.forEach((key) => {
             const cell = data.cellData[key];
-
-            // Handle relative paths. If path starts with "/", it is relative to public root.
-            // We only proxy via get-local-image if it's still an absolute Windows path (Legacy support).
             if (cell.image && !cell.image.startsWith('data:')) {
               if (cell.image.includes(':') || cell.image.startsWith('\\\\')) {
                 cell.image = `http://localhost:5001/get-local-image?path=${encodeURIComponent(cell.image)}`;
               }
-              // Otherwise, if it starts with "/", the browser will resolve it automatically.
             }
-
             if (cell.variations && cell.variations.length > 0) {
               cell.variations = cell.variations.map(v => {
                 if (!v.startsWith('data:') && (v.includes(':') || v.startsWith('\\\\'))) {
@@ -632,16 +630,13 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
     e.target.value = null;
   };
 
-  // Drag and Drop Swapping Logic
   const swapCells = (id1, id2) => {
     setCellData(prev => {
       const next = { ...prev };
       const data1 = next[id1];
       const data2 = next[id2];
-      
       if (data1) next[id2] = data1; else delete next[id2];
       if (data2) next[id1] = data2; else delete next[id1];
-      
       return next;
     });
   };
@@ -660,6 +655,9 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
     reviewModalOpen, setReviewModalOpen, currentReviewCell, setCurrentReviewCell,
     fineTuneModalOpen, setFineTuneModalOpen,
     targetMarket, setTargetMarket,
+    marketVersions, setMarketVersions,
+    activeComparison, setActiveComparison,
+    MARKET_OPTIONS,
     generateMarketVersion,
     swapCells,
     handleMouseDown, handleMouseEnter, handleMouseUp, handleContextMenu,
@@ -688,7 +686,7 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
 }
 
 const Sidebar = ({ manager }) => {
-  const { config, setConfig, rows, updateRow, setFineTuneModalOpen, targetMarket, setTargetMarket, generateMarketVersion } = manager;
+  const { config, setConfig, rows, updateRow, setFineTuneModalOpen, targetMarket, setTargetMarket, generateMarketVersion, MARKET_OPTIONS } = manager;
   return (
     <div className="bg-gray-800 rounded-lg p-5 overflow-y-auto space-y-5 border border-gray-700 shadow-xl custom-scrollbar flex flex-col h-full">
       <div className="flex justify-between items-center border-b border-gray-700 pb-4">
@@ -721,10 +719,7 @@ const Sidebar = ({ manager }) => {
               onChange={(e) => setTargetMarket(e.target.value)}
               className="w-full h-8 rounded-md border border-gray-600 bg-gray-900 px-2 py-1 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-red-500"
             >
-              <option value="General">General</option>
-              <option value="Luxury">Luxury</option>
-              <option value="Value">Value</option>
-              <option value="Family">Family</option>
+              {MARKET_OPTIONS.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
             <Button onClick={generateMarketVersion} className="w-full bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-600">
               Generate Market Version
