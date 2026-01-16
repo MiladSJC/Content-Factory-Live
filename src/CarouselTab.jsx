@@ -83,7 +83,7 @@ function CarouselTab({ carouselData, setCarouselData }) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [currentLanguage, setCurrentLanguage] = useState('EN');
     const [currentVersion, setCurrentVersion] = useState('V1');
-    const [isSaving, setIsSaving] = useState(false); 
+    const [isSaving, setIsSaving] = useState(false);
     const [isLoading, setIsLoading] = useState(false); // New loading state for import
 
     // Refs
@@ -94,7 +94,7 @@ function CarouselTab({ carouselData, setCarouselData }) {
         V4: useRef(null),
         V5: useRef(null),
     };
-    
+
     // Kept for fallback if you ever want manual upload again
     const configInputRef = useRef(null);
 
@@ -124,7 +124,7 @@ function CarouselTab({ carouselData, setCarouselData }) {
         } else if (currentSlides.length < requiredSlides) {
             const newSlides = [...currentSlides];
             for (let i = currentSlides.length; i < requiredSlides; i++) {
-                newSlides.push(createSlide(null, `Slide ${i + 1} Text`, currentSlides[0])); 
+                newSlides.push(createSlide(null, `Slide ${i + 1} Text`, currentSlides[0]));
             }
             return newSlides;
         }
@@ -207,8 +207,8 @@ function CarouselTab({ carouselData, setCarouselData }) {
                 const slides = ensureMinimumSlides(prevSlides);
                 return slides.map((slide, index) => {
                     if (index < 5) {
-                        return { 
-                            ...slide, 
+                        return {
+                            ...slide,
                             text: processCsvText(newTextContent[index]),
                         };
                     }
@@ -262,7 +262,7 @@ function CarouselTab({ carouselData, setCarouselData }) {
                 if (existingSlide) {
                     return {
                         ...newSlide,
-                        text: existingSlide.text, 
+                        text: existingSlide.text,
                         fontSize: existingSlide.fontSize,
                         color: existingSlide.color,
                         x: existingSlide.x,
@@ -313,10 +313,10 @@ function CarouselTab({ carouselData, setCarouselData }) {
         updateAll(setSlidesV3);
         updateAll(setSlidesV4);
         updateAll(setSlidesV5);
-        
+
         setLanguageCache(prev => ({
             ...prev,
-            [currentLanguage]: undefined 
+            [currentLanguage]: undefined
         }));
 
         alert("Text content cleared for all slides.");
@@ -367,7 +367,7 @@ function CarouselTab({ carouselData, setCarouselData }) {
             };
 
             const jsonString = JSON.stringify(exportObject, null, 2);
-            const fileName = `carousel-project-MULTI-${new Date().toISOString().slice(0,10)}.json`;
+            const fileName = `carousel-project-MULTI-${new Date().toISOString().slice(0, 10)}.json`;
 
             if (window.showSaveFilePicker) {
                 try {
@@ -407,9 +407,9 @@ function CarouselTab({ carouselData, setCarouselData }) {
         try {
             const mapImportedToState = (importedSlides) => {
                 return importedSlides.map(slide => ({
-                    ...createSlide(slide.image), 
+                    ...createSlide(slide.image),
                     ...slide,
-                    text: slide.text, 
+                    text: slide.text,
                     id: Date.now() + Math.random(),
                 }));
             };
@@ -418,8 +418,8 @@ function CarouselTab({ carouselData, setCarouselData }) {
             if (configData.languages) {
                 const importedLangs = configData.languages;
                 const savedActiveLang = configData.activeLanguage;
-                const targetLang = savedActiveLang && importedLangs[savedActiveLang] 
-                    ? savedActiveLang 
+                const targetLang = savedActiveLang && importedLangs[savedActiveLang]
+                    ? savedActiveLang
                     : Object.keys(importedLangs)[0];
 
                 if (!targetLang) throw new Error("No languages found in project file.");
@@ -446,7 +446,7 @@ function CarouselTab({ carouselData, setCarouselData }) {
                         };
                     }
                 });
-            } 
+            }
             // CASE 2: LEGACY FORMAT
             else if (configData.versions) {
                 setSlidesV1(mapImportedToState(configData.versions.V1 || []));
@@ -454,13 +454,13 @@ function CarouselTab({ carouselData, setCarouselData }) {
                 setSlidesV3(mapImportedToState(configData.versions.V3 || []));
                 setSlidesV4(mapImportedToState(configData.versions.V4 || []));
                 setSlidesV5(mapImportedToState(configData.versions.V5 || []));
-                
+
                 const importedLang = configData.language || 'EN';
                 setLanguageCache(prev => ({ ...prev, [importedLang]: undefined }));
-                
+
                 if (importedLang !== currentLanguage) setCurrentLanguage(importedLang);
                 alert(`Legacy Project (${importedLang}) loaded!`);
-            } 
+            }
             else {
                 throw new Error("Invalid structure.");
             }
@@ -547,8 +547,8 @@ function CarouselTab({ carouselData, setCarouselData }) {
                                     key={v}
                                     onClick={() => inputRefs[v].current?.click()}
                                     className={`py-2 px-1 rounded text-xs font-bold transition-all border ${isFilled
-                                            ? 'bg-green-700 hover:bg-green-600 border-green-500 text-white'
-                                            : 'bg-gray-800 hover:bg-gray-600 border-gray-600 text-gray-400'
+                                        ? 'bg-green-700 hover:bg-green-600 border-green-500 text-white'
+                                        : 'bg-gray-800 hover:bg-gray-600 border-gray-600 text-gray-400'
                                         }`}
                                 >
                                     {isFilled ? `✓ ${v}` : `⬆ ${v}`}
@@ -567,8 +567,8 @@ function CarouselTab({ carouselData, setCarouselData }) {
                                 key={v}
                                 onClick={() => { setCurrentVersion(v); setCurrentIndex(0); }}
                                 className={`py-2 px-1 rounded text-sm font-bold transition-colors ${currentVersion === v
-                                        ? 'bg-red-600 text-white shadow-lg scale-105' 
-                                        : 'bg-gray-800 hover:bg-gray-900 text-gray-300'
+                                    ? 'bg-red-600 text-white shadow-lg scale-105'
+                                    : 'bg-gray-800 hover:bg-gray-900 text-gray-300'
                                     }`}
                             >
                                 {v}
@@ -585,10 +585,10 @@ function CarouselTab({ carouselData, setCarouselData }) {
                             <button
                                 key={lang}
                                 onClick={() => switchLanguage(lang)}
-                                disabled={!carouselData?.[lang] && !languageCache?.[lang]} 
+                                disabled={!carouselData?.[lang] && !languageCache?.[lang]}
                                 className={`py-1 px-2 rounded-lg font-semibold text-xs ${currentLanguage === lang
-                                        ? 'bg-red-600 text-white'
-                                        : 'bg-gray-800 hover:bg-gray-900 disabled:bg-gray-900 disabled:text-gray-600'
+                                    ? 'bg-red-600 text-white'
+                                    : 'bg-gray-800 hover:bg-gray-900 disabled:bg-gray-900 disabled:text-gray-600'
                                     }`}
                             >
                                 {lang}
@@ -644,20 +644,19 @@ function CarouselTab({ carouselData, setCarouselData }) {
                                 placeholder="Enter headline..."
                             />
                         </div>
-                        
+
                         {/* Alignment */}
-                         <div>
+                        <div>
                             <label className="block text-xs text-gray-400 mb-1">Alignment</label>
                             <div className="flex bg-gray-900 rounded p-1 gap-1">
                                 {['left', 'center', 'right'].map(align => (
                                     <button
                                         key={align}
                                         onClick={() => updateSlideProperty(currentSlide.id, 'textAlign', align)}
-                                        className={`flex-1 py-1 rounded text-xs uppercase ${
-                                            currentSlide.textAlign === align 
-                                            ? 'bg-gray-600 text-white' 
+                                        className={`flex-1 py-1 rounded text-xs uppercase ${currentSlide.textAlign === align
+                                            ? 'bg-gray-600 text-white'
                                             : 'text-gray-500 hover:text-gray-300'
-                                        }`}
+                                            }`}
                                     >
                                         {align}
                                     </button>
@@ -808,7 +807,7 @@ function CarouselTab({ carouselData, setCarouselData }) {
                                         textAlign: currentSlide.textAlign || 'center',
                                         textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
                                         lineHeight: 1.2,
-                                        width: '100%' 
+                                        width: '100%'
                                     }}
                                 >
                                     {currentSlide.text}

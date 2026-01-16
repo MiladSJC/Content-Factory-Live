@@ -14,6 +14,7 @@ import CampaignManager from './CampaignManager.jsx';
 import DAM from './DAM.jsx';
 import BOT from './BOT.jsx'; // Integrated
 import EblastAutomation from './MultiAssetCompositor.jsx';
+import Advertorial from './Advertorial.jsx';
 import Distribution from './Distribution.jsx';
 
 import sjcLogo from './sjc.jpg';
@@ -150,7 +151,7 @@ function App() {
     hasGenerated: false
   });
   const navPrimary = [
-    { id: 'brand-dna', label: 'Brand DNA', icon: Icons.Fingerprint },    
+    { id: 'brand-dna', label: 'Brand DNA', icon: Icons.Fingerprint },
     { id: 'campaign-manager', label: 'Campaign Manager', icon: Icons.Briefcase },
     { id: 'item-picker', label: 'AI Item Selection', icon: Icons.Grid },
   ];
@@ -159,9 +160,11 @@ function App() {
     { id: 'flyer', label: 'Flyer Production', icon: Icons.File },
     { id: 'all-ai-flyer', label: 'All AI Flyer (Beta)', icon: Icons.Sparkles },
     { id: 'image-modification', label: 'AI Offer Builder', icon: Icons.Edit },
-    { id: 'image-to-video', label: 'AI Image to Video', icon: Icons.Video },    
+    { id: 'image-to-video', label: 'AI Image to Video', icon: Icons.Video },
     { id: 'eblast-automation', label: 'AI Multi-Asset Compositor', icon: Icons.Layers },
-    { id: 'animation', label: 'Animation', icon: Icons.Play },    
+    { id: 'animation', label: 'Animation', icon: Icons.Play },
+    { id: 'carousel', label: 'Carousel', icon: Icons.Layers },
+    { id: 'advertorial', label: 'Advertorial', icon: Icons.File },
     { id: 'project-timeline', label: 'Project Timeline', icon: Icons.Clock },
     { id: 'dam', label: 'AI-Powered DAM', icon: Icons.File },
     { id: 'analytics', label: 'Analytics', icon: Icons.Chart },
@@ -180,9 +183,8 @@ function App() {
     >
       <item.icon />
       <span
-        className={`whitespace-nowrap font-medium transition-opacity duration-200 ${
-          isSidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
-        }`}
+        className={`whitespace-nowrap font-medium transition-opacity duration-200 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
+          }`}
       >
         {item.label}
       </span>
@@ -197,11 +199,9 @@ function App() {
     <div className={`flex h-screen overflow-hidden transition-colors duration-300 ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
       {/* --- Sidebar --- */}
       <aside
-        className={`${
-          isSidebarOpen ? 'w-72' : 'w-20'
-        } flex flex-col transition-all duration-300 border-r relative z-20 ${
-          isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-        }`}
+        className={`${isSidebarOpen ? 'w-72' : 'w-20'
+          } flex flex-col transition-all duration-300 border-r relative z-20 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+          }`}
       >
         {/* Toggle Button / Brand Area */}
         <div className={`h-20 flex items-center justify-between px-6 border-b ${isDarkMode ? 'border-gray-700 bg-gray-900/20' : 'border-gray-200 bg-gray-50'}`}>
@@ -258,16 +258,15 @@ function App() {
               <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.25em]"></p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-6">
             {/* Theme Toggle */}
-            <button 
+            <button
               onClick={() => setIsDarkMode(!isDarkMode)}
-              className={`p-2 rounded-full transition-all duration-300 flex items-center gap-2 px-4 text-sm font-bold uppercase tracking-wider ${
-                isDarkMode 
-                ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700 border border-gray-700' 
+              className={`p-2 rounded-full transition-all duration-300 flex items-center gap-2 px-4 text-sm font-bold uppercase tracking-wider ${isDarkMode
+                ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700 border border-gray-700'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-300'
-              }`}
+                }`}
             >
               {isDarkMode ? <Icons.Sun /> : <Icons.Moon />}
               <span className="hidden md:inline">{isDarkMode ? 'Light' : 'Dark'} Mode</span>
@@ -288,11 +287,11 @@ function App() {
           )}
 
           <div style={{ display: activeTab === 'item-picker' ? 'block' : 'none' }}>
-            <AI_Item_Selection 
-                onNavigateToFlyer={() => setActiveTab('flyer')} 
-                setActiveTab={setActiveTab}
-                onTransferImageMod={setTransferImageMod}
-                onTransferVideo={setTransferVideo}
+            <AI_Item_Selection
+              onNavigateToFlyer={() => setActiveTab('flyer')}
+              setActiveTab={setActiveTab}
+              onTransferImageMod={setTransferImageMod}
+              onTransferVideo={setTransferVideo}
             />
           </div>
 
@@ -320,23 +319,23 @@ function App() {
           </div>
 
           <div style={{ display: activeTab === 'image-to-video' ? 'block' : 'none' }}>
-            <ImageToVideo 
-                onPushToDAM = {handlePushToDAM} 
-                incomingAssets={transferVideo}
-                onClearIncoming={() => setTransferVideo(null)}
+            <ImageToVideo
+              onPushToDAM={handlePushToDAM}
+              incomingAssets={transferVideo}
+              onClearIncoming={() => setTransferVideo(null)}
             />
           </div>
           <div style={{ display: activeTab === 'image-modification' ? 'block' : 'none' }}>
-            <ImageModification 
-                onPushToDAM = {handlePushToDAM} 
-                incomingAssets={transferImageMod}
-                onClearIncoming={() => setTransferImageMod(null)}
+            <ImageModification
+              onPushToDAM={handlePushToDAM}
+              incomingAssets={transferImageMod}
+              onClearIncoming={() => setTransferImageMod(null)}
             />
           </div>
           <div style={{ display: activeTab === 'eblast-automation' ? 'block' : 'none' }}>
-            <EblastAutomation onPushToDAM = {handlePushToDAM} />
+            <EblastAutomation onPushToDAM={handlePushToDAM} />
           </div>
-          
+
           {activeTab === 'video' && (
             <div className="animate-fadeIn">
               <VideoEditor
@@ -362,14 +361,20 @@ function App() {
           )}
 
           {activeTab === 'animation' && (
-                      <div className="animate-fadeIn">
-                        <Animation 
-                          onPushToDAM={handlePushToDAM} 
-                          sharedState={animationResults}
-                          setSharedState={setAnimationResults}
-                        />
-                      </div>
-                    )}    
+            <div className="animate-fadeIn">
+              <Animation
+                onPushToDAM={handlePushToDAM}
+                sharedState={animationResults}
+                setSharedState={setAnimationResults}
+              />
+            </div>
+          )}
+
+          {activeTab === 'advertorial' && (
+            <div className="animate-fadeIn">
+              <Advertorial onPushToDAM={handlePushToDAM} />
+            </div>
+          )}
 
           {activeTab === 'project-timeline' && (
             <div className="animate-fadeIn">
@@ -389,7 +394,7 @@ function App() {
               <Distribution />
             </div>
           )}
-          
+
           {activeTab === 'analytics' && (
             <div className="animate-fadeIn">
               <Analytics />
