@@ -86,7 +86,7 @@ const Grid = ({ manager, customModels, onGlobalSave }) => {
       fileInputRef, contextMenu, setContextMenu, getCellId,
       isSelected, setFineTuneModalOpen, fineTuneModalOpen, selection, setSelection,
       dualMode, setDualMode, swapCells,
-      marketVersions, activeComparison, setActiveComparison, MARKET_OPTIONS
+      marketVersions, activeComparison, setActiveComparison, marketOptions
   } = manager;
 
   const bounds = getBounds();
@@ -169,7 +169,7 @@ const Grid = ({ manager, customModels, onGlobalSave }) => {
               }}
               className="h-7 bg-gray-900 border border-gray-600 rounded px-2 text-[11px] text-gray-200 outline-none focus:ring-1 focus:ring-red-500 min-w-[120px]"
             >
-              {MARKET_OPTIONS.map(opt => (
+              {marketOptions.filter(m => m !== 'CREATE_TARGET_MARKET').map(opt => (
                 <option key={opt} value={opt}>
                   {opt} Market {marketVersions[opt] ? '•' : '(Empty)'}
                 </option>

@@ -4,6 +4,7 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getPrompt } from './prompts';
 import Grid from './Grid';
+import { PersonalizationModal } from './Personalization';
 
 // --- Utility ---
 function cn(...inputs) {
@@ -139,8 +140,6 @@ const DEFAULTS = {
   gap: 2,
 };
 
-const MARKET_OPTIONS = ['General', 'Luxury', 'Value', 'Family'];
-
 const INITIAL_ROW = { cols: 3, auto: true, height: 133, type: 'offer' };
 const IMPORT_DELAY_MS = 100;
 const MAX_CONCURRENT_REQUESTS = 4;
@@ -170,11 +169,13 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [currentReviewCell, setCurrentReviewCell] = useState(null);
   const [fineTuneModalOpen, setFineTuneModalOpen] = useState(false);
+  const [personalizationModalOpen, setPersonalizationModalOpen] = useState(false);
   const [targetMarket, setTargetMarket] = useState('General');
+  const [marketOptions, setMarketOptions] = useState(['General', 'CREATE_TARGET_MARKET']);
 
   // Market Snapshot Logic
   const [marketVersions, setMarketVersions] = useState({});
-  const [activeComparison, setActiveComparison] = useState(['General', 'Luxury']);
+  const [activeComparison, setActiveComparison] = useState(['General', 'General']);
 
   const fileInputRef = useRef(null);
   const activeUploadCellId = useRef(null);
@@ -553,7 +554,7 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
 
   const handleExportJson = async () => {
     const dataToSave = {
-      config, rows, merges, hiddenCells: Array.from(hiddenCells), cellData, designModel, serverVersion, customModels: externalCustomModels, marketVersions
+      config, rows, merges, hiddenCells: Array.from(hiddenCells), cellData, designModel, serverVersion, customModels: externalCustomModels, marketVersions, marketOptions
     };
 
     try {
@@ -593,6 +594,7 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
         if (data.designModel) setDesignModel(data.designModel);
         if (data.serverVersion) setServerVersion(data.serverVersion);
         if (data.marketVersions) setMarketVersions(data.marketVersions);
+        if (data.marketOptions) setMarketOptions(data.marketOptions);
 
         setCellData({});
         if (data.cellData) {
@@ -654,10 +656,11 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
     regenModalOpen, setRegenModalOpen, regenConfig, setRegenConfig,
     reviewModalOpen, setReviewModalOpen, currentReviewCell, setCurrentReviewCell,
     fineTuneModalOpen, setFineTuneModalOpen,
+    personalizationModalOpen, setPersonalizationModalOpen,
     targetMarket, setTargetMarket,
     marketVersions, setMarketVersions,
+    marketOptions, setMarketOptions,
     activeComparison, setActiveComparison,
-    MARKET_OPTIONS,
     generateMarketVersion,
     swapCells,
     handleMouseDown, handleMouseEnter, handleMouseUp, handleContextMenu,
@@ -686,7 +689,17 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
 }
 
 const Sidebar = ({ manager }) => {
-  const { config, setConfig, rows, updateRow, setFineTuneModalOpen, targetMarket, setTargetMarket, generateMarketVersion, MARKET_OPTIONS } = manager;
+  const { config, setConfig, rows, updateRow, setFineTuneModalOpen, targetMarket, setTargetMarket, generateMarketVersion, marketOptions, setPersonalizationModalOpen } = manager;
+  
+  const handleMarketChange = (e) => {
+    const val = e.target.value;
+    if (val === 'CREATE_TARGET_MARKET') {
+      setPersonalizationModalOpen(true);
+    } else {
+      setTargetMarket(val);
+    }
+  };
+
   return (
     <div className="bg-gray-800 rounded-lg p-5 overflow-y-auto space-y-5 border border-gray-700 shadow-xl custom-scrollbar flex flex-col h-full">
       <div className="flex justify-between items-center border-b border-gray-700 pb-4">
@@ -716,10 +729,14 @@ const Sidebar = ({ manager }) => {
             <Label>Target Market</Label>
             <select 
               value={targetMarket}
-              onChange={(e) => setTargetMarket(e.target.value)}
+              onChange={handleMarketChange}
               className="w-full h-8 rounded-md border border-gray-600 bg-gray-900 px-2 py-1 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-red-500"
             >
-              {MARKET_OPTIONS.map(m => <option key={m} value={m}>{m}</option>)}
+              {marketOptions.map(m => (
+                <option key={m} value={m} className={cn(m === 'CREATE_TARGET_MARKET' && "text-blue-400 font-bold")}>
+                  {m === 'CREATE_TARGET_MARKET' ? '+ Create Target Market' : m}
+                </option>
+              ))}
             </select>
             <Button onClick={generateMarketVersion} className="w-full bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-600">
               Generate Market Version
@@ -799,6 +816,19 @@ export default function All_AI() {
       <div className="flex-1 flex flex-col h-full bg-gray-800 rounded-lg p-0 shadow-2xl overflow-hidden border border-gray-700 relative">
         <Grid manager={manager} customModels={globalCustomModels} onGlobalSave={handleGlobalSaveCustomModel} />
       </div>
+
+      <PersonalizationModal 
+        isOpen={manager.personalizationModalOpen} 
+        onClose={() => manager.setPersonalizationModalOpen(false)} 
+        onSave={(name) => {
+          manager.setMarketOptions(prev => {
+            const newList = [...prev];
+            newList.splice(newList.length - 1, 0, name);
+            return newList;
+          });
+          manager.setTargetMarket(name);
+        }}
+      />
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
