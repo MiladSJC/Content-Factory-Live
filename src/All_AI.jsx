@@ -3,10 +3,8 @@ import { Plus, Minus, Wand2, Monitor, LayoutGrid, Target } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getPrompt } from './prompts';
-
-// IMPORTANT: keep original import paths, but make them crash-safe
-import GridImport, * as GridNS from './Grid';
-import PersonalizationModalDefault, * as PersonalizationNS from './Personalization';
+import Grid from './Grid';
+import { PersonalizationModal } from './Personalization';
 
 // --- Utility ---
 function cn(...inputs) {
@@ -34,6 +32,7 @@ const parseCSV = (text) => {
 };
 
 // --- Dark Mode Components (Shared) ---
+
 const Label = ({ children, className }) => (
   <label className={cn("text-xs font-semibold uppercase tracking-wider text-gray-400", className)}>
     {children}
@@ -130,6 +129,7 @@ const StepperInput = ({ label, value, onChange, min = 0, suffix, disabled }) => 
 );
 
 // --- Defaults & Logic ---
+
 const DEFAULTS = {
   pageWidth: 555,
   pageHeight: 728,
@@ -144,23 +144,10 @@ const INITIAL_ROW = { cols: 3, auto: true, height: 133, type: 'offer' };
 const IMPORT_DELAY_MS = 100;
 const MAX_CONCURRENT_REQUESTS = 4;
 
-const GENERAL_MARKET = 'General';
-const CREATE_TARGET_MARKET = 'CREATE_TARGET_MARKET';
-
 const stripScale = (row) => {
   if (!row) return row;
   const { scale, ...rest } = row;
   return rest;
-};
-
-// #1/#2: Always keep General + Create Target Market present, in correct order
-const normalizeMarketOptions = (list) => {
-  const arr = Array.isArray(list) ? list.filter(Boolean) : [];
-  const filtered = arr.filter(m => m !== CREATE_TARGET_MARKET && m !== GENERAL_MARKET);
-  const unique = [];
-  const seen = new Set();
-  filtered.forEach(m => { if (!seen.has(m)) { seen.add(m); unique.push(m); } });
-  return [GENERAL_MARKET, ...unique, CREATE_TARGET_MARKET];
 };
 
 function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = []) {
@@ -183,39 +170,27 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
   const [currentReviewCell, setCurrentReviewCell] = useState(null);
   const [fineTuneModalOpen, setFineTuneModalOpen] = useState(false);
   const [personalizationModalOpen, setPersonalizationModalOpen] = useState(false);
+  const [targetMarket, setTargetMarket] = useState('General');
+  const [marketOptions, setMarketOptions] = useState(['General', 'CREATE_TARGET_MARKET']);
 
-  const [targetMarket, setTargetMarket] = useState(GENERAL_MARKET);
-  const [marketOptions, setMarketOptions] = useState(normalizeMarketOptions([GENERAL_MARKET, CREATE_TARGET_MARKET]));
-
-  // Market snapshots (used by dual mode / versions)
+  // Market Snapshot Logic
   const [marketVersions, setMarketVersions] = useState({});
-  const [activeComparison, setActiveComparison] = useState([GENERAL_MARKET, GENERAL_MARKET]);
+  const [activeComparison, setActiveComparison] = useState(['General', 'General']);
 
   const fileInputRef = useRef(null);
   const activeUploadCellId = useRef(null);
   const importTimers = useRef([]);
-
-  // Keep options normalized even if JSON or other code injects values
-  useEffect(() => {
-    setMarketOptions(prev => normalizeMarketOptions(prev));
-  }, []);
-
-  useEffect(() => {
-    if (!marketOptions.includes(targetMarket)) setTargetMarket(GENERAL_MARKET);
-  }, [marketOptions, targetMarket]);
-
-  // #4: keep active market snapshot in-sync with latest edits (drag/drop, regen, variations, etc.)
-  useEffect(() => {
-    setMarketVersions(prev => ({ ...prev, [targetMarket]: cellData }));
-  }, [cellData, targetMarket]);
 
   useEffect(() => {
     setRows(prev => {
       const target = config.numRows;
       if (prev.length === target) return prev;
       if (prev.length < target) {
-        const toAdd = Array.from({ length: target - prev.length }, () => ({
-          ...INITIAL_ROW, cols: 3, type: 'offer', height: 180
+        const toAdd = Array.from({ length: target - prev.length }, (_, i) => ({
+          ...INITIAL_ROW,
+          cols: 3,
+          type: 'offer',
+          height: 180
         }));
         return [...prev, ...toAdd];
       }
@@ -246,11 +221,14 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
     setRows(newRows);
     if (field === 'cols') {
       const newMerges = { ...merges };
-      Object.keys(newMerges).forEach(k => { if (k.startsWith(`${idx}_`)) delete newMerges[k]; });
+      Object.keys(newMerges).forEach(k => {
+        if (k.startsWith(`${idx}_`)) delete newMerges[k];
+      });
       setMerges(newMerges);
-
       const newHidden = new Set(hiddenCells);
-      Array.from(newHidden).forEach(k => { if (k.startsWith(`${idx}_`)) newHidden.delete(k); });
+      Array.from(newHidden).forEach(k => {
+        if (k.startsWith(`${idx}_`)) newHidden.delete(k);
+      });
       setHiddenCells(newHidden);
     }
   };
@@ -265,11 +243,8 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
     };
   };
 
-  // #5: prevent “all selected cells blue border” when simply hovering after drag/drop.
-  // Only show blue selection while the user is actively dragging a selection.
   const isSelected = (r, c) => {
     if (isMultiSelect) return false;
-    if (!isSelecting) return false;
     const b = getBounds();
     return b && r >= b.minR && r <= b.maxR && c >= b.minC && c <= b.maxC;
   };
@@ -328,7 +303,9 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
 
   const handleMouseEnter = (r, c) => {
     if (isMultiSelect) return;
-    if (isSelecting && selection) setSelection(prev => ({ ...prev, end: { r, c } }));
+    if (isSelecting && selection) {
+      setSelection(prev => ({ ...prev, end: { r, c } }));
+    }
   };
 
   const handleMouseUp = () => {
@@ -353,7 +330,13 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
       reader.onloadend = () => {
         setCellData(prev => ({
           ...prev,
-          [cellId]: { loading: false, image: reader.result, error: false, productData: { name: "Custom Banner" }, variations: [] }
+          [cellId]: {
+            loading: false,
+            image: reader.result,
+            error: false,
+            productData: { name: "Custom Banner" },
+            variations: []
+          }
         }));
       };
       reader.readAsDataURL(file);
@@ -364,7 +347,7 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
   };
 
   const generateAsset = async (cellId, itemData, model, n = 1) => {
-    const [rIdx] = cellId.split('_').map(Number);
+    const [rIdx, cIdx] = cellId.split('_').map(Number);
     const row = rows[rIdx];
     const mergeData = merges[cellId];
     const colSpan = (row.type === 'banner' ? 1 : (mergeData?.colSpan || 1));
@@ -380,7 +363,8 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
     }
 
     setCellData(prev => ({ ...prev, [cellId]: { ...prev[cellId], loading: true, error: false, productData: itemData } }));
-    const generatedPrompt = getPrompt('v2', model, itemData, externalCustomModels);
+    const promptModelKey = model;
+    const generatedPrompt = getPrompt('v2', promptModelKey, itemData, externalCustomModels);
 
     try {
       const response = await fetch('http://localhost:5001/generate-card', {
@@ -410,25 +394,20 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
           if (currentImage) {
             const uniqueVars = newVariations.filter(img => img !== currentImage);
             return { ...prev, [cellId]: { ...existingCell, loading: false, variations: uniqueVars, error: false } };
+          } else {
+            return { ...prev, [cellId]: { ...existingCell, loading: false, image: result.images[0], variations: [], error: false } };
           }
-          return { ...prev, [cellId]: { ...existingCell, loading: false, image: result.images[0], variations: [], error: false } };
         });
-      } else {
-        throw new Error(result.detail || "No images returned");
-      }
+      } else { throw new Error(result.detail || "No images returned"); }
     } catch (err) {
       console.error("Asset Generation Error:", err);
       setCellData(prev => ({ ...prev, [cellId]: { ...prev[cellId], loading: false, error: true } }));
     }
   };
 
-  // #1/#3: General affected; other markets randomize FROM General baseline
   const generateMarketVersion = () => {
-    const generalBase = marketVersions[GENERAL_MARKET] || cellData;
-    const base = (targetMarket === GENERAL_MARKET) ? cellData : generalBase;
-
     const dimensionGroups = {};
-    const keys = Object.keys(base);
+    const keys = Object.keys(cellData);
 
     keys.forEach(cellId => {
       const [rIdx] = cellId.split('_').map(Number);
@@ -443,16 +422,18 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
       const w = Math.round((config.pageWidth / totalCols) * colSpan);
       let h = row.height;
       if (rowSpan > 1) {
-        for (let i = 1; i < rowSpan; i++) h += (rows[rIdx + i]?.height || 0) + config.gap;
+        for (let i = 1; i < rowSpan; i++) {
+          h += (rows[rIdx + i]?.height || 0) + config.gap;
+        }
       }
       h = Math.round(h);
 
       const dimKey = `${w}x${h}`;
       if (!dimensionGroups[dimKey]) dimensionGroups[dimKey] = [];
-      dimensionGroups[dimKey].push({ id: cellId, data: base[cellId] });
+      dimensionGroups[dimKey].push({ id: cellId, data: cellData[cellId] });
     });
 
-    const newCellData = { ...base };
+    const newCellData = { ...cellData };
 
     Object.values(dimensionGroups).forEach(group => {
       if (group.length < 2) return;
@@ -464,19 +445,17 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
         [contents[i], contents[j]] = [contents[j], contents[i]];
       }
 
-      ids.forEach((id, idx) => { newCellData[id] = contents[idx]; });
+      ids.forEach((id, idx) => {
+        newCellData[id] = contents[idx];
+      });
     });
 
-    setMarketVersions(prev => {
-      const next = { ...prev };
-      // lock in General baseline if missing
-      if (!next[GENERAL_MARKET]) next[GENERAL_MARKET] = generalBase;
-      // if generating General, update baseline too
-      if (targetMarket === GENERAL_MARKET) next[GENERAL_MARKET] = newCellData;
-      next[targetMarket] = newCellData;
-      return next;
-    });
-
+    // Capture the version for the entire session
+    setMarketVersions(prev => ({
+      ...prev,
+      [targetMarket]: newCellData
+    }));
+    
     setCellData(newCellData);
   };
 
@@ -487,8 +466,9 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
     const next = () => {
       if (currentIndex >= totalItems && activeRequests === 0) return;
       while (activeRequests < MAX_CONCURRENT_REQUESTS && currentIndex < totalItems) {
-        const item = items[currentIndex];
-        const cellId = availableSlots[currentIndex];
+        const index = currentIndex;
+        const item = items[index];
+        const cellId = availableSlots[index];
         currentIndex++;
         activeRequests++;
         generateAsset(cellId, item, model, 1).finally(() => { activeRequests--; next(); });
@@ -500,14 +480,8 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    // #1/#2: CSV fill always establishes General and keeps Create option
-    setMarketOptions(prev => normalizeMarketOptions(prev));
-    setTargetMarket(GENERAL_MARKET);
-
     importTimers.current.forEach(t => clearTimeout(t));
     importTimers.current = [];
-
     const reader = new FileReader();
     reader.onload = async (evt) => {
       const csvText = evt.target.result;
@@ -535,13 +509,8 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
       setCellData(prev => {
         const nextData = {};
         Object.keys(prev).forEach(key => { if (bannerCells.has(key)) nextData[key] = prev[key]; });
-        const next = { ...nextData, ...initialLoadState };
-
-        // establish General baseline immediately
-        setMarketVersions(mPrev => ({ ...mPrev, [GENERAL_MARKET]: next }));
-        return next;
+        return { ...nextData, ...initialLoadState };
       });
-
       processQueue(itemsToProcess, availableSlots, designModel);
     };
     reader.readAsText(file);
@@ -557,15 +526,18 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
   const confirmRegeneration = async () => {
     setRegenModalOpen(false);
     const cellsToRegen = Array.from(selectedCells);
+    let validCount = 0;
     const validCells = [];
     for (const cellId of cellsToRegen) {
       const cell = cellData[cellId];
-      if (cell && cell.productData && cell.productData['Product Image']) validCells.push({ id: cellId, data: cell.productData });
+      if (cell && cell.productData && cell.productData['Product Image']) {
+        validCount++;
+        validCells.push({ id: cellId, data: cell.productData });
+      }
     }
-    if (validCells.length === 0) return alert("No valid server-generated cells to regenerate.");
+    if (validCount === 0) return alert("No valid server-generated cells to regenerate.");
     setSelectedCells(new Set());
     setIsMultiSelect(false);
-
     let currentIndex = 0;
     let activeRequests = 0;
     const next = () => {
@@ -582,16 +554,7 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
 
   const handleExportJson = async () => {
     const dataToSave = {
-      config,
-      rows,
-      merges,
-      hiddenCells: Array.from(hiddenCells),
-      cellData,
-      designModel,
-      serverVersion,
-      customModels: externalCustomModels,
-      marketVersions,
-      marketOptions
+      config, rows, merges, hiddenCells: Array.from(hiddenCells), cellData, designModel, serverVersion, customModels: externalCustomModels, marketVersions, marketOptions
     };
 
     try {
@@ -620,25 +583,18 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
     importTimers.current.forEach(t => clearTimeout(t));
     setSelectedCells(new Set());
     setIsMultiSelect(false);
-
     const reader = new FileReader();
     reader.onload = (evt) => {
       try {
         const data = JSON.parse(evt.target.result);
-
         if (data.config) setConfig(data.config);
         if (data.rows) setRows(data.rows.map(stripScale));
         if (data.merges) setMerges(data.merges);
         if (data.hiddenCells) setHiddenCells(new Set(data.hiddenCells));
         if (data.designModel) setDesignModel(data.designModel);
         if (data.serverVersion) setServerVersion(data.serverVersion);
-
         if (data.marketVersions) setMarketVersions(data.marketVersions);
-        if (data.marketOptions) setMarketOptions(normalizeMarketOptions(data.marketOptions));
-        else setMarketOptions(prev => normalizeMarketOptions(prev));
-
-        // Always land on General after import unless current target exists
-        setTargetMarket(GENERAL_MARKET);
+        if (data.marketOptions) setMarketOptions(data.marketOptions);
 
         setCellData({});
         if (data.cellData) {
@@ -670,15 +626,12 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
             importTimers.current.push(t);
           });
         }
-      } catch (err) {
-        alert("Failed to parse JSON.");
-      }
+      } catch (err) { alert("Failed to parse JSON."); }
     };
     reader.readAsText(file);
     e.target.value = null;
   };
 
-  // #4: drag/drop must update the latest version too (already synced by effect, but keep atomic)
   const swapCells = (id1, id2) => {
     setCellData(prev => {
       const next = { ...prev };
@@ -687,29 +640,6 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
       if (data1) next[id2] = data1; else delete next[id2];
       if (data2) next[id1] = data2; else delete next[id1];
       return next;
-    });
-  };
-
-  // helper: when switching markets in Sidebar, load that snapshot immediately
-  const loadMarket = (marketName) => {
-    const normalized = normalizeMarketOptions(marketOptions);
-    if (JSON.stringify(normalized) !== JSON.stringify(marketOptions)) setMarketOptions(normalized);
-
-    if (marketName === CREATE_TARGET_MARKET) {
-      setPersonalizationModalOpen(true);
-      return;
-    }
-
-    setTargetMarket(marketName);
-
-    setCellData(prev => {
-      // prefer saved snapshot; otherwise base it on General
-      const snapshot = marketVersions[marketName];
-      if (snapshot) return snapshot;
-      const general = marketVersions[GENERAL_MARKET] || prev;
-      // initialize market snapshot from General (no randomization yet)
-      setMarketVersions(mPrev => ({ ...mPrev, [marketName]: general }));
-      return general;
     });
   };
 
@@ -733,7 +663,6 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
     activeComparison, setActiveComparison,
     generateMarketVersion,
     swapCells,
-    loadMarket,
     handleMouseDown, handleMouseEnter, handleMouseUp, handleContextMenu,
     handleCellClick: (cellId) => {
       const data = cellData[cellId];
@@ -760,11 +689,16 @@ function useLayoutManager(initialDefaults = DEFAULTS, externalCustomModels = [])
 }
 
 const Sidebar = ({ manager }) => {
-  const {
-    config, setConfig, rows, updateRow, setFineTuneModalOpen,
-    targetMarket, generateMarketVersion, marketOptions,
-    loadMarket
-  } = manager;
+  const { config, setConfig, rows, updateRow, setFineTuneModalOpen, targetMarket, setTargetMarket, generateMarketVersion, marketOptions, setPersonalizationModalOpen } = manager;
+  
+  const handleMarketChange = (e) => {
+    const val = e.target.value;
+    if (val === 'CREATE_TARGET_MARKET') {
+      setPersonalizationModalOpen(true);
+    } else {
+      setTargetMarket(val);
+    }
+  };
 
   return (
     <div className="bg-gray-800 rounded-lg p-5 overflow-y-auto space-y-5 border border-gray-700 shadow-xl custom-scrollbar flex flex-col h-full">
@@ -793,14 +727,14 @@ const Sidebar = ({ manager }) => {
           </div>
           <div className="space-y-2">
             <Label>Target Market</Label>
-            <select
+            <select 
               value={targetMarket}
-              onChange={(e) => loadMarket(e.target.value)}
+              onChange={handleMarketChange}
               className="w-full h-8 rounded-md border border-gray-600 bg-gray-900 px-2 py-1 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-red-500"
             >
               {marketOptions.map(m => (
-                <option key={m} value={m} className={cn(m === CREATE_TARGET_MARKET && "text-blue-400 font-bold")}>
-                  {m === CREATE_TARGET_MARKET ? '+ Create Target Market' : m}
+                <option key={m} value={m} className={cn(m === 'CREATE_TARGET_MARKET' && "text-blue-400 font-bold")}>
+                  {m === 'CREATE_TARGET_MARKET' ? '+ Create Target Market' : m}
                 </option>
               ))}
             </select>
@@ -817,47 +751,25 @@ const Sidebar = ({ manager }) => {
             <div className="p-1 bg-gray-700 rounded text-gray-300"><Monitor className="h-4 w-4" /></div>
             <h3 className="text-sm font-semibold text-gray-400">Config</h3>
           </div>
-
           <div className="grid grid-cols-2 gap-2">
             <StepperInput label="Width" value={config.pageWidth} onChange={v => setConfig({ ...config, pageWidth: v })} suffix="px" />
             <StepperInput label="Height" value={config.pageHeight} onChange={v => setConfig({ ...config, pageHeight: v })} suffix="px" />
           </div>
-
           <div className="grid grid-cols-2 gap-2">
             <StepperInput label="Rows" value={config.numRows} onChange={v => setConfig({ ...config, numRows: v })} min={1} />
             <StepperInput label="Gap" value={config.gap} onChange={v => setConfig({ ...config, gap: v })} suffix="px" />
           </div>
-
-          {/* #6: one-line row for Border Col / Cell Bg / Internal Cell Padding */}
-          <div className="grid grid-cols-3 gap-2">
-            <div className="flex items-center justify-between h-8 rounded-md border border-gray-600 bg-gray-900 px-2">
-              <Label className="text-[10px]">Border Col</Label>
-              <input
-                type="color"
-                value={config.borderColor}
-                onChange={e => setConfig({ ...config, borderColor: e.target.value })}
-                className="h-5 w-5 p-0 border-0 rounded cursor-pointer bg-transparent"
-              />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Border Col</Label>
+              <input type="color" value={config.borderColor} onChange={e => setConfig({ ...config, borderColor: e.target.value })} className="h-5 w-5 p-0 border-0 rounded cursor-pointer bg-transparent" />
             </div>
-            <div className="flex items-center justify-between h-8 rounded-md border border-gray-600 bg-gray-900 px-2">
-              <Label className="text-[10px]">Cell Bg</Label>
-              <input
-                type="color"
-                value={config.backgroundColor}
-                onChange={e => setConfig({ ...config, backgroundColor: e.target.value })}
-                className="h-5 w-5 p-0 border-0 rounded cursor-pointer bg-transparent"
-              />
-            </div>
-            <div className="flex items-center justify-between h-8 rounded-md border border-gray-600 bg-gray-900 px-2">
-              <Label className="text-[10px]">Internal Cell Padding</Label>
-              <input
-                type="number"
-                value={config.cellPadding}
-                onChange={e => setConfig({ ...config, cellPadding: parseInt(e.target.value) || 0 })}
-                className="w-12 bg-transparent text-xs outline-none text-right tabular-nums text-gray-200"
-              />
+            <div className="flex items-center justify-between">
+              <Label>Cell Bg</Label>
+              <input type="color" value={config.backgroundColor} onChange={e => setConfig({ ...config, backgroundColor: e.target.value })} className="h-5 w-5 p-0 border-0 rounded cursor-pointer bg-transparent" />
             </div>
           </div>
+          <StepperInput label="Internal Cell Padding" value={config.cellPadding} onChange={v => setConfig({ ...config, cellPadding: v })} suffix="px" />
         </section>
 
         <div className="border-t border-gray-700" />
@@ -894,14 +806,6 @@ const Sidebar = ({ manager }) => {
 export default function All_AI() {
   const [globalCustomModels, setGlobalCustomModels] = useState([]);
   const handleGlobalSaveCustomModel = (name, prompt) => { setGlobalCustomModels(prev => [...prev, { name, prompt }]); };
-
-  // Pick Grid component safely (prevents blank screen if export changed)
-  const GridComponent = GridImport || GridNS?.default || GridNS?.Grid;
-  const PersonalizationModal =
-    PersonalizationNS?.PersonalizationModal ||
-    PersonalizationNS?.default ||
-    PersonalizationModalDefault;
-
   const manager = useLayoutManager(DEFAULTS, globalCustomModels);
 
   return (
@@ -909,34 +813,22 @@ export default function All_AI() {
       <div className="w-[24.2%] h-full shrink-0">
         <Sidebar manager={manager} />
       </div>
-
       <div className="flex-1 flex flex-col h-full bg-gray-800 rounded-lg p-0 shadow-2xl overflow-hidden border border-gray-700 relative">
-        {!GridComponent ? (
-          <div className="p-6 text-sm text-red-200">
-            Grid component failed to load (export mismatch). Check <code className="text-red-100">./Grid</code> exports (default vs named).
-          </div>
-        ) : (
-          <GridComponent manager={manager} customModels={globalCustomModels} onGlobalSave={handleGlobalSaveCustomModel} />
-        )}
+        <Grid manager={manager} customModels={globalCustomModels} onGlobalSave={handleGlobalSaveCustomModel} />
       </div>
 
-      {/* Keep Create Target Market always relevant; render modal only if present */}
-      {PersonalizationModal ? (
-        <PersonalizationModal
-          isOpen={manager.personalizationModalOpen}
-          onClose={() => manager.setPersonalizationModalOpen(false)}
-          onSave={(name) => {
-            // insert before CREATE_TARGET_MARKET and normalize
-            manager.setMarketOptions(prev => normalizeMarketOptions([...prev, name]));
-            manager.setMarketVersions(prev => {
-              if (prev[name]) return prev;
-              const base = prev[GENERAL_MARKET] || manager.cellData;
-              return { ...prev, [name]: base };
-            });
-            manager.loadMarket(name);
-          }}
-        />
-      ) : null}
+      <PersonalizationModal 
+        isOpen={manager.personalizationModalOpen} 
+        onClose={() => manager.setPersonalizationModalOpen(false)} 
+        onSave={(name) => {
+          manager.setMarketOptions(prev => {
+            const newList = [...prev];
+            newList.splice(newList.length - 1, 0, name);
+            return newList;
+          });
+          manager.setTargetMarket(name);
+        }}
+      />
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
