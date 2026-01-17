@@ -361,9 +361,9 @@ export const PersonalizationModal = ({ isOpen, onClose, onSave }) => {
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-[1080px] h-[680px] bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex overflow-hidden">
+      <div className="w-[1350px] h-[780px] bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex overflow-hidden">
         {/* LEFT: Strategy / Meta */}
-        <div className="w-[360px] border-r border-gray-800 bg-gray-800/50 p-6 flex flex-col justify-between">
+        <div className="w-[396px] border-r border-gray-800 bg-gray-800/50 p-6 flex flex-col justify-between overflow-y-auto custom-scrollbar">
           <div className="space-y-6">
             <div className="flex items-center gap-2 text-red-500">
               <User2 className="h-5 w-5" />
