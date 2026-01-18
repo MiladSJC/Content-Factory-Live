@@ -5,31 +5,31 @@ const ASSET_SETS = {
   1: {
     inputs: ['1_1.png', '1_2.png', '1_3.png'],
     results: [
-      '/Eblast/Result Images/1_1.png',
-      '/Eblast/Result Images/1_2.png',
-      '/Eblast/Result Images/1_3.png',
-      '/Eblast/Result Images/1_4.png'
+      '/Advertorial/Result Images/1_1.png',
+      '/Advertorial/Result Images/1_2.png',
+      '/Advertorial/Result Images/1_3.png',
+      '/Advertorial/Result Images/1_4.png'
     ],
     diverseResults: [
-      '/Eblast/Result Images/1_5.png',
-      '/Eblast/Result Images/1_6.png',
-      '/Eblast/Result Images/1_7.png',
-      '/Eblast/Result Images/1_8.png'
+      '/Advertorial/Result Images/1_5.png',
+      '/Advertorial/Result Images/1_6.png',
+      '/Advertorial/Result Images/1_7.png',
+      '/Advertorial/Result Images/1_8.png'
     ]
   },
   2: {
     inputs: ['2_1.png', '2_2.png', '2_3.png'],
     results: [
-      '/Eblast/Result Images/2_1.png',
-      '/Eblast/Result Images/2_2.png',
-      '/Eblast/Result Images/2_3.png',
-      '/Eblast/Result Images/2_4.png'
+      '/Advertorial/Result Images/2_1.png',
+      '/Advertorial/Result Images/2_2.png',
+      '/Advertorial/Result Images/2_3.png',
+      '/Advertorial/Result Images/2_4.png'
     ],
     diverseResults: [
-      '/Eblast/Result Images/2_5.png',
-      '/Eblast/Result Images/2_6.png',
-      '/Eblast/Result Images/2_7.png',
-      '/Eblast/Result Images/2_8.png'
+      '/Advertorial/Result Images/2_5.png',
+      '/Advertorial/Result Images/2_6.png',
+      '/Advertorial/Result Images/2_7.png',
+      '/Advertorial/Result Images/2_8.png'
     ]
   }
 };
@@ -108,7 +108,7 @@ function EblastAutomation({ onPushToDAM }) {
     try {
       const currentSet = ASSET_SETS[nextSetToLoad];
       const loaded = await Promise.all(currentSet.inputs.map(async (name) => {
-        const url = `/Eblast/Input Images/${name}`;
+        const url = `/Advertorial/Input Images/${name}`;
         return { id: Math.random(), url, name };
       }));
 
