@@ -272,6 +272,65 @@ class EblastRequest(BaseModel):
     settings: Optional[Dict[str, Any]] = {}
     is_live: Optional[bool] = False
 
+class AdvertorialRequest(BaseModel):
+    brief: str
+    layout_preset: Optional[str] = "Editorial"
+    column_grid: Optional[str] = "2-Column"
+    text_density: Optional[float] = 0.6
+
+@app.post("/generate-advertorial")
+async def generate_advertorial(request: AdvertorialRequest):
+    """Generates article header and body from a creative brief using Azure GPT-4o"""
+    require_azure_openai()
+    
+    if not request.brief or not request.brief.strip():
+        return {"header": "", "body": ""}
+    
+    system_prompt = """You are an expert advertorial copywriter for premium magazines. 
+Given a creative brief, generate compelling magazine-style content.
+Return ONLY valid JSON with exactly two keys: "header" and "body".
+- header: A punchy, attention-grabbing headline (8-12 words max)
+- body: 2-3 paragraphs of editorial-style body copy that feels native to a premium publication"""
+
+    user_prompt = f"""Creative Brief: {request.brief}
+
+Layout Style: {request.layout_preset}
+Column Format: {request.column_grid}
+Text Density: {'High' if request.text_density > 0.7 else 'Medium' if request.text_density > 0.4 else 'Low'}
+
+Generate the advertorial content now. Return ONLY the JSON object."""
+
+    payload = {
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ],
+        "max_tokens": 1000,
+        "temperature": 0.8,
+        "response_format": {"type": "json_object"}
+    }
+
+    url = f"{ENDPOINT}/openai/deployments/{VISION_DEPLOYMENT_NAME}/chat/completions?api-version={VISION_API_VERSION}"
+    headers = {"Content-Type": "application/json", "api-key": API_KEY}
+
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        try:
+            response = await client.post(url, headers=headers, json=payload)
+            if response.status_code == 200:
+                result = response.json()
+                content = result["choices"][0]["message"]["content"]
+                parsed = json.loads(content)
+                return {
+                    "header": parsed.get("header", ""),
+                    "body": parsed.get("body", "")
+                }
+            else:
+                raise HTTPException(status_code=response.status_code, detail=f"LLM Error: {response.text}")
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=500, detail="Failed to parse LLM response as JSON")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/generate-eblast")
 async def generate_eblast(request: EblastRequest):
     """Handles multi-image eblast creation using Gemini (Nano Banana)"""
