@@ -83,8 +83,18 @@ function EblastAutomation({ onPushToDAM }) {
     // Present Mode: Load Static Content for Demo/Speed
     if (!isLiveMode) {
       setTimeout(() => {
-        setArticleHeader("Breaking Down Barriers for Women in Business");
-        setArticleBody(`Sarah Joyce knows how to deliver under pressure. While the global covid-19 pandemic raged, she launched Voilà, a first-of-its-kind online grocery home delivery service powered by robotic automated warehouses. A seasoned professional, she also regularly presents to the board of directors as the senior vice-president of e-commerce for Sobeys Inc.
+        if (activeLoadedSet === 1) {
+          setArticleHeader("The Everyday Upgrade: Small Finds That Make a Big Difference");
+          setArticleBody(`Some of the best improvements to daily life don't come from big purchases or dramatic changes—they come from smart, well-made essentials that quietly do their job really well.
+
+The kind you reach for without thinking… and then notice how much smoother everything feels. This curated selection is all about practical upgrades: products designed to simplify routines, elevate comfort, and add a touch of polish to everyday moments.
+
+Whether you're refreshing your home, streamlining your schedule, or simply choosing better versions of what you already use, these picks fit naturally into modern living—useful, good-looking, and made to last.
+
+In the pages ahead, you'll find a simple guide to these culinary essentials, why they're worth considering, and how they can slot seamlessly into your day. No gimmicks—just thoughtfully chosen essentials that feel right at home in a magazine spread and even better in real life.`);
+        } else {
+          setArticleHeader("Breaking Down Barriers for Women in Business");
+          setArticleBody(`Sarah Joyce knows how to deliver under pressure. While the global covid-19 pandemic raged, she launched Voilà, a first-of-its-kind online grocery home delivery service powered by robotic automated warehouses. A seasoned professional, she also regularly presents to the board of directors as the senior vice-president of e-commerce for Sobeys Inc.
 
 Joyce sought insights about how to best position herself to be a board director in the future. “What does it mean to be on a board? What should you look for when you’re looking to join a board?” she wondered. “How do you show up in the boardroom?”
 
@@ -109,6 +119,7 @@ Equal access to capital is a challenging barrier for women in business. The Scot
 Nicolette Williams says a conversation with her Scotiabank branch manager introduced her to the program. “My branch manager felt The Scotiabank Women Initiative would be a driving force to help me move forward as a woman-owned business by giving us greater exposure and facilitating the creation of that community of entrepreneurs we needed.”
 
 Williams secured a business loan through the program to expand her film production company, North Rising Waves Studios Inc., into India, TV and the web. Williams’ company is but one of Canada’s women-owned and women-led businesses that have benefitted from the $6 billion in capital initiative since its successful launch. It offers women unbiased access to capital and tailored solutions, bespoke specialized education, holistic advisory services and mentorship.`);
+        }
         setIsGeneratingCopy(false);
       }, 1500);
       return;
