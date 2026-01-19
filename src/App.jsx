@@ -163,7 +163,7 @@ function App() {
     { id: 'image-to-video', label: 'AI Image to Video', icon: Icons.Video },
     { id: 'eblast-automation', label: 'AI Multi-Asset Compositor', icon: Icons.Layers },
     { id: 'animation', label: 'Animation', icon: Icons.Play },
-    { id: 'carousel', label: 'Carousel', icon: Icons.Layers },
+    //{ id: 'carousel', label: 'Carousel', icon: Icons.Layers },
     { id: 'advertorial', label: 'Advertorial', icon: Icons.File },
     { id: 'project-timeline', label: 'Project Timeline', icon: Icons.Clock },
     { id: 'dam', label: 'AI-Powered DAM', icon: Icons.File },
