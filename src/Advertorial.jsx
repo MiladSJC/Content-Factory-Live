@@ -75,11 +75,46 @@ function EblastAutomation({ onPushToDAM }) {
 
   const fileInputRef = useRef(null);
 
-  // New Logic: Generate Copy from LLM
+  // New Logic: Generate Copy from LLM (Live) or Preset Brief (Present)
   const handleGenerateCopy = async () => {
     if (!prompt.trim()) return alert("Please provide an Advertorial Brief first.");
     setIsGeneratingCopy(true);
+
+    // Present Mode: Load Static Content for Demo/Speed
+    if (!isLiveMode) {
+      setTimeout(() => {
+        setArticleHeader("Breaking Down Barriers for Women in Business");
+        setArticleBody(`Sarah Joyce knows how to deliver under pressure. While the global covid-19 pandemic raged, she launched Voilà, a first-of-its-kind online grocery home delivery service powered by robotic automated warehouses. A seasoned professional, she also regularly presents to the board of directors as the senior vice-president of e-commerce for Sobeys Inc.
+
+Joyce sought insights about how to best position herself to be a board director in the future. “What does it mean to be on a board? What should you look for when you’re looking to join a board?” she wondered. “How do you show up in the boardroom?”
+
+Joyce found the answers in The Scotiabank Women Initiative and its Good Corporate Governance Program. She is one of 10 participants who have gone through the program. As part of the first cohort, she participated in a bespoke series of sessions for senior professional women exploring best practices and emerging trends while enhancing participant skills and potential to serve as board directors.
+
+“It wasn’t just theoretical,” says Joyce. “Scotiabank showed real commitment to helping place us in positions afterward.”
+
+FOSTERING FINANCIAL EMPOWERMENT
+
+Scotia Wealth Management portfolio manager Nancy Melo credits The Scotiabank Women Initiative for giving her the training and skills she needed to become a better coach and financial advisor.
+
+“Being a coach is really about providing information to our clients in a supportive, collaborative way and doing this in a safe environment for all individuals… to take a step back and truly understand what money means to women and what motivates them financially.”
+
+Melo says Scotiabank training has improved her ability to tune in to the needs of women and non-binary clients by adding a different lens to how she provides client service. “Financial empowerment is about tying money to values and goals and understanding the non-financial aspect of what’s happening to women’s lives. It’s really important for women to provide a meaning and context for their wealth,” she says.
+
+Through The Scotiabank Women Initiative, Melo and her colleagues have helped more than 2,000 women and their families manage their wealth during major life transitions, such as divorce and retirement.
+
+ENABLING MORE EQUITABLE ACCESS TO CAPITAL
+
+Equal access to capital is a challenging barrier for women in business. The Scotiabank Women Initiative is well positioned to support women entrepreneurs as they grow, scale and operate their businesses. It also provides financial education events, workshops, boot camps, networking opportunities, mentorship and advice.
+
+Nicolette Williams says a conversation with her Scotiabank branch manager introduced her to the program. “My branch manager felt The Scotiabank Women Initiative would be a driving force to help me move forward as a woman-owned business by giving us greater exposure and facilitating the creation of that community of entrepreneurs we needed.”
+
+Williams secured a business loan through the program to expand her film production company, North Rising Waves Studios Inc., into India, TV and the web. Williams’ company is but one of Canada’s women-owned and women-led businesses that have benefitted from the $6 billion in capital initiative since its successful launch. It offers women unbiased access to capital and tailored solutions, bespoke specialized education, holistic advisory services and mentorship.`);
+        setIsGeneratingCopy(false);
+      }, 1500);
+      return;
+    }
     
+    // Live Mode: Fetch from LLM Backend
     try {
       const response = await fetch('http://localhost:5001/generate-advertorial', {
         method: 'POST',
@@ -111,6 +146,13 @@ function EblastAutomation({ onPushToDAM }) {
         const url = `/Advertorial/Input Images/${name}`;
         return { id: Math.random(), url, name };
       }));
+
+      // Set prompt based on the specific Asset Set being loaded
+      if (nextSetToLoad === 1) {
+        setPrompt("Create an advertorial page, to promote the products");
+      } else {
+        setPrompt("Create a thought-leadership advertorial that highlights how a branded initiative meaningfully supports women in business through leadership development, financial empowerment, and equitable access to resources—using real-world success stories and expert insight");
+      }
 
       setInputImages(loaded);
       setActiveLoadedSet(nextSetToLoad);
