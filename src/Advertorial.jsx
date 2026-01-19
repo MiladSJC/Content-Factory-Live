@@ -165,6 +165,10 @@ Williams secured a business loan through the program to expand her film producti
         setPrompt("Create a thought-leadership advertorial that highlights how a branded initiative meaningfully supports women in business through leadership development, financial empowerment, and equitable access to resources—using real-world success stories and expert insight");
       }
 
+      // Reset Generated Copy when switching sets
+      setArticleHeader('');
+      setArticleBody('');
+
       setInputImages(loaded);
       setActiveLoadedSet(nextSetToLoad);
       setNextSetToLoad(prev => (prev === 1 ? 2 : 1));
