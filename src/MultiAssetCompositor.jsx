@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import UniversalPreview from './UniversalPreview';
 
 // Organized Asset Sets for the cycling logic
 const ASSET_SETS = {
@@ -53,6 +54,7 @@ function EblastAutomation({ onPushToDAM }) {
 
   const [nextSetToLoad, setNextSetToLoad] = useState(1);
   const [activeLoadedSet, setActiveLoadedSet] = useState(1);
+  const [previewState, setPreviewState] = useState({ isOpen: false, asset: null });
 
   const [dimensionMode, setDimensionMode] = useState('Uniform');
   const [selectedRatios, setSelectedRatios] = useState(['9:16']);
@@ -383,8 +385,9 @@ function EblastAutomation({ onPushToDAM }) {
                     </div>
                   )}
 
-                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                    <button onClick={() => onPushToDAM({ path: imgUrl, name: `AI_Eblast_v${index + 1}.png`, type: "image/png", thumbnail: imgUrl, created_at: new Date() })} className="w-full bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold py-1.5 rounded shadow-lg transition-all flex items-center justify-center gap-1">🚀 Push to DAM</button>
+                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-2">
+                    <button onClick={() => onPushToDAM({ path: imgUrl, name: `AI_Eblast_v${index + 1}.png`, type: "image/png", thumbnail: imgUrl, created_at: new Date() })} className="flex-1 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold py-1.5 rounded shadow-lg transition-all flex items-center justify-center gap-1">🚀 Push to DAM</button>
+                    <button onClick={() => setPreviewState({ isOpen: true, asset: { url: imgUrl, type: 'image' } })} className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-[10px] font-bold py-1.5 rounded shadow-lg transition-all flex items-center justify-center gap-1">👁️ Preview</button>
                   </div>
                 </div>
               ))}
@@ -415,6 +418,12 @@ function EblastAutomation({ onPushToDAM }) {
       )}
 
       <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileUpload} />
+
+      <UniversalPreview 
+        isOpen={previewState.isOpen} 
+        onClose={() => setPreviewState({ ...previewState, isOpen: false })} 
+        asset={previewState.asset} 
+      />
 
       <style>{`
         .skeleton-shimmer { animation: shimmer 1.5s infinite; }

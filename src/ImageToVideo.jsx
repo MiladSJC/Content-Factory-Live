@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import UniversalPreview from './UniversalPreview';
 
 // --- CONFIGURATION ---
 const KNOWN_VIDEO_FILES = [
@@ -44,6 +45,7 @@ function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
   const [videoPool, setVideoPool] = useState([]);
   const [isGenerated, setIsGenerated] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [previewState, setPreviewState] = useState({ isOpen: false, asset: null });
   const [refiningIds, setRefiningIds] = useState(new Set());
   const [imageVersions, setImageVersions] = useState({});
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -588,6 +590,7 @@ function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
                       >
                         🚀 Push to DAM
                       </button>
+                      <button onClick={() => setPreviewState({ isOpen: true, asset: { url: matchedVideo.url, type: 'video' } })} className="bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold py-2 px-4 rounded shadow-lg border border-gray-600">👁️ Preview</button>
                       <button onClick={() => openRefineModal(img.id, img.name)} className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-4 rounded transition-colors">✨ Refine Result</button>
                     </div>
                   </div>
@@ -618,6 +621,12 @@ function ImageToVideo({ onPushToDAM, incomingAssets, onClearIncoming }) {
           </div>
         </div>
       )}
+
+      <UniversalPreview 
+        isOpen={previewState.isOpen} 
+        onClose={() => setPreviewState({ ...previewState, isOpen: false })} 
+        asset={previewState.asset} 
+      />
 
       {/* --- Video Version Review Modal --- */}
       {showReviewModal && (

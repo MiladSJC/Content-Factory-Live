@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import UniversalPreview from './UniversalPreview';
 
 // --- CONFIGURATION ---
 const KNOWN_RESULT_FILES = [
@@ -50,6 +51,7 @@ function ImageModification({ onPushToDAM, incomingAssets, onClearIncoming }) {
   const [liveResults, setLiveResults] = useState({}); 
   const [isGenerated, setIsGenerated] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false); 
+  const [previewState, setPreviewState] = useState({ isOpen: false, asset: null });
   const [refiningIds, setRefiningIds] = useState(new Set()); 
   const [imageVersions, setImageVersions] = useState({}); 
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -559,6 +561,7 @@ function ImageModification({ onPushToDAM, incomingAssets, onClearIncoming }) {
                                         if (!result) return alert("No image to push.");
                                         onPushToDAM({ path: result.url, name: `AI_${img.name}`, type: "image/png", thumbnail: result.url, created_at: new Date() });
                                     }} className="bg-red-600 hover:bg-red-500 text-white text-xs font-bold py-2 px-4 rounded shadow-lg">🚀 Push to DAM</button>
+                                    <button onClick={() => setPreviewState({ isOpen: true, asset: { url: result.url, type: 'image' } })} className="bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold py-2 px-4 rounded shadow-lg border border-gray-600">👁️ Preview</button>
                                     <button onClick={() => setRefineModal({ ...refineModal, isOpen: true, targetImageId: img.id, targetImageName: img.name, isGlobal: false })} className="bg-gray-700 hover:bg-purple-600 text-white text-xs font-bold py-2 px-4 rounded">✨ Refine</button>
                                 </div>                                
                             </div>
@@ -638,6 +641,12 @@ function ImageModification({ onPushToDAM, incomingAssets, onClearIncoming }) {
           </div>
         );
       })()}
+
+      <UniversalPreview 
+        isOpen={previewState.isOpen} 
+        onClose={() => setPreviewState({ ...previewState, isOpen: false })} 
+        asset={previewState.asset} 
+      />
 
       {/* --- Version Review Modal --- */}
       {showReviewModal && (
