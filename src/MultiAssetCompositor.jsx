@@ -32,6 +32,51 @@ const ASSET_SETS = {
       '/Eblast/Result Images/2_7.png',
       '/Eblast/Result Images/2_8.png'
     ]
+  },
+  3: {
+    inputs: ['3_1.png', '3_2.png', '3_3.png'],
+    results: [
+      '/Eblast/Result Images/3_1.png',
+      '/Eblast/Result Images/3_2.png',
+      '/Eblast/Result Images/3_3.png',
+      '/Eblast/Result Images/3_4.png'
+    ],
+    diverseResults: [
+      '/Eblast/Result Images/3_5.png',
+      '/Eblast/Result Images/3_6.png',
+      '/Eblast/Result Images/3_7.png',
+      '/Eblast/Result Images/3_8.png'
+    ]
+  },
+  4: {
+    inputs: ['4_1.png', '4_2.png', '4_3.png'],
+    results: [
+      '/Eblast/Result Images/4_1.png',
+      '/Eblast/Result Images/4_2.png',
+      '/Eblast/Result Images/4_3.png',
+      '/Eblast/Result Images/4_4.png'
+    ],
+    diverseResults: [
+      '/Eblast/Result Images/4_5.png',
+      '/Eblast/Result Images/4_6.png',
+      '/Eblast/Result Images/4_7.png',
+      '/Eblast/Result Images/4_8.png'
+    ]
+  },
+  5: {
+    inputs: ['5_1.png', '5_2.png', '5_3.png'],
+    results: [
+      '/Eblast/Result Images/5_1.png',
+      '/Eblast/Result Images/5_2.png',
+      '/Eblast/Result Images/5_3.png',
+      '/Eblast/Result Images/5_4.png'
+    ],
+    diverseResults: [
+      '/Eblast/Result Images/5_5.png',
+      '/Eblast/Result Images/5_6.png',
+      '/Eblast/Result Images/5_7.png',
+      '/Eblast/Result Images/5_8.png'
+    ]
   }
 };
 
@@ -80,7 +125,7 @@ function EblastAutomation({ onPushToDAM }) {
 
       setInputImages(loaded);
       setActiveLoadedSet(nextSetToLoad);
-      setNextSetToLoad(prev => (prev === 1 ? 2 : 1));
+      setNextSetToLoad(prev => (prev >= 5 ? 1 : prev + 1));
     } catch (e) {
       console.error("Autoload failed", e);
     }
