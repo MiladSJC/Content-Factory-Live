@@ -102,9 +102,28 @@ function CarDealerships({ onPushToDAM }) {
   const [selectedDealership, setSelectedDealership] = useState('');
   const dealerships = [
     { id: 'premier-motors', name: 'Premier Motors', location: 'Downtown Hub' },
-    { id: 'elite-autos', name: 'Elite Autos & Leasing', location: 'North District' }
+    { id: 'elite-autos', name: 'Elite Autos', location: 'North District' }
   ];
   const currentDealerInfo = dealerships.find(d => d.id === selectedDealership);
+
+  // Dealership info image path must match dropdown display name + ".png"
+  const dealershipInfoImgUrl = currentDealerInfo
+    ? `/Car Dealerships/Dealership Info/${currentDealerInfo.name}.png`
+    : null;
+
+  // Measure rendered main image widths so dealership info can match it
+  const resultImgRefs = useRef([]);
+  const [resultImgWidths, setResultImgWidths] = useState(Array(9).fill(null));
+
+  const updateResultImgWidth = (index) => {
+    const el = resultImgRefs.current[index];
+    const w = el ? el.clientWidth : null;
+    setResultImgWidths(prev => {
+      const next = [...prev];
+      next[index] = w;
+      return next;
+    });
+  };
 
   // Refinement State
   const [refineModal, setRefineModal] = useState({ isOpen: false, prompt: '' });
@@ -171,6 +190,9 @@ function CarDealerships({ onPushToDAM }) {
     setIsProcessing(true);
     setResultImages([]);
     setBoxesRefining([false, false, false, false, false, false, false, false, false]);
+
+    // reset widths when generating a new set
+    setResultImgWidths(Array(9).fill(null));
 
     if (isLiveMode) {
       try {
@@ -256,6 +278,9 @@ function CarDealerships({ onPushToDAM }) {
             next[idx] = false;
             return next;
           });
+
+          // update width after refine image is swapped
+          setTimeout(() => updateResultImgWidth(idx), 0);
         });
         await Promise.all(refinePromises);
       } catch (e) {
@@ -263,7 +288,7 @@ function CarDealerships({ onPushToDAM }) {
         setBoxesRefining(Array(resultImages.length).fill(false));
       }
     } else {
-      // Present Mode: Map filenames to include "_X" suffix with staggered reveals (idempotent)
+      // Present Mode: Append "_X" suffix for recursive refinement with staggered reveals
       resultImages.forEach((url, idx) => {
         const randomDelay = 1000 + Math.random() * 2000;
 
@@ -272,8 +297,8 @@ function CarDealerships({ onPushToDAM }) {
           const ext = parts.pop();
           const base = parts.join('.');
 
-          const refinedBase = base.endsWith('_X') ? base : `${base}_X`;
-          const refinedUrl = `${refinedBase}.${ext}`;
+          // Append _X regardless of existing suffix to allow for _X_X_X... etc
+          const refinedUrl = `${base}_X.${ext}`;
 
           setResultImages(prev => {
             const next = [...prev];
@@ -285,6 +310,9 @@ function CarDealerships({ onPushToDAM }) {
             next[idx] = false;
             return next;
           });
+
+          // update width after refine image is swapped
+          setTimeout(() => updateResultImgWidth(idx), 0);
         }, randomDelay);
       });
     }
@@ -420,8 +448,35 @@ function CarDealerships({ onPushToDAM }) {
             <button onClick={() => setRefineModal({ ...refineModal, isOpen: true })} className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 px-4 rounded shadow-lg transition-all transform active:scale-95 flex items-center gap-2">✨ Refine / Edit All</button>
           )}
         </div>
+
         <div className="flex-1 bg-black rounded-lg relative overflow-y-auto custom-scrollbar flex items-center justify-center p-4">
-          {!isProcessing && resultImages.length === 0 && (
+          {/* Idle: if dealership selected, show 9 placeholders with dealership info underneath image area */}
+          {!isProcessing && resultImages.length === 0 && currentDealerInfo && (
+            <div className="grid grid-cols-3 gap-4 w-full h-full animate-fadeIn">
+              {[...Array(9)].map((_, i) => (
+                <div key={i} className="bg-gray-900/40 shadow-2xl border border-gray-700 rounded overflow-hidden flex flex-col">
+                  <div className="relative flex-1 flex items-center justify-center overflow-hidden bg-black/60">
+                    <div className="text-center opacity-40 select-none pointer-events-none py-10">
+                      <div className="text-4xl mb-2">🖼️</div>
+                      <p className="text-[10px] font-black tracking-wider uppercase">Preview Box {i + 1}</p>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-gray-700 bg-gray-900 py-2 flex justify-center">
+                    <img
+                      src={dealershipInfoImgUrl}
+                      alt={`${currentDealerInfo.name} Info`}
+                      className="h-auto object-contain"
+                      style={{ width: '100%', maxWidth: '100%' }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Idle: no dealership selected, show original ready state */}
+          {!isProcessing && resultImages.length === 0 && !currentDealerInfo && (
             <div className="text-center opacity-30 select-none pointer-events-none">
               <div className="text-8xl mb-4">🚗</div>
               <p className="text-2xl font-bold tracking-wider uppercase">Ready for Layout</p>
@@ -431,13 +486,26 @@ function CarDealerships({ onPushToDAM }) {
           {isProcessing && (
             <div className="grid grid-cols-3 gap-4 w-full h-full animate-fadeIn">
               {[...Array(9)].map((_, i) => (
-                <div key={i} className="bg-gray-900/50 border border-gray-700 rounded flex flex-col items-center justify-center relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/5 to-transparent skeleton-shimmer" />
-                  <div className="relative flex flex-col items-center gap-2">
-                    <div className="w-12 h-12 border-t-2 border-red-500 rounded-full animate-spin mb-2" />
-                    <p className="text-[10px] font-black text-red-400 uppercase tracking-widest animate-pulse">Computing V{i + 1}</p>
-                    <p className="text-[8px] text-gray-500 font-mono">Neural Layout {i + 1}</p>
+                <div key={i} className="bg-gray-900/50 border border-gray-700 rounded overflow-hidden flex flex-col">
+                  <div className="relative flex-1 flex flex-col items-center justify-center overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/5 to-transparent skeleton-shimmer" />
+                    <div className="relative flex flex-col items-center gap-2 py-10">
+                      <div className="w-12 h-12 border-t-2 border-red-500 rounded-full animate-spin mb-2" />
+                      <p className="text-[10px] font-black text-red-400 uppercase tracking-widest animate-pulse">Computing V{i + 1}</p>
+                      <p className="text-[8px] text-gray-500 font-mono">Neural Layout {i + 1}</p>
+                    </div>
                   </div>
+
+                  {dealershipInfoImgUrl && (
+                    <div className="border-t border-gray-700 bg-gray-900 py-2 flex justify-center">
+                      <img
+                        src={dealershipInfoImgUrl}
+                        alt={`${currentDealerInfo.name} Info`}
+                        className="h-auto object-contain opacity-90"
+                        style={{ width: '100%', maxWidth: '100%' }}
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -446,26 +514,49 @@ function CarDealerships({ onPushToDAM }) {
           {resultImages.length > 0 && !isProcessing && (
             <div className="grid grid-cols-3 gap-4 w-full h-full animate-fadeIn">
               {resultImages.map((imgUrl, index) => (
-                <div key={index} className="relative group bg-white shadow-2xl border border-gray-700 rounded overflow-hidden flex flex-col">
-                  <div className={`flex-1 flex items-center justify-center overflow-hidden bg-black relative transition-all duration-500 ${boxesRefining[index] ? 'blur-md grayscale' : ''}`}>
-                    <img src={imgUrl} className="max-w-full max-h-full object-contain" alt={`Dealership Variant ${index + 1}`} />
+                <div key={index} className="group bg-white shadow-2xl border border-gray-700 rounded overflow-hidden flex flex-col">
+                  {/* IMAGE AREA (all overlays are scoped here so they do NOT cover dealership info) */}
+                  <div className={`relative flex-1 flex items-center justify-center overflow-hidden bg-black transition-all duration-500 ${boxesRefining[index] ? 'blur-md grayscale' : ''}`}>
+                    <img
+                      src={imgUrl}
+                      className="max-w-full max-h-full object-contain"
+                      alt={`Dealership Variant ${index + 1}`}
+                      ref={(el) => { resultImgRefs.current[index] = el; }}
+                      onLoad={() => updateResultImgWidth(index)}
+                    />
+
+                    {/* AI Motion Overlay during individual box refinement (image-only) */}
+                    {boxesRefining[index] && (
+                      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40">
+                        <div className="relative flex items-center justify-center">
+                          <div className="absolute w-12 h-12 border border-red-500/20 rounded-full animate-ping" />
+                          <div className="w-10 h-10 border-t-2 border-red-500 rounded-full animate-spin" />
+                        </div>
+                        <p className="text-[9px] font-black text-white uppercase tracking-[0.2em] mt-3 animate-pulse">AI Synthesis</p>
+                      </div>
+                    )}
+
+                    {/* Hover actions (image-only) */}
+                    <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-2">
+                      <button onClick={() => onPushToDAM({ path: imgUrl, name: `AI_Dealership_v${index + 1}.png`, type: "image/png", thumbnail: imgUrl, created_at: new Date() })} className="flex-1 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold py-1.5 rounded shadow-lg transition-all flex items-center justify-center gap-1">🚀 Push to DAM</button>
+                      <button onClick={() => setPreviewState({ isOpen: true, asset: { url: imgUrl, type: 'image' } })} className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-[10px] font-bold py-1.5 rounded shadow-lg transition-all flex items-center justify-center gap-1">👁️ Preview</button>
+                    </div>
                   </div>
 
-                  {/* AI Motion Overlay during individual box refinement */}
-                  {boxesRefining[index] && (
-                    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40">
-                      <div className="relative flex items-center justify-center">
-                        <div className="absolute w-12 h-12 border border-red-500/20 rounded-full animate-ping" />
-                        <div className="w-10 h-10 border-t-2 border-red-500 rounded-full animate-spin" />
-                      </div>
-                      <p className="text-[9px] font-black text-white uppercase tracking-[0.2em] mt-3 animate-pulse">AI Synthesis</p>
+                  {/* DEALERSHIP INFO: same width as the rendered image, centered */}
+                  {dealershipInfoImgUrl && (
+                    <div className="border-t border-gray-700 bg-gray-900 py-2 flex justify-center">
+                      <img
+                        src={dealershipInfoImgUrl}
+                        alt={`${currentDealerInfo.name} Info`}
+                        className="h-auto object-contain"
+                        style={{
+                          width: resultImgWidths[index] ? `${resultImgWidths[index]}px` : '100%',
+                          maxWidth: '100%'
+                        }}
+                      />
                     </div>
                   )}
-
-                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-2">
-                    <button onClick={() => onPushToDAM({ path: imgUrl, name: `AI_Dealership_v${index + 1}.png`, type: "image/png", thumbnail: imgUrl, created_at: new Date() })} className="flex-1 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold py-1.5 rounded shadow-lg transition-all flex items-center justify-center gap-1">🚀 Push to DAM</button>
-                    <button onClick={() => setPreviewState({ isOpen: true, asset: { url: imgUrl, type: 'image' } })} className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-[10px] font-bold py-1.5 rounded shadow-lg transition-all flex items-center justify-center gap-1">👁️ Preview</button>
-                  </div>
                 </div>
               ))}
             </div>
