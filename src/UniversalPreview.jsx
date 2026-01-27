@@ -296,24 +296,35 @@ const UniversalPreview = ({ isOpen, onClose, asset, assets = [], initialIndex = 
           <div ref={mediaRef} style={transformStyle} className="relative group flex items-center justify-center">
             <div className="absolute inset-[-30px] bg-red-500/5 blur-[80px] rounded-full opacity-40 pointer-events-none" />
 
-            {isVideo ? (
-              <video
-                ref={videoRef}
-                src={currentAsset.url}
-                autoPlay
-                loop
-                onLoadedMetadata={(e) => { setVideoDuration(e.target.duration); setIsLoading(false); }}
-                onTimeUpdate={handleVideoTimeUpdate}
-                className="max-w-[90vw] max-h-[70vh] rounded-lg shadow-[0_0_80px_rgba(0,0,0,0.8)] border border-white/5"
-              />
-            ) : (
-              <img
-                src={currentAsset.url}
-                alt="Preview"
-                onLoad={handleImageLoad}
-                className="max-w-[90vw] max-h-[70vh] object-contain rounded-lg shadow-[0_0_80px_rgba(0,0,0,0.8)] border border-white/5 pointer-events-none"
-              />
-            )}
+            <div className="relative inline-block">
+              {isVideo ? (
+                <video
+                  ref={videoRef}
+                  src={currentAsset.url}
+                  autoPlay
+                  loop
+                  onLoadedMetadata={(e) => { setVideoDuration(e.target.duration); setIsLoading(false); }}
+                  onTimeUpdate={handleVideoTimeUpdate}
+                  className="max-w-[90vw] max-h-[70vh] rounded-lg shadow-[0_0_80px_rgba(0,0,0,0.8)] border border-white/5"
+                />
+              ) : (
+                <img
+                  src={currentAsset.url}
+                  alt="Preview"
+                  onLoad={handleImageLoad}
+                  className="max-w-[90vw] max-h-[70vh] object-contain rounded-lg shadow-[0_0_80px_rgba(0,0,0,0.8)] border border-white/5 pointer-events-none"
+                />
+              )}
+
+              {/* DEALERSHIP OVERLAY (only renders if provided in asset object) */}
+              {currentAsset.overlayUrl && (
+                <img 
+                  src={currentAsset.overlayUrl}
+                  className="absolute bottom-0 left-0 w-full h-auto block pointer-events-none z-20"
+                  alt="Dealership Overlay"
+                />
+              )}
+            </div>
           </div>
         </div>
 
@@ -332,6 +343,9 @@ const UniversalPreview = ({ isOpen, onClose, asset, assets = [], initialIndex = 
               )}
               <div className="flex justify-between"><span className="text-gray-500">Zoom</span><span className="text-white font-mono">{(scale * 100).toFixed(0)}%</span></div>
               <div className="flex justify-between"><span className="text-gray-500">Rotation</span><span className="text-white font-mono">{rotation}°</span></div>
+              {currentAsset.overlayUrl && (
+                <div className="flex justify-between"><span className="text-gray-500">Overlay</span><span className="text-green-500 font-mono font-bold">Active</span></div>
+              )}
             </div>
             <div className="mt-4 pt-3 border-t border-gray-800">
               <p className="text-[9px] text-gray-600 uppercase tracking-wider">Keyboard Shortcuts</p>
