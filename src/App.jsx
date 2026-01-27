@@ -14,6 +14,7 @@ import CampaignManager from './CampaignManager.jsx';
 import DAM from './DAM.jsx';
 import BOT from './BOT.jsx'; // Integrated
 import EblastAutomation from './MultiAssetCompositor.jsx';
+import CarDealerships from './CarDealerships.jsx';
 import Advertorial from './Advertorial.jsx';
 import Distribution from './Distribution.jsx';
 
@@ -162,6 +163,7 @@ function App() {
     { id: 'image-modification', label: 'AI Offer Builder', icon: Icons.Edit },
     { id: 'image-to-video', label: 'AI Image to Video', icon: Icons.Video },
     { id: 'eblast-automation', label: 'AI Multi-Asset Compositor', icon: Icons.Layers },
+    { id: 'dealerships-automation', label: 'Dealerships Automation', icon: Icons.Layers },
     { id: 'animation', label: 'Animation', icon: Icons.Play },
     //{ id: 'carousel', label: 'Carousel', icon: Icons.Layers },
     { id: 'advertorial', label: 'Advertorial', icon: Icons.File },
@@ -334,6 +336,9 @@ function App() {
           </div>
           <div style={{ display: activeTab === 'eblast-automation' ? 'block' : 'none' }}>
             <EblastAutomation onPushToDAM={handlePushToDAM} />
+          </div>
+          <div style={{ display: activeTab === 'dealerships-automation' ? 'block' : 'none' }}>
+            <CarDealerships onPushToDAM={handlePushToDAM} />
           </div>
 
           {activeTab === 'video' && (
