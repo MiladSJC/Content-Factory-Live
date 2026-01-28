@@ -91,6 +91,13 @@ const UploadIcon = () => (
   </svg>
 );
 
+// Car Icon for color visualization - Increased to w-6 h-6
+const CarColorIcon = ({ color }) => (
+  <svg className="w-6 h-6 shrink-0" viewBox="0 0 24 24" fill={color}>
+    <path d="M18.92 11.01C18.72 10.42 18.16 10 17.5 10H6.5C5.84 10 5.29 10.42 5.08 11.01L3 17V24C3 24.55 3.45 25 4 25H5C5.55 25 6 24.55 6 24V22H18V24C18 24.55 18.45 25 19 25H20C20.55 25 21 24.55 21 24V17L18.92 11.01ZM6.5 12H17.5L18.85 16H5.15L6.5 12ZM5 20C4.45 20 4 19.55 4 19C4 18.45 4.45 18 5 18C5.55 18 6 18.45 6 19C6 19.55 5.55 20 5 20ZM19 20C18.45 20 18 19.55 18 19C18 18.45 18.45 18 19 18C19.55 18 20 18.45 20 19C20 19.55 19.45 20 19 20Z" transform="translate(0, -5) scale(0.9)"/>
+  </svg>
+);
+
 function CarDealerships({ onPushToDAM }) {
   const [inputImages, setInputImages] = useState([]);
   const [prompt, setPrompt] = useState('');
@@ -98,7 +105,7 @@ function CarDealerships({ onPushToDAM }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [resultImages, setResultImages] = useState([]);
 
-  // Dealership Selector (mock)
+  // Dealership Selector
   const [selectedDealership, setSelectedDealership] = useState('');
   const dealerships = [
     { id: 'premier-motors', name: 'Premier Motors', location: 'Downtown Hub' },
@@ -107,12 +114,10 @@ function CarDealerships({ onPushToDAM }) {
   ];
   const currentDealerInfo = dealerships.find(d => d.id === selectedDealership);
 
-  // Dealership info image path must match dropdown display name + ".png"
   const dealershipInfoImgUrl = currentDealerInfo
     ? `/Car Dealerships/Dealership Info/${currentDealerInfo.name}.png`
     : null;
 
-  // Measure rendered main image widths so dealership info can match it
   const resultImgRefs = useRef([]);
   const [resultImgWidths, setResultImgWidths] = useState(Array(9).fill(null));
 
@@ -126,7 +131,6 @@ function CarDealerships({ onPushToDAM }) {
     });
   };
 
-  // Refinement State
   const [refineModal, setRefineModal] = useState({ isOpen: false, prompt: '' });
   const [boxesRefining, setBoxesRefining] = useState([false, false, false, false, false, false, false, false, false]);
 
@@ -134,8 +138,19 @@ function CarDealerships({ onPushToDAM }) {
   const [activeLoadedSet, setActiveLoadedSet] = useState(1);
   const [previewState, setPreviewState] = useState({ isOpen: false, asset: null });
 
-  const [dimensionMode, setDimensionMode] = useState('Uniform');
-  const [selectedRatios, setSelectedRatios] = useState(['9:16']);
+  // Car Color State
+  const CAR_COLORS = [
+    { name: 'Crystal White', hex: '#F9F9F9', code: 'PWP' },
+    { name: 'Phantom Black', hex: '#121212', code: 'NB9' },
+    { name: 'Titanium Silver', hex: '#8E9196', code: 'IM' },
+    { name: 'Racing Red', hex: '#C62828', code: 'M8' },
+    { name: 'Deep Ocean Blue', hex: '#0D47A1', code: 'UU1' },
+    { name: 'Gravity Gray', hex: '#455A64', code: 'K4G' },
+    { name: 'Sage Green', hex: '#4E5B52', code: 'SKG' },
+    { name: 'Sunset Orange', hex: '#E65100', code: 'R2P' }
+  ];
+  const [selectedColor, setSelectedColor] = useState(CAR_COLORS[0]);
+  const [isColorOpen, setIsColorOpen] = useState(false);
 
   const [settings, setSettings] = useState({
     model: 'v2',
@@ -153,7 +168,6 @@ function CarDealerships({ onPushToDAM }) {
         const url = `/Car Dealerships/Input Images/${name}`;
         return { id: Math.random(), url, name };
       }));
-
       setInputImages(loaded);
       setActiveLoadedSet(nextSetToLoad);
       setNextSetToLoad(prev => (prev >= 5 ? 1 : prev + 1));
@@ -171,18 +185,6 @@ function CarDealerships({ onPushToDAM }) {
       isLocalFile: true
     }));
     setInputImages(prev => [...prev, ...newImgs]);
-  };
-
-  const toggleRatio = (ratio) => {
-    if (dimensionMode === 'Uniform') {
-      setSettings({ ...settings, aspectRatio: ratio });
-    } else {
-      setSelectedRatios(prev => {
-        if (prev.includes(ratio)) return prev.filter(r => r !== ratio);
-        if (prev.length >= 9) return prev;
-        return [...prev, ratio];
-      });
-    }
   };
 
   const handleGenerate = async () => {
@@ -205,17 +207,14 @@ function CarDealerships({ onPushToDAM }) {
           });
         }));
 
-        const targetRatios = dimensionMode === 'Uniform'
-          ? Array(9).fill(settings.aspectRatio)
-          : [...selectedRatios, ...Array(9 - selectedRatios.length).fill(selectedRatios[0])].slice(0, 9);
-
+        const targetRatios = Array(9).fill(settings.aspectRatio);
         const responses = await Promise.all(targetRatios.map(ratio =>
           fetch('http://localhost:5001/generate-eblast', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               images: base64Images,
-              prompt,
+              prompt: `${prompt}. Car Color: ${selectedColor.name}`,
               settings: { ...settings, aspectRatio: ratio },
               is_live: true
             })
@@ -367,30 +366,50 @@ function CarDealerships({ onPushToDAM }) {
           </div>
         </div>
 
-        <div className="space-y-4 pt-2">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Dimensions</label>
-              <div className="grid grid-cols-2 gap-2">
-                {['Uniform', 'Diverse'].map(opt => (
-                  <button key={opt} onClick={() => setDimensionMode(opt)} className={`py-1.5 text-[10px] font-bold rounded border transition-all ${dimensionMode === opt ? 'bg-red-600 border-red-500 text-white' : 'bg-gray-900 border-gray-700 text-gray-400'}`}>{opt}</button>
-                ))}
+        {/* --- ASPECT RATIO & CAR ICON ROW --- */}
+        <div className="grid grid-cols-2 gap-4 pt-2">
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Aspect Ratio</label>
+            <select 
+              value={settings.aspectRatio} 
+              onChange={(e) => setSettings({ ...settings, aspectRatio: e.target.value })} 
+              className="w-full bg-gray-900 border border-gray-700 rounded py-2 px-3 text-xs font-bold text-white outline-none focus:border-red-500"
+            >
+              {["1:1", "3:2", "2:3", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9"].map(r => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
+          </div>
+          <div className="relative">
+            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Car Color</label>
+            <button
+              type="button"
+              onClick={() => setIsColorOpen(!isColorOpen)}
+              className="w-full bg-gray-900 border border-gray-700 rounded py-2 px-3 flex items-center justify-between text-xs font-bold text-white outline-none hover:border-gray-500 transition-colors"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <CarColorIcon color={selectedColor.hex} />
+                <span className="truncate">{selectedColor.name}</span>
               </div>
-            </div>
-            <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">{dimensionMode === 'Uniform' ? 'Aspect Ratio' : `Ratios (${selectedRatios.length}/9)`}</label>
-              <div className="relative group">
-                <div className="w-full bg-gray-900 border border-gray-700 rounded py-1.5 px-2 text-[10px] font-bold text-white flex flex-wrap gap-1 min-h-[31px] cursor-pointer">
-                  {dimensionMode === 'Uniform' ? (<span>{settings.aspectRatio}</span>) : (selectedRatios.map(r => <span key={r} className="bg-red-600 px-3 rounded text-[9px]">{r}</span>))}
-                  {dimensionMode === 'Diverse' && selectedRatios.length === 0 && <span className="text-gray-600">Select...</span>}
-                </div>
-                <div className="absolute z-30 bottom-full left-0 w-full bg-gray-900 border border-gray-700 rounded mb-1 hidden group-hover:grid grid-cols-2 p-2 gap-1 shadow-2xl">
-                  {["1:1", "3:2", "2:3", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9"].map(r => (
-                    <button key={r} onClick={() => toggleRatio(r)} className={`text-[10px] p-1 rounded transition-colors ${(dimensionMode === 'Uniform' ? settings.aspectRatio === r : selectedRatios.includes(r)) ? 'bg-red-600 text-white' : 'hover:bg-gray-700 text-gray-400'}`}>{r}</button>
+              <span className="text-gray-500 shrink-0">▼</span>
+            </button>
+            
+            {isColorOpen && (
+              <div className="absolute z-50 bottom-full left-0 w-full bg-gray-900 border border-gray-700 rounded mb-1 shadow-2xl p-1">
+                <div className="max-h-60 overflow-y-auto custom-scrollbar">
+                  {CAR_COLORS.map(color => (
+                    <button
+                      key={color.code}
+                      onClick={() => { setSelectedColor(color); setIsColorOpen(false); }}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-800 transition-colors text-left ${selectedColor.code === color.code ? 'bg-gray-800' : ''}`}
+                    >
+                      <CarColorIcon color={color.hex} />
+                      <span className="text-[11px] font-bold text-white truncate">{color.name}</span>
+                    </button>
                   ))}
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -405,12 +424,6 @@ function CarDealerships({ onPushToDAM }) {
               <option value="">-- Choose Dealership --</option>
               {dealerships.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
             </select>
-            {currentDealerInfo && (
-              <div className="mt-2 p-2 bg-red-900/20 border border-red-900/30 rounded">
-                <p className="text-[10px] text-red-400 font-bold uppercase">Location: {currentDealerInfo.location}</p>
-                <p className="text-[9px] text-gray-400 italic">ID: {currentDealerInfo.id}</p>
-              </div>
-            )}
           </div>
         </div>
 
@@ -437,13 +450,7 @@ function CarDealerships({ onPushToDAM }) {
                       <div className="text-4xl mb-2">🖼️</div>
                       <p className="text-[10px] font-black tracking-wider uppercase">Preview {i + 1}</p>
                     </div>
-                    {dealershipInfoImgUrl && (
-                      <img 
-                        src={dealershipInfoImgUrl} 
-                        className="absolute bottom-0 left-0 w-full h-auto block pointer-events-none z-20" 
-                        alt="" 
-                      />
-                    )}
+                    {dealershipInfoImgUrl && <img src={dealershipInfoImgUrl} className="absolute bottom-0 left-0 w-full h-auto block pointer-events-none z-20" alt="" />}
                   </div>
                 </div>
               ))}
@@ -467,13 +474,6 @@ function CarDealerships({ onPushToDAM }) {
                       <div className="w-12 h-12 border-t-2 border-red-500 rounded-full animate-spin mb-2" />
                       <p className="text-[10px] font-black text-red-400 uppercase tracking-widest animate-pulse">Computing V{i + 1}</p>
                     </div>
-                    {dealershipInfoImgUrl && (
-                      <img 
-                        src={dealershipInfoImgUrl} 
-                        className="absolute bottom-0 left-0 w-full h-auto block pointer-events-none z-20 opacity-50" 
-                        alt="" 
-                      />
-                    )}
                   </div>
                 </div>
               ))}
@@ -496,40 +496,16 @@ function CarDealerships({ onPushToDAM }) {
                         ref={(el) => { resultImgRefs.current[index] = el; }}
                         onLoad={() => updateResultImgWidth(index)}
                       />
-                      
-                      {dealershipInfoImgUrl && (
-                        <img 
-                          src={dealershipInfoImgUrl} 
-                          className="absolute bottom-0 left-0 w-full h-auto block pointer-events-none z-20" 
-                          alt="" 
-                        />
-                      )}
-
+                      {dealershipInfoImgUrl && <img src={dealershipInfoImgUrl} className="absolute bottom-0 left-0 w-full h-auto block pointer-events-none z-20" alt="" />}
                       {boxesRefining[index] && (
                         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/40">
                           <div className="w-10 h-10 border-t-2 border-red-500 rounded-full animate-spin" />
-                          <p className="text-[9px] font-black text-white uppercase tracking-[0.2em] mt-3 animate-pulse">AI Synthesis</p>
+                          <p className="text-[9px] font-black text-white uppercase mt-3 animate-pulse tracking-[0.2em]">AI Synthesis</p>
                         </div>
                       )}
-
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-40 flex items-end p-2 gap-2">
-                        <button onClick={() => onPushToDAM({ path: imgUrl, name: `AI_Dealership_v${index + 1}.png`, type: "image/png", thumbnail: imgUrl, created_at: new Date() })} className="flex-1 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold py-1.5 rounded shadow-lg transition-all">🚀 Push</button>
-                        
-                        {/* --- ANCHOR CODE MODIFIED BELOW --- */}
-                        <button 
-                          onClick={() => setPreviewState({ 
-                            isOpen: true, 
-                            asset: { 
-                              url: imgUrl, 
-                              type: 'image', 
-                              overlayUrl: dealershipInfoImgUrl // Anchoring the transparent PNG to the previewer
-                            } 
-                          })} 
-                          className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-[10px] font-bold py-1.5 rounded shadow-lg transition-all"
-                        >
-                          👁️ Preview
-                        </button>
-                        {/* ---------------------------------- */}
+                        <button onClick={() => onPushToDAM({ path: imgUrl, name: `AI_v${index + 1}.png`, type: "image/png", thumbnail: imgUrl, created_at: new Date() })} className="flex-1 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold py-1.5 rounded shadow-lg transition-all">🚀 Push</button>
+                        <button onClick={() => setPreviewState({ isOpen: true, asset: { url: imgUrl, type: 'image', overlayUrl: dealershipInfoImgUrl } })} className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-[10px] font-bold py-1.5 rounded shadow-lg transition-all">👁️ Preview</button>
                       </div>
                     </div>
                   </div>
@@ -544,15 +520,7 @@ function CarDealerships({ onPushToDAM }) {
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
           <div className="bg-gray-800 rounded-lg border border-gray-600 shadow-2xl p-6 w-full max-w-md">
             <h3 className="text-lg font-bold mb-4 flex justify-between items-center text-white">✨ Refine All Images<button onClick={() => setRefineModal({ ...refineModal, isOpen: false })} className="text-gray-400 hover:text-white">✕</button></h3>
-            <div className="mb-4">
-              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Refinement Model</label>
-              <select value={settings.model} onChange={(e) => setSettings({ ...settings, model: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded py-2 px-3 text-sm text-white outline-none mb-4">
-                <option value="v1">v1 (Azure)</option>
-                <option value="v2">V2 (Nano Banana)</option>
-              </select>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Refinement Prompt</label>
-              <textarea value={refineModal.prompt} onChange={(e) => setRefineModal({ ...refineModal, prompt: e.target.value })} placeholder="e.g. Adjust lighting to be warmer..." className="w-full bg-gray-900 border border-gray-700 rounded p-3 text-sm text-white h-32 outline-none focus:border-red-500 transition-colors" />
-            </div>
+            <textarea value={refineModal.prompt} onChange={(e) => setRefineModal({ ...refineModal, prompt: e.target.value })} placeholder="e.g. Adjust lighting to be warmer..." className="w-full bg-gray-900 border border-gray-700 rounded p-3 text-sm text-white h-32 outline-none focus:border-red-500 transition-colors mb-4" />
             <div className="flex justify-end gap-2">
               <button onClick={() => setRefineModal({ ...refineModal, isOpen: false })} className="px-4 py-2 rounded text-sm text-gray-400 hover:bg-gray-700">Cancel</button>
               <button onClick={handleRefineAll} className="px-4 py-2 rounded text-sm bg-red-600 hover:bg-red-500 text-white font-bold transition-all shadow-lg">🚀 Run Refinement</button>
@@ -563,7 +531,6 @@ function CarDealerships({ onPushToDAM }) {
 
       <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileUpload} />
       <UniversalPreview isOpen={previewState.isOpen} onClose={() => setPreviewState({ ...previewState, isOpen: false })} asset={previewState.asset} />
-
       <style>{`
         .skeleton-shimmer { animation: shimmer 1.5s infinite; }
         @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
