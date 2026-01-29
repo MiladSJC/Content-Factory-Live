@@ -1,84 +1,27 @@
 import React, { useState, useRef, useEffect } from 'react';
 import UniversalPreview from './UniversalPreview';
 
-// Organized Asset Sets for the cycling logic
-const ASSET_SETS = {
-  1: {
-    inputs: ['1_1.png', '1_2.png', '1_3.png'],
+// Dynamically generate Asset Sets (supports up to 20 sets)
+const MAX_SETS = 20;
+const ASSET_SETS = {};
+
+for (let n = 1; n <= MAX_SETS; n++) {
+  ASSET_SETS[n] = {
+    inputs: [`${n}_1.png`, `${n}_2.png`, `${n}_3.png`],
     results: [
-      '/Eblast/Result Images/1_1.png',
-      '/Eblast/Result Images/1_2.png',
-      '/Eblast/Result Images/1_3.png',
-      '/Eblast/Result Images/1_4.png'
+      `/Eblast/Result Images/${n}_1.png`,
+      `/Eblast/Result Images/${n}_2.png`,
+      `/Eblast/Result Images/${n}_3.png`,
+      `/Eblast/Result Images/${n}_4.png`
     ],
     diverseResults: [
-      '/Eblast/Result Images/1_5.png',
-      '/Eblast/Result Images/1_6.png',
-      '/Eblast/Result Images/1_7.png',
-      '/Eblast/Result Images/1_8.png'
+      `/Eblast/Result Images/${n}_5.png`,
+      `/Eblast/Result Images/${n}_6.png`,
+      `/Eblast/Result Images/${n}_7.png`,
+      `/Eblast/Result Images/${n}_8.png`
     ]
-  },
-  2: {
-    inputs: ['2_1.png', '2_2.png', '2_3.png'],
-    results: [
-      '/Eblast/Result Images/2_1.png',
-      '/Eblast/Result Images/2_2.png',
-      '/Eblast/Result Images/2_3.png',
-      '/Eblast/Result Images/2_4.png'
-    ],
-    diverseResults: [
-      '/Eblast/Result Images/2_5.png',
-      '/Eblast/Result Images/2_6.png',
-      '/Eblast/Result Images/2_7.png',
-      '/Eblast/Result Images/2_8.png'
-    ]
-  },
-  3: {
-    inputs: ['3_1.png', '3_2.png', '3_3.png'],
-    results: [
-      '/Eblast/Result Images/3_1.png',
-      '/Eblast/Result Images/3_2.png',
-      '/Eblast/Result Images/3_3.png',
-      '/Eblast/Result Images/3_4.png'
-    ],
-    diverseResults: [
-      '/Eblast/Result Images/3_5.png',
-      '/Eblast/Result Images/3_6.png',
-      '/Eblast/Result Images/3_7.png',
-      '/Eblast/Result Images/3_8.png'
-    ]
-  },
-  4: {
-    inputs: ['4_1.png', '4_2.png', '4_3.png'],
-    results: [
-      '/Eblast/Result Images/4_1.png',
-      '/Eblast/Result Images/4_2.png',
-      '/Eblast/Result Images/4_3.png',
-      '/Eblast/Result Images/4_4.png'
-    ],
-    diverseResults: [
-      '/Eblast/Result Images/4_5.png',
-      '/Eblast/Result Images/4_6.png',
-      '/Eblast/Result Images/4_7.png',
-      '/Eblast/Result Images/4_8.png'
-    ]
-  },
-  5: {
-    inputs: ['5_1.png', '5_2.png', '5_3.png'],
-    results: [
-      '/Eblast/Result Images/5_1.png',
-      '/Eblast/Result Images/5_2.png',
-      '/Eblast/Result Images/5_3.png',
-      '/Eblast/Result Images/5_4.png'
-    ],
-    diverseResults: [
-      '/Eblast/Result Images/5_5.png',
-      '/Eblast/Result Images/5_6.png',
-      '/Eblast/Result Images/5_7.png',
-      '/Eblast/Result Images/5_8.png'
-    ]
-  }
-};
+  };
+}
 
 const UploadIcon = () => (
   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,20 +58,56 @@ function EblastAutomation({ onPushToDAM }) {
 
   const fileInputRef = useRef(null);
 
-  const handleAutoLoad = async () => {
-    try {
-      const currentSet = ASSET_SETS[nextSetToLoad];
-      const loaded = await Promise.all(currentSet.inputs.map(async (name) => {
-        const url = `/Eblast/Input Images/${name}`;
-        return { id: Math.random(), url, name };
-      }));
+  // Helper function to check if an image URL is accessible
+  const checkImageExists = (url) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
+  };
 
-      setInputImages(loaded);
-      setActiveLoadedSet(nextSetToLoad);
-      setNextSetToLoad(prev => (prev >= 5 ? 1 : prev + 1));
-    } catch (e) {
-      console.error("Autoload failed", e);
+  const handleAutoLoad = async () => {
+    const maxAttempts = MAX_SETS;
+    let attempts = 0;
+    let currentSetIndex = nextSetToLoad;
+
+    while (attempts < maxAttempts) {
+      const currentSet = ASSET_SETS[currentSetIndex];
+
+      // Check input images - we need at least one valid input to display
+      const inputUrls = currentSet.inputs.map(name => `/Eblast/Input Images/${name}`);
+      const validInputs = [];
+
+      for (let i = 0; i < inputUrls.length; i++) {
+        const exists = await checkImageExists(inputUrls[i]);
+        if (exists) {
+          validInputs.push({
+            id: Math.random(),
+            url: inputUrls[i],
+            name: currentSet.inputs[i]
+          });
+        }
+      }
+
+      // Only use this set if at least one input image exists
+      if (validInputs.length > 0) {
+        setInputImages(validInputs);
+        setActiveLoadedSet(currentSetIndex);
+        setNextSetToLoad(currentSetIndex >= MAX_SETS ? 1 : currentSetIndex + 1);
+        console.log(`Loaded set ${currentSetIndex} with ${validInputs.length} valid input images`);
+        return;
+      }
+
+      // Skip to next set - no valid input images
+      console.warn(`Asset set ${currentSetIndex} has no valid images, skipping...`);
+      currentSetIndex = currentSetIndex >= MAX_SETS ? 1 : currentSetIndex + 1;
+      attempts++;
     }
+
+    // All sets failed - just skip silently (don't update state)
+    console.warn("No valid asset sets available");
   };
 
   const handleFileUpload = (e) => {
@@ -464,10 +443,10 @@ function EblastAutomation({ onPushToDAM }) {
 
       <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileUpload} />
 
-      <UniversalPreview 
-        isOpen={previewState.isOpen} 
-        onClose={() => setPreviewState({ ...previewState, isOpen: false })} 
-        asset={previewState.asset} 
+      <UniversalPreview
+        isOpen={previewState.isOpen}
+        onClose={() => setPreviewState({ ...previewState, isOpen: false })}
+        asset={previewState.asset}
       />
 
       <style>{`
