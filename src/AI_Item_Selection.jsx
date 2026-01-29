@@ -34,7 +34,7 @@ const AI_Icons = {
   )
 };
 
-const EXCEL_PUBLIC_URL = encodeURI("/Metro All Data.xlsx");
+const EXCEL_PUBLIC_URL = encodeURI("/Hyundai All Data.xlsx");
 const BANNERS = ['Metro', 'Food Basics'];
 
 const normalize = (v) => String(v ?? "").trim().toLowerCase();
