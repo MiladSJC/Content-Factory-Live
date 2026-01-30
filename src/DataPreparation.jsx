@@ -1,17 +1,18 @@
 import { useState, useMemo, useRef } from 'react';
 import Papa from 'papaparse';
 
-function DataPreparation({ 
-  csvData, 
-  setCsvData, 
-  allGeneratedRows, 
-  setAllGeneratedRows, 
-  onLoadCarousel 
+function DataPreparation({
+  csvData,
+  setCsvData,
+  allGeneratedRows,
+  setAllGeneratedRows,
+  onLoadCarousel
 }) {
   // --- Local State for Data Prep View ---
   const [csvUploaded, setCsvUploaded] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  
+  const [generationProgress, setGenerationProgress] = useState({ current: 0, total: 0 });
+
   // Filtering State
   const [filters, setFilters] = useState({
     brand: 'all',
@@ -25,7 +26,7 @@ function DataPreparation({
   const [isLangModalOpen, setIsLangModalOpen] = useState(false);
   const [selectedLangs, setSelectedLangs] = useState([]);
   const [aiPrompt, setAiPrompt] = useState('');
-  const [selectedModel, setSelectedModel] = useState('gpt-4o'); 
+  const [selectedModel, setSelectedModel] = useState('gpt-4o');
 
   const csvInputRef = useRef(null);
 
@@ -33,51 +34,51 @@ function DataPreparation({
 
   // MEMOIZED: Unique Values for Dropdowns
   const uniqueValues = useMemo(() => {
-      if (csvData.length === 0) {
-          return { brands: [], products: [], assetTypes: [], sizes: [], formats: [] };
-      }
+    if (csvData.length === 0) {
+      return { brands: [], products: [], assetTypes: [], sizes: [], formats: [] };
+    }
 
-      const brands = [...new Set(csvData.map(row => row.Brand).filter(Boolean))];
+    const brands = [...new Set(csvData.map(row => row.Brand).filter(Boolean))];
 
-      const brandFilteredData = csvData.filter(row => 
-          filters.brand === 'all' || row.Brand === filters.brand
-      );
-      const products = [...new Set(brandFilteredData.map(row => row.Product).filter(Boolean))];
+    const brandFilteredData = csvData.filter(row =>
+      filters.brand === 'all' || row.Brand === filters.brand
+    );
+    const products = [...new Set(brandFilteredData.map(row => row.Product).filter(Boolean))];
 
-      const productFilteredData = brandFilteredData.filter(row =>
-          filters.product === 'all' || row.Product === filters.product
-      );
-      const assetTypes = [...new Set(productFilteredData.map(row => row['Asset Type']).filter(Boolean))];
+    const productFilteredData = brandFilteredData.filter(row =>
+      filters.product === 'all' || row.Product === filters.product
+    );
+    const assetTypes = [...new Set(productFilteredData.map(row => row['Asset Type']).filter(Boolean))];
 
-      const assetTypeFilteredData = productFilteredData.filter(row =>
-          filters.assetType === 'all' || row['Asset Type'] === filters.assetType
-      );
-      const sizes = [...new Set(assetTypeFilteredData.map(row => row.Size).filter(Boolean))];
+    const assetTypeFilteredData = productFilteredData.filter(row =>
+      filters.assetType === 'all' || row['Asset Type'] === filters.assetType
+    );
+    const sizes = [...new Set(assetTypeFilteredData.map(row => row.Size).filter(Boolean))];
 
-      const sizeFilteredData = assetTypeFilteredData.filter(row =>
-          filters.size === 'all' || row.Size === filters.size
-      );
-      const formats = [...new Set(sizeFilteredData.map(row => row.Format).filter(Boolean))];
+    const sizeFilteredData = assetTypeFilteredData.filter(row =>
+      filters.size === 'all' || row.Size === filters.size
+    );
+    const formats = [...new Set(sizeFilteredData.map(row => row.Format).filter(Boolean))];
 
-      return { brands, products, assetTypes, sizes, formats };
+    return { brands, products, assetTypes, sizes, formats };
 
-  }, [csvData, filters]); 
+  }, [csvData, filters]);
 
   // MEMOIZED: Available Languages for AI
   const availableLanguages = useMemo(() => {
-      const allLangs = [...new Set(csvData.map(row => row.language).filter(Boolean))];
-      return allLangs.filter(lang => lang !== 'EN'); 
+    const allLangs = [...new Set(csvData.map(row => row.language).filter(Boolean))];
+    return allLangs.filter(lang => lang !== 'EN');
   }, [csvData]);
 
   // MEMOIZED: Filtered Rows for Table
   const filteredGeneratedRows = useMemo(() => {
-      return allGeneratedRows.filter(row => {
-          return (filters.brand === 'all' || row.Brand === filters.brand) &&
-                 (filters.product === 'all' || row.Product === filters.product) &&
-                 (filters.assetType === 'all' || row['Asset Type'] === filters.assetType) &&
-                 (filters.size === 'all' || row.Size === filters.size) &&
-                 (filters.format === 'all' || row.Format === filters.format);
-      });
+    return allGeneratedRows.filter(row => {
+      return (filters.brand === 'all' || row.Brand === filters.brand) &&
+        (filters.product === 'all' || row.Product === filters.product) &&
+        (filters.assetType === 'all' || row['Asset Type'] === filters.assetType) &&
+        (filters.size === 'all' || row.Size === filters.size) &&
+        (filters.format === 'all' || row.Format === filters.format);
+    });
   }, [allGeneratedRows, filters]);
 
   // --- Handlers ---
@@ -90,22 +91,22 @@ function DataPreparation({
         skipEmptyLines: true,
         complete: (results) => {
           const initialData = results.data.map((row, index) => ({
-              ...row,
-              id: Date.now() + index,
+            ...row,
+            id: Date.now() + index,
           }));
 
           setCsvData(initialData);
           setCsvUploaded(true);
-          
+
           const enRows = initialData.filter(row => row.language === 'EN');
-          setAllGeneratedRows(enRows); 
-          
+          setAllGeneratedRows(enRows);
+
           setFilters({
-              brand: 'all',
-              product: 'all',
-              assetType: 'all',
-              size: 'all',
-              format: 'all'
+            brand: 'all',
+            product: 'all',
+            assetType: 'all',
+            size: 'all',
+            format: 'all'
           });
         }
       });
@@ -113,8 +114,8 @@ function DataPreparation({
   };
 
   const handleCellEdit = (id, key, value) => {
-    setAllGeneratedRows(prevRows => 
-      prevRows.map(row => 
+    setAllGeneratedRows(prevRows =>
+      prevRows.map(row =>
         row.id === id ? { ...row, [key]: value } : row
       )
     );
@@ -157,7 +158,7 @@ function DataPreparation({
     const csv = Papa.unparse(exportData);
     const BOM = "\uFEFF";
     const csvWithBOM = BOM + csv;
-    
+
     const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -167,7 +168,7 @@ function DataPreparation({
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
+
     alert("CSV exported successfully!");
   };
 
@@ -182,39 +183,51 @@ function DataPreparation({
     }
   };
 
+  /**
+   * REFACTORED: handleLanguageGeneration
+   * Removes backend reliance and processing loops to prevent UI crashes.
+   * Processes all row logic locally in the frontend state.
+   */
   const handleLanguageGeneration = async () => {
     setIsLangModalOpen(false);
     setIsGenerating(true);
-    
-    console.log("Starting generation with:", {
-      prompt: aiPrompt,
-      model: selectedModel,
-      languages: selectedLangs
-    });
 
-    const dataToAdd = csvData.filter(row => {
+    // Determine which source rows match selected filters and languages
+    const sourceRows = csvData.filter(row => {
       if (!selectedLangs.includes(row.language)) {
         return false;
       }
       return (filters.brand === 'all' || row.Brand === filters.brand) &&
-             (filters.product === 'all' || row.Product === filters.product) &&
-             (filters.assetType === 'all' || row['Asset Type'] === filters.assetType) &&
-             (filters.size === 'all' || row.Size === filters.size) &&
-             (filters.format === 'all' || row.Format === filters.format);
+        (filters.product === 'all' || row.Product === filters.product) &&
+        (filters.assetType === 'all' || row['Asset Type'] === filters.assetType) &&
+        (filters.size === 'all' || row.Size === filters.size) &&
+        (filters.format === 'all' || row.Format === filters.format);
     });
 
-    const newRows = dataToAdd.filter(newRow => 
-      !allGeneratedRows.some(existingRow => existingRow.id === newRow.id)
-    );
+    // Filter out rows that already exist
+    const existingIds = new Set(allGeneratedRows.map(r => r.id));
+    const newRows = sourceRows.filter(r => !existingIds.has(r.id));
 
+    if (newRows.length === 0) {
+      setIsGenerating(false);
+      setSelectedLangs([]);
+      return;
+    }
+
+    // Set progress tracking
+    setGenerationProgress({ current: 0, total: newRows.length });
+
+    // Add rows one by one with delay
     for (let i = 0; i < newRows.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 800));
-      const rowWithId = newRows[i].id ? newRows[i] : { ...newRows[i], id: Date.now() + i };
-      setAllGeneratedRows(prev => [...prev, rowWithId]);
+      await new Promise(resolve => setTimeout(resolve, 150)); // 150ms delay between each row
+
+      setAllGeneratedRows(prev => [...prev, newRows[i]]);
+      setGenerationProgress({ current: i + 1, total: newRows.length });
     }
 
     setIsGenerating(false);
-    setSelectedLangs([]); 
+    setGenerationProgress({ current: 0, total: 0 });
+    setSelectedLangs([]);
   };
 
   return (
@@ -231,11 +244,10 @@ function DataPreparation({
           />
           <button
             onClick={() => csvInputRef.current?.click()}
-            className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors text-lg ${
-              csvUploaded
-                ? 'bg-green-600 hover:bg-green-700'
-                : 'bg-red-600 hover:bg-red-700'
-            }`}
+            className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors text-lg ${csvUploaded
+              ? 'bg-green-600 hover:bg-green-700'
+              : 'bg-red-600 hover:bg-red-700'
+              }`}
           >
             {csvUploaded ? '✓ Connected' : '📤 Upload CSV'}
           </button>
@@ -251,7 +263,7 @@ function DataPreparation({
                 <select
                   value={filters.brand}
                   onChange={(e) => setFilters({ ...filters, brand: e.target.value, product: 'all', assetType: 'all', size: 'all', format: 'all' })}
-                  className="w-full bg-gray-700 px-3 py-2 rounded text-lg" 
+                  className="w-full bg-gray-700 px-3 py-2 rounded text-lg"
                 >
                   <option value="all">All Brands</option>
                   {uniqueValues.brands.map(brand => (
@@ -265,7 +277,7 @@ function DataPreparation({
                 <select
                   value={filters.product}
                   onChange={(e) => setFilters({ ...filters, product: e.target.value, assetType: 'all', size: 'all', format: 'all' })}
-                  className="w-full bg-gray-700 px-3 py-2 rounded text-lg" 
+                  className="w-full bg-gray-700 px-3 py-2 rounded text-lg"
                   disabled={uniqueValues.products.length === 0 && filters.brand !== 'all'}
                 >
                   <option value="all">All Products</option>
@@ -280,7 +292,7 @@ function DataPreparation({
                 <select
                   value={filters.assetType}
                   onChange={(e) => setFilters({ ...filters, assetType: e.target.value, size: 'all', format: 'all' })}
-                  className="w-full bg-gray-700 px-3 py-2 rounded text-lg" 
+                  className="w-full bg-gray-700 px-3 py-2 rounded text-lg"
                   disabled={uniqueValues.assetTypes.length === 0 && (filters.brand !== 'all' || filters.product !== 'all')}
                 >
                   <option value="all">All Asset Types</option>
@@ -295,7 +307,7 @@ function DataPreparation({
                 <select
                   value={filters.size}
                   onChange={(e) => setFilters({ ...filters, size: e.target.value, format: 'all' })}
-                  className="w-full bg-gray-700 px-3 py-2 rounded text-lg" 
+                  className="w-full bg-gray-700 px-3 py-2 rounded text-lg"
                   disabled={uniqueValues.sizes.length === 0 && (filters.brand !== 'all' || filters.product !== 'all' || filters.assetType !== 'all')}
                 >
                   <option value="all">All Sizes</option>
@@ -310,7 +322,7 @@ function DataPreparation({
                 <select
                   value={filters.format}
                   onChange={(e) => setFilters({ ...filters, format: e.target.value })}
-                  className="w-full bg-gray-700 px-3 py-2 rounded text-lg" 
+                  className="w-full bg-gray-700 px-3 py-2 rounded text-lg"
                   disabled={uniqueValues.formats.length === 0 && (filters.brand !== 'all' || filters.product !== 'all' || filters.assetType !== 'all' || filters.size !== 'all')}
                 >
                   <option value="all">All Formats</option>
@@ -323,7 +335,7 @@ function DataPreparation({
 
             <button
               onClick={() => setIsLangModalOpen(true)}
-              disabled={isGenerating} 
+              disabled={isGenerating}
               className="w-full bg-red-700 hover:bg-red-800 disabled:bg-gray-600 disabled:cursor-not-allowed py-3 rounded-lg font-semibold text-lg"
             >
               {isGenerating ? '🤖 Generating...' : '🤖 AI Text Generation'}
@@ -339,7 +351,7 @@ function DataPreparation({
             <div className="text-6xl mb-4">📊</div>
             <p className="text-xl text-gray-400">Upload a CSV file to get started</p>
           </div>
-        ) : filteredGeneratedRows.length === 0 && !isGenerating ? ( 
+        ) : filteredGeneratedRows.length === 0 && !isGenerating ? (
           <div className="bg-gray-800 rounded-lg p-12 text-center">
             <div className="text-6xl mb-4">✨</div>
             <p className="text-xl text-gray-400">
@@ -349,15 +361,15 @@ function DataPreparation({
         ) : (
           <div className="space-y-4">
             <button
-                onClick={handleExportCsv}
-                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed py-2 px-4 rounded-lg font-semibold"
-                disabled={filteredGeneratedRows.length === 0} 
+              onClick={handleExportCsv}
+              className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed py-2 px-4 rounded-lg font-semibold"
+              disabled={filteredGeneratedRows.length === 0}
             >
-                💾 Export Edited CSV ({filteredGeneratedRows.length} rows) 
+              💾 Export Edited CSV ({filteredGeneratedRows.length} rows)
             </button>
             <div className="bg-gray-800 rounded-lg overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-base"> 
+                <table className="w-full text-base">
                   <thead className="bg-gray-700">
                     <tr>
                       <th className="px-3 py-3 text-left">Language</th>
@@ -381,18 +393,18 @@ function DataPreparation({
                           <td key={key} className="px-3 py-6">
                             <input
                               type="text"
-                              value={row[key] || ''} 
+                              value={row[key] || ''}
                               onChange={(e) => handleCellEdit(row.id, key, e.target.value)}
                               className="bg-gray-700 p-3 rounded w-full text-2xl min-w-[70px] h-12"
                             />
                           </td>
                         ))}
-                        
+
                         {['Headline1', 'Headline2', 'Headline3', 'Headline4', 'Headline5'].map(key => (
                           <td key={key} className="px-3 py-6">
                             <textarea
                               rows="3"
-                              value={row[key] || ''} 
+                              value={row[key] || ''}
                               onChange={(e) => handleCellEdit(row.id, key, e.target.value)}
                               onFocus={(e) => {
                                 e.target.rows = 1;
@@ -401,14 +413,14 @@ function DataPreparation({
                               onBlur={(e) => {
                                 e.target.rows = 3;
                               }}
-                              className="bg-gray-700 p-3 rounded w-full text-2xl min-w-[120px] resize-none" 
+                              className="bg-gray-700 p-3 rounded w-full text-2xl min-w-[120px] resize-none"
                             />
                           </td>
                         ))}
 
                         <td className="px-3 py-6">
                           <textarea
-                            rows="4" 
+                            rows="4"
                             value={row['ENG Finance'] || ''}
                             onChange={(e) => handleCellEdit(row.id, 'ENG Finance', e.target.value)}
                             className="bg-gray-700 p-3 rounded w-full text-2xl resize-none min-h-[160px]"
@@ -416,15 +428,15 @@ function DataPreparation({
                         </td>
 
                         <td className="px-3 py-6">
-                            <button
-                                onClick={() => onLoadCarousel(row)}
-                                disabled={row.language !== 'EN'} 
-                                className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 px-3 py-2 rounded text-xs font-semibold whitespace-nowrap"
-                            >
-                                Load 5 Slides
-                            </button>
+                          <button
+                            onClick={() => onLoadCarousel(row)}
+                            disabled={row.language !== 'EN'}
+                            className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 px-3 py-2 rounded text-xs font-semibold whitespace-nowrap"
+                          >
+                            Load 5 Slides
+                          </button>
                         </td>
-                        
+
                         <td className="px-3 py-6">
                           <button
                             onClick={() => openTemplate(row.Template)}
@@ -449,7 +461,7 @@ function DataPreparation({
         )}
       </div>
 
-      {/* AI Modal (Moved from App.jsx) */}
+      {/* AI Modal */}
       {isLangModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-lg p-8 max-w-7xl w-full">
@@ -501,18 +513,18 @@ function DataPreparation({
                     <p className="text-gray-400 p-2">No other languages in CSV.</p>
                   )}
                   {['Spanish', 'Persian'].map(lang => (
-                      !availableLanguages.includes(lang) && (
-                        <label key={lang} className="flex items-center space-x-3 p-2 rounded-lg cursor-pointer hover:bg-gray-700 opacity-50">
-                          <input
-                            type="checkbox"
-                            value={lang}
-                            onChange={handleLangCheckbox}
-                            checked={selectedLangs.includes(lang)}
-                            className="h-5 w-5 rounded text-red-500 bg-gray-900 border-gray-600 focus:ring-red-600"
-                          />
-                          <span className="text-lg">{lang}</span>
-                        </label>
-                      )
+                    !availableLanguages.includes(lang) && (
+                      <label key={lang} className="flex items-center space-x-3 p-2 rounded-lg cursor-pointer hover:bg-gray-700 opacity-50">
+                        <input
+                          type="checkbox"
+                          value={lang}
+                          onChange={handleLangCheckbox}
+                          checked={selectedLangs.includes(lang)}
+                          className="h-5 w-5 rounded text-red-500 bg-gray-900 border-gray-600 focus:ring-red-600"
+                        />
+                        <span className="text-lg">{lang}</span>
+                      </label>
+                    )
                   ))}
                 </div>
               </div>

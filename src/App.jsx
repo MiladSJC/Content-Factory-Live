@@ -292,11 +292,16 @@ function App() {
           )}
           {activeTab === 'data-preparation' && (
             <div className="animate-fadeIn">
-              <DataPreparation 
+              <DataPreparation
                 csvData={carouselData?.csvData || []}
                 setCsvData={(data) => setCarouselData(prev => ({ ...prev, csvData: data }))}
                 allGeneratedRows={carouselData?.allGeneratedRows || []}
-                setAllGeneratedRows={(rows) => setCarouselData(prev => ({ ...prev, allGeneratedRows: rows }))}
+                setAllGeneratedRows={(rowsOrUpdater) => setCarouselData(prev => ({
+                  ...prev,
+                  allGeneratedRows: typeof rowsOrUpdater === 'function'
+                    ? rowsOrUpdater(prev?.allGeneratedRows || [])
+                    : rowsOrUpdater
+                }))}
                 onLoadCarousel={(row) => {
                   setTransferData([row]);
                   setActiveTab('carousel');
