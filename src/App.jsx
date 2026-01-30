@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import CarouselTab from './CarouselTab.jsx';
 import VideoEditor from './VideoEditor.jsx';
+import DataPreparation from './DataPreparation.jsx';
 import Animation from './Animation.jsx';
 import Analytics from './Analytics.jsx';
 import Flyer from './Flyer.jsx';
@@ -154,6 +155,7 @@ function App() {
   const navPrimary = [
     { id: 'brand-dna', label: 'Brand DNA', icon: Icons.Fingerprint },
     { id: 'campaign-manager', label: 'Campaign Manager', icon: Icons.Briefcase },
+    { id: 'data-preparation', label: 'Data Preparation', icon: Icons.File },
     { id: 'item-picker', label: 'AI Item Selection', icon: Icons.Grid },
   ];
 
@@ -165,7 +167,8 @@ function App() {
     { id: 'eblast-automation', label: 'AI Multi-Asset Compositor', icon: Icons.Layers },
     { id: 'dealerships-automation', label: 'Dealerships Automation', icon: Icons.Layers },
     { id: 'animation', label: 'Animation', icon: Icons.Play },
-    //{ id: 'carousel', label: 'Carousel', icon: Icons.Layers },
+    { id: 'carousel', label: 'Carousel', icon: Icons.Layers },
+    { id: 'video', label: 'Video Editor', icon: Icons.Video },
     { id: 'advertorial', label: 'Advertorial', icon: Icons.File },
     { id: 'project-timeline', label: 'Project Timeline', icon: Icons.Clock },
     { id: 'dam', label: 'AI-Powered DAM', icon: Icons.File },
@@ -287,6 +290,21 @@ function App() {
               />
             </div>
           )}
+          {activeTab === 'data-preparation' && (
+            <div className="animate-fadeIn">
+              <DataPreparation 
+                csvData={carouselData?.csvData || []}
+                setCsvData={(data) => setCarouselData(prev => ({ ...prev, csvData: data }))}
+                allGeneratedRows={carouselData?.allGeneratedRows || []}
+                setAllGeneratedRows={(rows) => setCarouselData(prev => ({ ...prev, allGeneratedRows: rows }))}
+                onLoadCarousel={(row) => {
+                  setTransferData([row]);
+                  setActiveTab('carousel');
+                }}
+              />
+            </div>
+          )}
+
 
           <div style={{ display: activeTab === 'item-picker' ? 'block' : 'none' }}>
             <AI_Item_Selection
