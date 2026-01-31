@@ -21,7 +21,7 @@ import Distribution from './Distribution.jsx';
 
 import sjcLogo from './sjc.jpg';
 import Login from './Login.jsx';
-import staplesLogo from './Staples.png';
+import staplesLogo from './Hyundai.png';
 
 // --- Icons (Simple SVG Components for Production Reliability) ---
 const Icons = {
@@ -139,6 +139,16 @@ function App() {
   // --- Carousel State (preserved) ---
   const [carouselData, setCarouselData] = useState(null);
   const [transferData, setTransferData] = useState(null);
+
+  // --- Data Preparation Persistent State ---
+  const [csvUploaded, setCsvUploaded] = useState(false);
+  const [dataPrepFilters, setDataPrepFilters] = useState({
+    brand: 'all',
+    product: 'all',
+    assetType: 'all',
+    size: 'all',
+    format: 'all'
+  });
   const [activeVideoLanguage, setActiveVideoLanguage] = useState('EN');
   // --- Animation State (preserved) ---
   const [animationResults, setAnimationResults] = useState({
@@ -259,7 +269,7 @@ function App() {
           <div className="flex items-center gap-4">
             <img src={staplesLogo} alt="Staples Logo" className="h-10 bg-white rounded p-1 shadow-sm border border-gray-100" />
             <div className="leading-tight">
-              <h1 className="text-2xl font-black tracking-tight">Retail Content Studio</h1>
+              <h1 className="text-2xl font-black tracking-tight">Content Studio</h1>
               <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.25em]"></p>
             </div>
           </div>
@@ -302,6 +312,10 @@ function App() {
                     ? rowsOrUpdater(prev?.allGeneratedRows || [])
                     : rowsOrUpdater
                 }))}
+                csvUploaded={csvUploaded}
+                setCsvUploaded={setCsvUploaded}
+                filters={dataPrepFilters}
+                setFilters={setDataPrepFilters}
                 onLoadCarousel={(row) => {
                   setTransferData([row]);
                   setActiveTab('carousel');
