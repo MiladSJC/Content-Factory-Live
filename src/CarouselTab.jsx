@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 
 // --- CONFIGURATION ---
 // Ensure this file exists in your 'public' folder (e.g., public/carousel-project.json)
-const DEFAULT_PROJECT_FILE = '/Carousel Config.json';
+const DEFAULT_PROJECT_FILE = '/Hyundai carousel.json';
 
 const VERSIONS = ['V1', 'V2', 'V3', 'V4', 'V5'];
 
@@ -446,6 +446,7 @@ function CarouselTab({ carouselData, setCarouselData }) {
                         };
                     }
                 });
+                setLanguageCache(newCache);
             }
             // CASE 2: LEGACY FORMAT
             else if (configData.versions) {

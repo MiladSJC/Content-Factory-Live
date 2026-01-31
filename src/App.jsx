@@ -170,20 +170,20 @@ function App() {
   ];
 
   const navSecondary = [
-    { id: 'flyer', label: 'Flyer Production', icon: Icons.File },
-    { id: 'all-ai-flyer', label: 'All AI Flyer (Beta)', icon: Icons.Sparkles },
+   // { id: 'flyer', label: 'Flyer Production', icon: Icons.File },
+   // { id: 'all-ai-flyer', label: 'All AI Flyer (Beta)', icon: Icons.Sparkles },
     { id: 'image-modification', label: 'AI Offer Builder', icon: Icons.Edit },
     { id: 'image-to-video', label: 'AI Image to Video', icon: Icons.Video },
     { id: 'eblast-automation', label: 'AI Multi-Asset Compositor', icon: Icons.Layers },
     { id: 'dealerships-automation', label: 'Dealerships Automation', icon: Icons.Layers },
-    { id: 'animation', label: 'Animation', icon: Icons.Play },
+   // { id: 'animation', label: 'Animation', icon: Icons.Play },
     { id: 'carousel', label: 'Carousel', icon: Icons.Layers },
     { id: 'video', label: 'Video Editor', icon: Icons.Video },
-    { id: 'advertorial', label: 'Advertorial', icon: Icons.File },
+   // { id: 'advertorial', label: 'Advertorial', icon: Icons.File },
     { id: 'project-timeline', label: 'Project Timeline', icon: Icons.Clock },
     { id: 'dam', label: 'AI-Powered DAM', icon: Icons.File },
     { id: 'analytics', label: 'Analytics', icon: Icons.Chart },
-    { id: 'distribution', label: 'Distribution', icon: Icons.Layers },
+   // { id: 'distribution', label: 'Distribution', icon: Icons.Layers },
   ];
 
   const NavButton = (item) => (
